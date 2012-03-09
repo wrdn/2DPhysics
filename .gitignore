@@ -33,6 +33,8 @@ ipch/
 [Dd]ebug/
 [Rr]elease/
 !Libraries/
+!Libraries/GXBase/lib/Debug/
+!Libraries/GXBase/lib/Release/
 .parasoft.dat/
 .parasoft
 .cpptest/

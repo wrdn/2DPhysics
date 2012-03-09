@@ -129,6 +129,7 @@
     <ClInclude Include="ShaderObject.h" />
     <ClInclude Include="strutils.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="units.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
