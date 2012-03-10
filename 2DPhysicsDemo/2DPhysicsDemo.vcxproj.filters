@@ -111,12 +111,12 @@
     <ClCompile Include="SceneObject.cpp">
       <Filter>Source Files\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsUtils.cpp">
+      <Filter>Source Files\Geometry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Collision.h">
-      <Filter>Header Files\Geometry</Filter>
-    </ClInclude>
-    <ClInclude Include="Circle.h">
       <Filter>Header Files\Geometry</Filter>
     </ClInclude>
     <ClInclude Include="Namable.h">
@@ -202,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="units.h">
       <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsUtils.h">
+      <Filter>Header Files\Geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

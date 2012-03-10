@@ -18,7 +18,7 @@ void ResourceManager::AddResource(i32 id, const char *name, Resource *r)
 	resourceMap[id] = std::tr1::shared_ptr<Resource>(r);
 };
 
-TextureHandle LoadTexture(const char *filename, const char *textureResourceName) // if not provided, the default resource name used is the filename
+TextureHandle LoadTextureNow(const char *filename, const char *textureResourceName) // if not provided, the default resource name used is the filename
 {
 	TextureHandle hnd = textureResourceName ? ResourceManager::get().CreateAndGetResource<Texture>(textureResourceName) : ResourceManager::get().CreateAndGetResource<Texture>(filename);
 	if(hnd->GetGLTextureID()) { return hnd; }; // return resource if already loaded
@@ -26,7 +26,7 @@ TextureHandle LoadTexture(const char *filename, const char *textureResourceName)
 	return hnd;
 };
 
-ShaderHandle LoadShader(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName) // if not provided, there is no default shader resource name
+ShaderHandle LoadShaderNow(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName) // if not provided, there is no default shader resource name
 {
 	if(!vertexShaderFilename || !fragmentShaderFilename) { return ShaderHandle((Shader*)0); };
 
@@ -86,7 +86,7 @@ RenderTargetHandle CreateRenderTarget(int width, int height, const char *renderT
 	return rth;
 };
 
-MeshHandle CreateMesh(char *name)
+MeshHandle CreateMesh(const char *name)
 {
 	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>();
 	mh->SetName(name);

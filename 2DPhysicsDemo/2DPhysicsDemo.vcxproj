@@ -46,12 +46,12 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.\..\Libraries\GXBase\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\..\Libraries\GXBase\include;.\..\Libraries\VisualLeakDetector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>.\..\Libraries\GXBase\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>.\..\Libraries\GXBase\lib\Debug;.\..\Libraries\VisualLeakDetector\lib\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gxbasemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -86,6 +86,7 @@
     <ClCompile Include="float3.cpp" />
     <ClCompile Include="float4.cpp" />
     <ClCompile Include="GameTime.cpp" />
+    <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mat44.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -103,7 +104,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
-    <ClInclude Include="Circle.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="ctypes.h" />
@@ -114,6 +114,7 @@
     <ClInclude Include="float4_sse.h" />
     <ClInclude Include="GameResource.h" />
     <ClInclude Include="GameTime.h" />
+    <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Mat44.h" />
     <ClInclude Include="Material.h" />

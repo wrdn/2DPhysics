@@ -64,6 +64,24 @@ public:
 
 	f32 dot(const float2 &v) const;
 
+	f32 magnitude() const;
+	f32 length_squared() const;
+	float2 normalize() const;
+
+	f32 distance(const float2 &other) const;
+	f32 distance_squared(const float2 &other) const;
+
+	// projects 'this' onto 'other'. 'other' is automatically normalized
+	float2 project(const float2 &other) const;
+
+	// similar to output of cross product in 3D, left hand perp vector points to left of vector,
+	// right hand perp vector points to right of vector
+	// default perp() calls the left hand version
+	float2 perp() const { return perpendicular_vector_left(); };
+	float2 perpendicular_vector_left() const;
+	float2 perpendicular_vector_right() const;
+
+	float2 absolute() const;
 	float2 negate() const;
 
 	float2 vec_lerp(const float2 &target, f32 lerpFactor);

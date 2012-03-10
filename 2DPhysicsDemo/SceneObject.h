@@ -48,6 +48,9 @@ public:
 	const Mat44 &GetOrientationMatrix() { return orientation; };
 	void SetOrientationMatrix(const Mat44 &mat) { orientation = mat; };
 
+	Material& GetMaterial() { return objectMaterial; }
+
+	void SetColor(const color &c) { objectMaterial.SetObjectColor(c); };
 	void ClearTextures() { objectMaterial.ClearTextures(); };
 	int AddTexture(TextureHandle t) { return objectMaterial.AddTexture(t); };
 	void SetShader(ShaderHandle active_shader) { objectMaterial.SetShader(active_shader); };

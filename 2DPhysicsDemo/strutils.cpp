@@ -295,22 +295,6 @@ u32 CountCharacterOccurrence(const c8* str, const c8 delim)
 	return count;
 };
 
-std::string strtolower(const std::string &sp)
-{
-	string s = sp;
-	for(u32 i=0;i<s.size();++i)
-		s[i] = (c8)tolower(s[i]);
-	return s;
-};
-
-std::string strtoupper(const std::string &sp)
-{
-	string s = sp;
-	for(u32 i=0;i<s.size();++i)
-		s[i] = (c8)toupper(s[i]);
-	return s;
-};
-
 bool stringtobool(const std::string &s)
 {
 	return strtolower(s) == "true" ? true : false;

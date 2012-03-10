@@ -96,6 +96,53 @@ f32 float2::dot(const float2 &v) const
 		vec[1]*v.vec[1];
 };
 
+f32 float2::length_squared() const
+{
+	return (vec[0]*vec[0]) + (vec[1]*vec[1]);
+};
+
+f32 float2::magnitude() const
+{
+	return sqrtf(length_squared());
+};
+
+float2 float2::normalize() const
+{
+	f32 lsqr = length_squared();
+	f32 recip = InvSqrt(lsqr);
+	return float2(vec[0]*recip, vec[1]*recip);
+};
+
+f32 float2::distance(const float2 &other) const
+{
+	return (*this - other).magnitude();
+};
+f32 float2::distance_squared(const float2 &other) const
+{
+	return (*this - other).length_squared();
+};
+
+float2 float2::project(const float2 &other) const
+{
+	float2 b = other.normalize();
+	return this->dot(b) * b;
+};
+
+float2 float2::perpendicular_vector_left() const
+{
+	return float2(y(), -x());
+};
+
+float2 float2::perpendicular_vector_right() const
+{
+	return float2(-y(), x());
+};
+
+float2 float2::absolute() const
+{
+	return float2(abs(vec[0]), abs(vec[1]));
+};
+
 float2 float2::negate() const
 {
 	return float2(

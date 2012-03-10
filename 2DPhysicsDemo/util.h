@@ -2,6 +2,7 @@
 #define __UTIL_H__
 
 #include "ctypes.h"
+#include <string>
 
 const f32 EPSILON = 0.000001f; // rough epsilon
 const f32 PI = 3.1415926f;
@@ -36,6 +37,11 @@ const bool file_exists(const c8 *filename);
 
 f32 randflt(f32 min, f32 max);
 
+i32 rand(i32 min, i32 max); // range of function is min to max inclusive
+
 f32 reciprocal_sqrt(f32 f);
+
+std::string strtolower(const std::string &s);
+std::string strtoupper(const std::string &s);
 
 #endif

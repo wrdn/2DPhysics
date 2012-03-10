@@ -6,9 +6,9 @@ bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &
 	float2 lineDir = line.end - line.start;
 
 	f32 A = lineDir.dot(lineDir);
-	f32 B = 2.0f * (lineDir.x() * (line.start.x() - c.pos.x()) + lineDir.y() * (line.start.y() - c.pos.y()));
-	f32 C = (line.start.x() - c.pos.x()) * (line.start.x() - c.pos.x()) +
-		(line.start.y() - c.pos.y()) * (line.start.y() - c.pos.y()) -
+	f32 B = 2.0f * (lineDir.x() * (line.start.x() - c.center.x()) + lineDir.y() * (line.start.y() - c.center.y()));
+	f32 C = (line.start.x() - c.center.x()) * (line.start.x() - c.center.x()) +
+		(line.start.y() - c.center.y()) * (line.start.y() - c.center.y()) -
 		c.radius * c.radius;
 
 	f32 det = B*B - 4 * A * C;
@@ -42,4 +42,18 @@ bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &
 
 		return true;
 	}
+};
+
+bool Hit_AABB_AABB(const AABB &a, const AABB &b)
+{
+	if(abs(a.center.x() - b.center.x()) > (a.extents.x() + b.extents.x())) return false;
+	if(abs(a.center.y() - b.center.y()) > (a.extents.y() + b.extents.y())) return false;
+	return true;
+};
+
+bool Hit_Circle_Circle(const Circle &a, const Circle &b)
+{
+	f32 dist_squared = a.center.distance_squared(b.center); // use distance squared to avoid sqrt
+	f32 radius_sum = a.radius + b.radius;
+	return dist_squared < radius_sum*radius_sum;
 };

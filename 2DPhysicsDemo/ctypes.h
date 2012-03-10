@@ -1,5 +1,4 @@
-#ifndef __C_TYPES_H__
-#define __C_TYPES_H__
+#pragma once
 
 #include <pmmintrin.h> // SSE3 header
 
@@ -40,4 +39,4 @@ typedef uint64_t u64;
 
 #endif
 
-#endif
+#include "units.h"

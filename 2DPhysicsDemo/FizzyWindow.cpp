@@ -16,7 +16,7 @@ FizzyWindow::~FizzyWindow(void)
 
 void FizzyWindow::OnDisplay()
 {
-	f32 dt = gameTime.Update();
+	gameTime.Update();
 
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
@@ -24,10 +24,10 @@ void FizzyWindow::OnDisplay()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	scn.Update(dt);
-	scn.Draw(dt);
+	scn.Update(gameTime.GetDeltaTime());
+	scn.Draw();
 
-	glDisable(GL_DEPTH_TEST);
+	/*glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -35,29 +35,63 @@ void FizzyWindow::OnDisplay()
 	glPushMatrix();
 	glLoadIdentity();
 	glRasterPos2f(0.5f, 0.9f);
-	Printf("Text");
+	Printf("Delta Time: %f", gameTime.GetDeltaTime());
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);*/
 
 	SwapBuffers();
 };
 
 void FizzyWindow::OnKeyboard(i32 key, bool down)
 {
+	gameTime.Update();
+
 	if(key == VK_ESCAPE && down)
 	{
 		Close();
 	}
+
+	float2 camPos = scn.GetCameraPosition();
+	f32 dt = gameTime.GetDeltaTime();
+	f32 camSpeed = 20;
+
+	switch(tolower(key))
+	{
+	case 'q':
+		scn.SetZoom(scn.GetZoom() + dt * camSpeed);
+		break;
+	case 'e':
+		scn.SetZoom(scn.GetZoom() - dt * camSpeed);
+		break;
+	case 'w':
+		camPos.y( camPos.y() - dt * camSpeed);
+		break;
+	case 's':
+		camPos.y( camPos.y() + dt * camSpeed);
+		break;
+	case 'a':
+		camPos.x( camPos.x() + dt * camSpeed);
+		break;
+	case 'd':
+		camPos.x( camPos.x() - dt * camSpeed);
+		break;
+	case 'r':
+		scn.Load();
+		break;
+	}
+
+	scn.SetCameraPosition(camPos);
 };
 
 void FizzyWindow::OnCreate()
 {
 	GLWindowEx::OnCreate();
 	glex::Load();
+
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glClearColor(0,0,0,1);
 
@@ -94,5 +128,6 @@ void FizzyWindow::OnDestroy()
 
 void FizzyWindow::OnIdle()
 {
+	gameTime.Update();
 	Redraw();
 };

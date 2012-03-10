@@ -1,3 +1,3 @@
 #include "MyApp.h"
 
-static MyApp seasonalGlobe;
+static MyApp physicsDemo;

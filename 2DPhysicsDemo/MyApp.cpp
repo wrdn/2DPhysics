@@ -1,3 +1,6 @@
 #include "MyApp.h"
 
-MyApp::MyApp() {};
+MyApp::MyApp()
+{
+	SetTimerPeriod(16);
+};

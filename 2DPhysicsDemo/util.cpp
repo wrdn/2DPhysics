@@ -111,6 +111,11 @@ f32 randflt(f32 min, f32 max)
     return (random*range) + min;
 };
 
+i32 rand(i32 min, i32 max)
+{
+	return (rand()%(max-min+1))+min;
+};
+
 f32 reciprocal_sqrt(f32 f)
 {
 	/*
@@ -125,4 +130,20 @@ f32 reciprocal_sqrt(f32 f)
 	f32 result; // reciprocal square root using SSE (accurate to ~11/12 mantissa bits)
 	_mm_store_ss(&result, _mm_rsqrt_ss( _mm_load_ss(&f) ));
 	return result;
+};
+
+std::string strtolower(const std::string &sp)
+{
+	std::string s = sp;
+	for(u32 i=0;i<s.size();++i)
+		s[i] = (c8)tolower(s[i]);
+	return s;
+};
+
+std::string strtoupper(const std::string &sp)
+{
+	std::string s = sp;
+	for(u32 i=0;i<s.size();++i)
+		s[i] = (c8)toupper(s[i]);
+	return s;
 };

@@ -60,9 +60,8 @@ public:
 	template<class T>
 	i32 CreateResource(const char *resourceName) // creates a new resource using hashed resourceName, or returns the ID of the resource if it already exists
 	{
-		i32 resHash = GetResourceID(resourceName);
-		if(resourceMap.count(resHash)) { return resHash; };
-
+		i32 resHash = resourceName ? GetResourceID(resourceName) : GenerateResourceMapUniqueID();
+		if(resourceMap.count(resHash)) { return resHash; }
 		AddResource(resHash, resourceName, new T());
 		return resHash;
 	};
@@ -122,7 +121,17 @@ public:
 #include "RenderTarget.h"
 #include "Mesh.h"
 
-TextureHandle LoadTexture(const char *filename, const char *textureResourceName=0); // if not provided, the default resource name used is the filename
-ShaderHandle LoadShader(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName=0); // if not provided, there is no default shader resource name
-RenderTargetHandle CreateRenderTarget(int width, int height, const char *renderTargetResourceName=0); // if not provided, there is no default render target resource name
-MeshHandle CreateMesh(char *name);
+TextureHandle LoadTextureNow(const char *filename, const char *textureResourceName=0); // if not provided, the default resource name used is the filename
+ShaderHandle LoadShaderNow(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName=0); // if not provided, there is no default shader resource name
+RenderTargetHandle CreateRenderTargetNow(int width, int height, const char *renderTargetResourceName=0); // if not provided, there is no default render target resource name
+MeshHandle CreateMesh(const char *name);
+
+// specialised functions to load from a string (these simply call the functions above with string.c_str())
+inline TextureHandle LoadTexture(const std::string &filename, const std::string &textureResourceName="")
+{
+	return LoadTextureNow(filename.c_str(), textureResourceName.length() ? textureResourceName.c_str() : 0);
+};
+inline ShaderHandle LoadShader(const std::string &vertexShaderFilename, const std::string &fragmentShaderFilename, const std::string &shaderResourceName="")
+{
+	return LoadShaderNow(vertexShaderFilename.c_str(), fragmentShaderFilename.c_str(), shaderResourceName.length() ? shaderResourceName.c_str() : 0);
+};

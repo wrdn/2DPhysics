@@ -1,16 +1,23 @@
 #include "GameTime.h"
 #include "ctypes.h"
 
-f32 GameTime::GetCurrentTime() const { return currentTime; };
-f32 GameTime::GetDeltaTime() const { return deltaTime; };
-void GameTime::SetDeltaTime(f32 dt) { deltaTime = dt; };
+GameTime::GameTime() : oldTime(0), deltaTime(0)
+{
+	timeBeginPeriod(1); // calling this, timeGetTime() now has 1ms accuracy
+};
+
+GameTime::~GameTime()
+{
+	timeEndPeriod(1);
+};
+
+f32 GameTime::GetDeltaTime() { return deltaTime; };
 
 f32 GameTime::Update()
 {
-	f32 temp_time = (f32)gxbase::App::GetTime();
-	deltaTime = temp_time - currentTime;
-	if(deltaTime >= 1) deltaTime=0;
-	currentTime = temp_time;
-	
+	DWORD now = timeGetTime();
+	DWORD diff = now - oldTime;
+	oldTime = now;
+	deltaTime = 0.001f * diff;
 	return deltaTime;
 };

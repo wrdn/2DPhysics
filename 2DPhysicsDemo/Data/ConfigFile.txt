@@ -1,1 +1,14 @@
 # Put configuration values in this file in the format Parameter Name = Value
+ZoomLevel = -2.3
+CameraPosition = -1.9 -1.61
+BoxRowCount = 20
+BoxColumnCount = 40
+BoxWidth = 1.0
+BoxHeight = 1.0
+TriangleLength = 1.0
+LightColor = 0.15 0.2 1 1 # blue
+MediumColor = 1 0.5 0.1 1 # greeny color
+HeavyColor = 1 0 1 1 # pink
+LightTexture = Light.bmp
+MediumTexture = Medium.bmp
+HeavyTexture = Heavy.bmp
