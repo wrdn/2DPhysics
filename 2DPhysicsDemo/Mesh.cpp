@@ -53,7 +53,7 @@ void Mesh::Draw()
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	// set data pointers
-	glVertexPointer(3, GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_POSITION_BUFFER_OFFSET));
+	glVertexPointer(2, GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_POSITION_BUFFER_OFFSET));
 	glNormalPointer(GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_NORMAL_BUFFER_OFFSET));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_UV_BUFFER_OFFSET));
 

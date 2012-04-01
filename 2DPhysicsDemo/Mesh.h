@@ -22,18 +22,18 @@ public:
 };
 
 const u32 VERTEX_POSITION_BUFFER_OFFSET = 0; // at start of struct
-const u32 VERTEX_NORMAL_BUFFER_OFFSET = 12; // 0 + sizeof(float3) == 0+position
-const u32 VERTEX_UV_BUFFER_OFFSET = 24; // 0 + sizeof(float3) + sizeof(float3) == 0+position+normal
+const u32 VERTEX_NORMAL_BUFFER_OFFSET = 8; // 0 + sizeof(float2) == 0+position
+const u32 VERTEX_UV_BUFFER_OFFSET = 16; // 0 + sizeof(float2) + sizeof(float2) == 0+position+normal
 
 //! VERTEX structure, containing position, normal and uv
-struct VERTEX // 32 bytes
+struct VERTEX // 24 bytes
 {
 public:
-	float3 position, normal;
+	float2 position, normal;
 	float2 uv;
 
 	VERTEX() {};
-	VERTEX(const float3 &_position, const float3 &_normal, const float2 &_uv)
+	VERTEX(const float2 &_position, const float2 &_normal, const float2 &_uv)
 		: position(_position), normal(_normal), uv(_uv) {}; 
 };
 
