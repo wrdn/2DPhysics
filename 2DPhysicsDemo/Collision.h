@@ -19,15 +19,6 @@ public:
 	float2 extents; // half width and half height
 };
 
-// 2D Oriented Bounding Box
-struct OBB
-{
-public:
-	float2 center; // 8
-	float2 extents; // half width and half height, 8
-	float2 axis[2]; // local x-axis [0] and y-axis [1]
-};
-
 // 2D Circle
 struct Circle
 {
@@ -54,6 +45,3 @@ bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &
 bool Hit_AABB_AABB(const AABB &a, const AABB &b);
 
 bool Hit_Circle_Circle(const Circle &a, const Circle &b);
-
-// Seperating Axis Theorem to find if two OBBs hit
-bool Hit_OBB_OBB(const OBB &a, const OBB &b);

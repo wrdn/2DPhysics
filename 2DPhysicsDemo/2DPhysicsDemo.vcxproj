@@ -88,15 +88,16 @@
     <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="GraphicsUtils.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Mat22.cpp" />
     <ClCompile Include="Mat44.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MyApp.cpp" />
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderObject.cpp" />
+    <ClCompile Include="SimBody.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="util.cpp" />
@@ -116,6 +117,7 @@
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="Mat22.h" />
     <ClInclude Include="Mat44.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
@@ -125,14 +127,28 @@
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderObject.h" />
+    <ClInclude Include="SimBody.h" />
     <ClInclude Include="strutils.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="units.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="World.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\ConfigFile.txt">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Data\Heavy.bmp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Data\Light.bmp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Data\Medium.bmp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

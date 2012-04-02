@@ -43,6 +43,15 @@
     <Filter Include="Source Files\World">
       <UniqueIdentifier>{c26d399f-2245-45f8-ab9f-22a0b0238583}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Data">
+      <UniqueIdentifier>{1080b0fa-c170-4411-842a-b8c6d132633a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Physics">
+      <UniqueIdentifier>{d958949e-fd9c-49fd-83b6-d611e5d322ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Physics">
+      <UniqueIdentifier>{fbc2fe5d-ba23-4186-9c9f-057dfe379e34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -84,9 +93,6 @@
     <ClCompile Include="Quaternion.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>Source Files\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Source Files\Geometry</Filter>
     </ClCompile>
@@ -108,17 +114,20 @@
     <ClCompile Include="FizzyWindow.cpp">
       <Filter>Source Files\World</Filter>
     </ClCompile>
-    <ClCompile Include="SceneObject.cpp">
-      <Filter>Source Files\Geometry</Filter>
-    </ClCompile>
     <ClCompile Include="GraphicsUtils.cpp">
       <Filter>Source Files\Geometry</Filter>
     </ClCompile>
+    <ClCompile Include="Mat22.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SimBody.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Collision.h">
-      <Filter>Header Files\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="Namable.h">
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
@@ -197,14 +206,34 @@
     <ClInclude Include="FizzyWindow.h">
       <Filter>Header Files\World</Filter>
     </ClInclude>
-    <ClInclude Include="SceneObject.h">
-      <Filter>Header Files\Geometry</Filter>
-    </ClInclude>
     <ClInclude Include="units.h">
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsUtils.h">
       <Filter>Header Files\Geometry</Filter>
     </ClInclude>
+    <ClInclude Include="Mat22.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="SimBody.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\ConfigFile.txt">
+      <Filter>Resource Files\Data</Filter>
+    </None>
+    <None Include="Data\Heavy.bmp">
+      <Filter>Resource Files\Data</Filter>
+    </None>
+    <None Include="Data\Light.bmp">
+      <Filter>Resource Files\Data</Filter>
+    </None>
+    <None Include="Data\Medium.bmp">
+      <Filter>Resource Files\Data</Filter>
+    </None>
   </ItemGroup>
 </Project>

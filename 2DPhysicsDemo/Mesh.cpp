@@ -49,12 +49,10 @@ void Mesh::Draw()
 
 	// enable vertex, normal and uv array
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	// set data pointers
 	glVertexPointer(2, GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_POSITION_BUFFER_OFFSET));
-	glNormalPointer(GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_NORMAL_BUFFER_OFFSET));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(VERTEX), BUFFER_OFFSET(VERTEX_UV_BUFFER_OFFSET));
 
 	// draw mesh
@@ -62,7 +60,6 @@ void Mesh::Draw()
 
 	// disable vertex, normal and uv array
 	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	// unbind VBO buffers

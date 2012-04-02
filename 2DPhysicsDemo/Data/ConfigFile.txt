@@ -1,10 +1,13 @@
 # Put configuration values in this file in the format Parameter Name = Value
-ZoomLevel = -2.3
-CameraPosition = -1.9 -1.61
-BoxRowCount = 20
-BoxColumnCount = 40
+ZoomLevel = 2.54
+CameraPosition = -0.21 -0.19
+CameraSpeed = 8
+BoxRowCount = 5
+BoxColumnCount = 5
 BoxWidth = 1
 BoxHeight = 1
+BoxXOffset = 0.003
+BoxYOffset = 0.003
 TriangleLength = 1.0
 LightColor = 0.4 0.4 1 1
 MediumColor = 0.3 1 0.1 1

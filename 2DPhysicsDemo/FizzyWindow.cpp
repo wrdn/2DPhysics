@@ -57,7 +57,7 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	float2 camPos = scn.GetCameraPosition();
 	f32 dt = gameTime.GetDeltaTime();
-	f32 camSpeed = 20;
+	f32 camSpeed = scn.GetCameraSpeed();
 
 	switch(tolower(key))
 	{
@@ -95,10 +95,6 @@ void FizzyWindow::OnCreate()
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glClearColor(0,0,0,1);
 
-	glViewport(0,0,windowResolution.x, windowResolution.y);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
