@@ -3,6 +3,7 @@
 #include "ResourceManager.h"
 #include "AppConfig.h"
 #include "SimBody.h"
+#include "GameTime.h"
 
 class World
 {
@@ -17,8 +18,9 @@ private:
 	f32 zoom;
 	float2 cameraPosition;
 	f32 cameraSpeed;
-
 public:
+	GameTime *gt;
+
 	World(void);
 	~World(void);
 	

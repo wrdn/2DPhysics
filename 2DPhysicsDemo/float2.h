@@ -94,7 +94,8 @@ public:
 };
 
 // Auxiliary Functions (operator overloads)
-inline float2 operator+(const float2 &a, const float2 &b) { return float2(a)+=b; }
+inline float2 operator-(const float2 &a) { return a.negate(); }; // negation operator
+inline float2 operator+(const float2 &a, const float2 &b) { return float2(a)+=b; };
 inline float2 operator-(const float2 &a, const float2 &b) { return float2(a)-=b; };
 inline float2 operator*(const float2 &a, const float2 &b) { return float2(a)*=b; };
 inline float2 operator/(const float2 &a, const float2 &b) { return float2(a)/=b; };

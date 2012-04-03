@@ -115,6 +115,7 @@ void FizzyWindow::OnCreate()
 	glMatrixMode(GL_MODELVIEW); glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
 
+	scn.gt = &gameTime;
 	gameTime.Update();
 };
 

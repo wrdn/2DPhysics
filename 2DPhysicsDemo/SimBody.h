@@ -4,6 +4,8 @@
 #include "Mesh.h"
 #include "Material.h"
 
+const float2 gravity(0,-9.81f); // gravity defined as -9.81 m/s^2
+
 // Base for physics objects
 class SimBody
 {
@@ -18,10 +20,10 @@ public:
 		torque = 0.0f;
 		friction = 0.2f;
 
-		mass = I = 100;
+		mass = I = 10;
 		invMass = invI = 1.0f/mass;
 
-		polygonFillMode = GL_FILL;
+		fillMode = GL_FILL;
 		mesh = MeshHandle(0);
 
 		use_textures = use_shaders = draw = true;
@@ -47,7 +49,7 @@ public:
 	// GRAPHICS VARIABLES
 	Material objectMaterial;
 	MeshHandle mesh;
-	GLenum polygonFillMode;
+	GLenum fillMode;
 	bool use_textures, use_shaders;
 	bool draw; // enable/disable drawing of the simbody
 

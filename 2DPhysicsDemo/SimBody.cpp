@@ -7,7 +7,7 @@ void SimBody::Draw()
 	// activate shader and textures
 	if(use_shaders && objectMaterial.GetShader())
 		objectMaterial.GetShader()->Activate();
-	if(use_textures && polygonFillMode == GL_FILL) // only enable textures when GL_FILL is the fill mode, otherwise the object gets darker as it gets closer to the screen
+	if(use_textures && fillMode == GL_FILL) // only enable textures when GL_FILL is the fill mode, otherwise the object gets darker as it gets closer to the screen
 	{
 		for(u32 i=0;i<objectMaterial.GetTextures().size();++i)
 			objectMaterial.GetTextures()[i]->Activate();
@@ -26,7 +26,7 @@ void SimBody::Draw()
 	// draw
 	glDisable(GL_CULL_FACE);
 	glColor3fv(objectMaterial.GetObjectColor().GetVec());
-	glPolygonMode(GL_FRONT_AND_BACK, polygonFillMode);
+	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 	
 	mesh->Draw();
 
