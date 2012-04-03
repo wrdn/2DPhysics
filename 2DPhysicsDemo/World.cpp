@@ -68,7 +68,7 @@ void rkintegrate(SimBody &s, f32 dt)
 
 	// k4
 	{
-		float2 midvelocity = s.velocity + (vk3 * 0.5f);
+		float2 midvelocity = s.velocity + vk3;
 		xk4 = midvelocity * dt;
 		vk4 = (CurrentForce(s.position + xk3, midvelocity, s) / s.mass) * dt;
 	}

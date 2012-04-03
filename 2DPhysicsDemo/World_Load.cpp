@@ -65,8 +65,8 @@ void World::Load()
 			objects[index].mesh = boxMesh;
 			objects[index].position = float2( (j*BOX_WIDTH)+(j*xOffset), (i*BOX_HEIGHT)+(i*yOffset));
 			
-			//float vmm = 0.02;
-			//objects[index].velocity.x(randflt(-vmm,vmm));
+			float vmm = 0.06;
+			objects[index].velocity.x(randflt(-vmm,vmm));
 
 			i32 t = 0;
 			while(!massCounts[t=rand(0,2)]);
