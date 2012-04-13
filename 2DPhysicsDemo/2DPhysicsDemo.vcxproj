@@ -56,7 +56,7 @@
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(ProjectDir)Data $(OutDir)Data /I /E /C /H /Y /Q</Command>
+      <Command>xcopy "$(ProjectDir)Data" "$(OutDir)Data" /I /E /C /H /Y /Q</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -2,8 +2,8 @@
 #include "float4.h"
 #include "util.h"
 
-const float3 float3::ZERO = float3();
-const float3 float3::ONE = float3();
+//const float3 float3::ZERO = float3();
+//const float3 float3::ONE = float3();
 
 float3::float3(void)
 {
@@ -111,7 +111,7 @@ void float3::cross(const float3 &v, f32 * const output3d) const
 float3 float3::normalize() const
 {
 	f32 lsqr = LengthSquared();
-	if(NearZero(lsqr)) { return ZERO; };
+	if(NearZero(lsqr)) { return float3(0.0f); };
 	f32 recip = InvSqrt(lsqr);
 	
 	return float3(vec[0]*recip, vec[1]*recip, vec[2]*recip);
@@ -120,7 +120,7 @@ float3 float3::normalize() const
 void float3::normalize()
 {
 	f32 lsqr = LengthSquared();
-	if(NearZero(lsqr)) { *this = ZERO; };
+	if(NearZero(lsqr)) { this->setall(0.0f); return; };
 	f32 recip = InvSqrt(lsqr);
 	vec[0] *= recip;
 	vec[1] *= recip;

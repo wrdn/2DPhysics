@@ -2,8 +2,8 @@
 #include "util.h"
 #include <iostream>
 
-const float2 float2::ZERO = float2();
-const float2 float2::ONE = float2(1.0f);
+//const float2 float2::ZERO = float2();
+//const float2 float2::ONE = float2(1.0f);
 
 float2::~float2() { };
 
@@ -98,6 +98,7 @@ f32 float2::dot(const float2 &v) const
 
 f32 float2::length_squared() const
 {
+	// equivalent to dot product with self
 	return (vec[0]*vec[0]) + (vec[1]*vec[1]);
 };
 
@@ -125,7 +126,7 @@ f32 float2::distance_squared(const float2 &other) const
 float2 float2::project(const float2 &other) const
 {
 	float2 b = other.normalize();
-	return this->dot(b) * b;
+	return b * this->dot(b);
 };
 
 float2 float2::perpendicular_vector_left() const

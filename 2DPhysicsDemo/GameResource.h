@@ -15,7 +15,7 @@ private:
 	i32 id;
 public:
 	Resource() : id(-1) {};
-	Resource(int _id) : id(_id) {};
+	Resource(i32 _id) : id(_id) {};
 	virtual ~Resource() {};
 
 	void SetResourceID(i32 _id) { id = _id; };

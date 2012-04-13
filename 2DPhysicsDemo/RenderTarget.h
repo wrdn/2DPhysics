@@ -10,7 +10,7 @@ struct FBOTexture
 {
 public:
 	GLuint texID;
-	unsigned int width, height;
+	u32 width, height;
 	GLint internal_format;
 	GLenum format;
 	GLenum type;
@@ -21,7 +21,7 @@ class RenderTarget : public Resource, public glex
 {
 private:
 	GLuint fbo_id; // frame buffer object id
-	unsigned int width, height; // width and height of textures
+	u32 width, height; // width and height of textures
 
 	vector<FBOTexture> textures;
 public:
@@ -53,7 +53,7 @@ public:
 		glex::Load();
 	};
 
-	RenderTarget(unsigned int pwidth, unsigned int pheight)
+	RenderTarget(u32 pwidth, u32 pheight)
 	{
 		width = pwidth;
 		height = pheight;
@@ -66,8 +66,8 @@ public:
 		Unload();
 	};
 
-	unsigned int GetWidth() const { return width; }
-	unsigned int GetHeight() const { return height; }
+	u32 GetWidth() const { return width; }
+	u32 GetHeight() const { return height; }
 
 	void SetDrawReadBufferState(GLenum gl_draw_buffer, GLenum gl_read_buffer)
 	{
@@ -77,9 +77,9 @@ public:
 		Unbind();
 	}
 
-	void SetWidth(unsigned int w) { width = w; RecreateTextures(); }
-	void SetHeight(unsigned int h) { height = h; RecreateTextures(); }
-	void SetWidthAndHeight(unsigned int w, unsigned int h)
+	void SetWidth(u32 w) { width = w; RecreateTextures(); }
+	void SetHeight(u32 h) { height = h; RecreateTextures(); }
+	void SetWidthAndHeight(u32 w, u32 h)
 	{
 		width = w;
 		height = h;
@@ -88,7 +88,7 @@ public:
 
 	void RecreateTextures()
 	{
-		for(unsigned int i=0;i<textures.size();++i)
+		for(u32 i=0;i<textures.size();++i)
 		{
 			FBOTexture &tex = textures[i];
 			tex.width = width; tex.height = height;

@@ -82,6 +82,10 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 	case 'r':
 		scn.Load();
 		break;
+	case 'f':
+		if(!down) break;
+		scn.SetGlobalFillMode(scn.GetGlobalFillMode() == GL_LINE ? GL_FILL : GL_LINE);
+		break;
 	}
 
 	scn.SetCameraPosition(camPos);

@@ -6,6 +6,8 @@
 #include <windows.h>
 #endif
 
+#include "ctypes.h"
+
 class PerfTimer
 {
 private:
@@ -20,5 +22,5 @@ public:
 
 	void start();
 	void end();
-	double time() const; // Time between start and end in seconds
+	f64 time() const; // Time between start and end in seconds
 };

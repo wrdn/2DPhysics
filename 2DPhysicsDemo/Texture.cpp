@@ -15,7 +15,7 @@ void Texture::SetParameterf(GLenum param, f32 v)
 	Deactivate();
 };
 
-bool Texture::Load(const char *filename)
+bool Texture::Load(const c8 *filename)
 {
 	Unload();
 

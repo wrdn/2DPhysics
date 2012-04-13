@@ -29,7 +29,7 @@ void PerfTimer::end()
 #endif
 }
 
-double PerfTimer::time() const
+f64 PerfTimer::time() const
 {
 #ifdef _WIN32
 	return (_end.QuadPart - _start.QuadPart)

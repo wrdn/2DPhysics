@@ -34,7 +34,7 @@ private:
 	{
 	};
 
-	void AddResource(i32 id, const char *name, Resource *r);
+	void AddResource(i32 id, const c8 *name, Resource *r);
 
 public:
 	// get the resource manager singleton
@@ -47,7 +47,7 @@ public:
 	};
 
 	// gets resource ID using string hashing given name (str)
-	static i32 GetResourceID(const char *str) { return (i32)hash_djb2((const uc8*)str); };
+	static i32 GetResourceID(const c8 *str) { return (i32)hash_djb2((const uc8*)str); };
 
 	template<class T>
 	i32 CreateResource()
@@ -58,7 +58,7 @@ public:
 	};
 
 	template<class T>
-	i32 CreateResource(const char *resourceName) // creates a new resource using hashed resourceName, or returns the ID of the resource if it already exists
+	i32 CreateResource(const c8 *resourceName) // creates a new resource using hashed resourceName, or returns the ID of the resource if it already exists
 	{
 		i32 resHash = resourceName ? GetResourceID(resourceName) : GenerateResourceMapUniqueID();
 		if(resourceMap.count(resHash)) { return resHash; }
@@ -77,7 +77,7 @@ public:
 	};
 
 	template<class T>
-	std::tr1::shared_ptr<T> GetResource(const char *resourceName)
+	std::tr1::shared_ptr<T> GetResource(const c8 *resourceName)
 	{
 		return GetResource<T>(GetResourceID(resourceName));
 	};
@@ -90,7 +90,7 @@ public:
 	};
 	
 	template<class T>
-	std::tr1::shared_ptr<T> CreateAndGetResource(const char *resourceName)
+	std::tr1::shared_ptr<T> CreateAndGetResource(const c8 *resourceName)
 	{
 		return GetResource<T>(CreateResource<T>(resourceName));
 	};
@@ -105,7 +105,7 @@ public:
 			resourceMap.erase(id);
 		}
 	};
-	void RemoveResource(const char *resourceName) { return RemoveResource(GetResourceID(resourceName)); };
+	void RemoveResource(const c8 *resourceName) { return RemoveResource(GetResourceID(resourceName)); };
 };
 
 #ifdef _WIN32
@@ -121,10 +121,10 @@ public:
 #include "RenderTarget.h"
 #include "Mesh.h"
 
-TextureHandle LoadTextureNow(const char *filename, const char *textureResourceName=0); // if not provided, the default resource name used is the filename
-ShaderHandle LoadShaderNow(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName=0); // if not provided, there is no default shader resource name
-RenderTargetHandle CreateRenderTargetNow(int width, int height, const char *renderTargetResourceName=0); // if not provided, there is no default render target resource name
-MeshHandle CreateMesh(const char *name);
+TextureHandle LoadTextureNow(const c8 *filename, const c8 *textureResourceName=0); // if not provided, the default resource name used is the filename
+ShaderHandle LoadShaderNow(const c8 *vertexShaderFilename, const c8 *fragmentShaderFilename, const c8 *shaderResourceName=0); // if not provided, there is no default shader resource name
+RenderTargetHandle CreateRenderTargetNow(u32 width, u32 height, const c8 *renderTargetResourceName=0); // if not provided, there is no default render target resource name
+MeshHandle CreateMesh(const c8 *name);
 
 // specialised functions to load from a string (these simply call the functions above with string.c_str())
 inline TextureHandle LoadTexture(const std::string &filename, const std::string &textureResourceName="")

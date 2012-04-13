@@ -24,11 +24,11 @@ struct Circle
 {
 public:
 	Circle() : radius(5) {};
-	Circle(const float2 &_center, const float _radius) // constructor that can be used if box dimensions are same (i.e. a square), or if you want to treat the AABB as a Circle
+	Circle(const float2 &_center, const f32 _radius) // constructor that can be used if box dimensions are same (i.e. a square), or if you want to treat the AABB as a Circle
 		: center(_center), radius(_radius) {};
 
 	float2 center;
-	float radius;
+	f32 radius;
 };
 struct CollisionPoint2D
 {

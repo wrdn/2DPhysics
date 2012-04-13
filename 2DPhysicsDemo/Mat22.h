@@ -50,9 +50,12 @@ inline Mat22 operator+(const Mat22 &a, const f32 b) { return a.Add(b); };
 inline Mat22 operator-(const Mat22 &a, const f32 b) { return a.Sub(b); };
 inline Mat22 operator*(const Mat22 &a, const f32 b) { return a.Mul(b); };
 
+/*
+// NEVER PUT THE FLOAT ON THE LEFT HAND SIDE
 inline Mat22 operator+(const f32 a, const Mat22 &b) { return b.Add(a); };
 inline Mat22 operator-(const f32 a, const Mat22 &b) { return b.Sub(a); };
 inline Mat22 operator*(const f32 a, const Mat22 &b) { return b.Mul(a); };
+*/
 
 inline float2 operator*(const Mat22 &a, const float2 &b) { return a.Mul(b); };
 inline float2 operator*(const float2 &a, const Mat22 &b) { return b.Mul(a); };

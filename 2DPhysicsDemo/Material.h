@@ -24,7 +24,7 @@ public:
 
 	void ClearTextures() { textures.clear(); };
 
-	int AddTexture(TextureHandle t)
+	u32 AddTexture(TextureHandle t)
 	{
 		textures.push_back(t);
 		return textures.size()-1;

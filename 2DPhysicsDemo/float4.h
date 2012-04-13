@@ -12,8 +12,8 @@ private:
 public:
 	f32 * GetVec() const { return (f32*)vec; };
 
-	static const float4 ZERO;
-	static const float4 ONE;
+	//static const float4 ZERO;
+	//static const float4 ONE;
 
 	float4(); // sets all to 0
 	explicit float4(const f32 v);
@@ -94,10 +94,13 @@ inline float4 operator-(const float4 &a, const f32 b) { return float4(a)-=float4
 inline float4 operator*(const float4 &a, const f32 b) { return float4(a)*=float4(b); }
 inline float4 operator/(const float4 &a, const f32 b) { return float4(a)/=float4(b); }
 
+/*
+// NEVER PUT THE FLOAT ON THE LEFT HAND SIDE
 inline float4 operator+(const f32 a, const float4 &b) { return float4(a)+=b; }
 inline float4 operator-(const f32 a, const float4 &b) { return float4(a)-=b; }
 inline float4 operator*(const f32 a, const float4 &b) { return float4(a)*=b; }
 inline float4 operator/(const f32 a, const float4 &b) { return float4(a)/=b; }
+*/
 
 inline float4 operator^(const float4 &a, const float4 &b) { return float4(a)^=b; }
 

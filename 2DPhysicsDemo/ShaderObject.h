@@ -42,7 +42,7 @@ public:
 	void PrintShaderLog(std::ostream &out);
 
 	bool Compile(const c8 *src);
-	bool CompileFromFile(const char *filename); // loads shader from file
+	bool CompileFromFile(const c8 *filename); // loads shader from file
 };
 
 class FragmentShaderObject : public ShaderObject

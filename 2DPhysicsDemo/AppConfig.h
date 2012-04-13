@@ -41,11 +41,35 @@ public:
 		if(Exists(paramName))
 		{
 			T out;
-			std::stringstream(configMap[paramName]) >> out;
-			return out;
+			std::stringstream st(configMap[paramName]);
+			st >> out;
+			if(!st.fail())
+			{
+				return out;
+			}
 		}
 		return default_val;
 	};
 
-	std::string Read(const std::string &param, const char* default_val);
+	// returns true if it succeeded, otherwise returns false and sets output_var to default_var
+	template<class T>
+	bool TryRead(const std::string &param, T &output_var, const T &default_var)
+	{
+		std::string paramName = strtoupper(param);
+		if(Exists(paramName))
+		{
+			T out;
+			std::stringstream st(configMap[paramName]);
+			st >> out;
+			if(!st.fail())
+			{
+				output_var = out;
+				return true;
+			}
+		}
+		output_var = default_var;
+		return false;
+	};
+
+	std::string Read(const std::string &param, const c8* default_val);
 };

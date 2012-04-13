@@ -69,7 +69,7 @@ bool AppConfig::ConfigParameterExists(const std::string &param) const
 	return Exists(strtoupper(param));
 };
 
-std::string AppConfig::Read(const std::string &param, const char* default_val)
+std::string AppConfig::Read(const std::string &param, const c8* default_val)
 {
 	return Read<std::string>(param, default_val);
 };

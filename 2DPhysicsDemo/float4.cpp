@@ -4,8 +4,8 @@
 #include "util.h"
 #include <math.h>
 
-const float4 float4::ZERO = float4((f32)0.0f);
-const float4 float4::ONE  = float4((f32)1.0f);
+//const float4 float4::ZERO = float4((f32)0.0f);
+//const float4 float4::ONE  = float4((f32)1.0f);
 
 float3 float4::ToFloat3() const
 {
@@ -173,7 +173,7 @@ f32 float4::DistanceSquared(const float4 &v) const
 float4 float4::normalize() const
 {
 	f32 lsqr = LengthSquared();
-	if(NearZero(lsqr)) { return ZERO; };
+	if(NearZero(lsqr)) { return float4(0.0f); };
 	f32 recip = InvSqrt(lsqr);
 	
 	return float4(vec[0]*recip, vec[1]*recip, vec[2]*recip, vec[3]*recip);
@@ -182,7 +182,7 @@ float4 float4::normalize() const
 void float4::normalize()
 {
 	f32 lsqr = LengthSquared();
-	if(NearZero(lsqr)) { *this = ZERO; };
+	if(NearZero(lsqr)) { this->setall(0); return; };
 	f32 recip = InvSqrt(lsqr);
 	vec[0] *= recip;
 	vec[1] *= recip;

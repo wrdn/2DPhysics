@@ -35,7 +35,7 @@ public:
 		Unload();
 	}; // REMEMBER: CAREFUL WITH TEXTURE ON STACK, TEXTURE IS DELETED IN DESTRUCTOR
 
-	bool Load(const char *filename);
+	bool Load(const c8 *filename);
 
 	void Unload();
 

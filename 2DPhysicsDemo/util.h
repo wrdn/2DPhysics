@@ -3,6 +3,7 @@
 
 #include "ctypes.h"
 #include <string>
+#include <vector>
 
 const f32 EPSILON = 0.000001f; // rough epsilon
 const f32 PI = 3.1415926f;
@@ -43,5 +44,17 @@ f32 reciprocal_sqrt(f32 f);
 
 std::string strtolower(const std::string &s);
 std::string strtoupper(const std::string &s);
+
+// Call this to loop through the vector and call delete on each element
+// This is useful when you have a vector full of valid pointers to be deleted
+template<class T>
+void CleanupVector(std::vector<T*> &datavec)
+{
+	for(u32 i=0;i<datavec.size();++i)
+	{
+		delete datavec[i];
+	}
+	datavec.clear();
+};
 
 #endif

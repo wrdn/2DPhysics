@@ -111,8 +111,8 @@ bool Shader::Valid()
 
 void Shader::PrintProgramLog(std::ostream &out)
 {
-	const int LOG_SZ = 4096;
-	char log[LOG_SZ];
+	const u32 LOG_SZ = 4096;
+	c8 log[LOG_SZ];
 	glGetProgramInfoLog(shaderProgramID, LOG_SZ, NULL, log);
 	out << log << std::endl;
 };

@@ -11,14 +11,14 @@ ResourceManager& ResourceManager::get() // returns reference to help avoid mucki
 	return *ResourceManager::resMan;
 };
 
-void ResourceManager::AddResource(i32 id, const char *name, Resource *r)
+void ResourceManager::AddResource(i32 id, const c8 *name, Resource *r)
 {
 	r->SetResourceID(id);
 	r->SetName(name);
 	resourceMap[id] = std::tr1::shared_ptr<Resource>(r);
 };
 
-TextureHandle LoadTextureNow(const char *filename, const char *textureResourceName) // if not provided, the default resource name used is the filename
+TextureHandle LoadTextureNow(const c8 *filename, const c8 *textureResourceName) // if not provided, the default resource name used is the filename
 {
 	TextureHandle hnd = textureResourceName ? ResourceManager::get().CreateAndGetResource<Texture>(textureResourceName) : ResourceManager::get().CreateAndGetResource<Texture>(filename);
 	if(hnd->GetGLTextureID()) { return hnd; }; // return resource if already loaded
@@ -26,7 +26,7 @@ TextureHandle LoadTextureNow(const char *filename, const char *textureResourceNa
 	return hnd;
 };
 
-ShaderHandle LoadShaderNow(const char *vertexShaderFilename, const char *fragmentShaderFilename, const char *shaderResourceName) // if not provided, there is no default shader resource name
+ShaderHandle LoadShaderNow(const c8 *vertexShaderFilename, const c8 *fragmentShaderFilename, const c8 *shaderResourceName) // if not provided, there is no default shader resource name
 {
 	if(!vertexShaderFilename || !fragmentShaderFilename) { return ShaderHandle((Shader*)0); };
 
@@ -78,7 +78,7 @@ ShaderHandle LoadShaderNow(const char *vertexShaderFilename, const char *fragmen
 	return sh;
 };
 
-RenderTargetHandle CreateRenderTarget(int width, int height, const char *renderTargetResourceName)
+RenderTargetHandle CreateRenderTarget(u32 width, u32 height, const c8 *renderTargetResourceName)
 {
 	RenderTargetHandle rth = renderTargetResourceName ? ResourceManager::get().CreateAndGetResource<RenderTarget>(renderTargetResourceName)
 		: ResourceManager::get().CreateAndGetResource<RenderTarget>();
@@ -86,7 +86,7 @@ RenderTargetHandle CreateRenderTarget(int width, int height, const char *renderT
 	return rth;
 };
 
-MeshHandle CreateMesh(const char *name)
+MeshHandle CreateMesh(const c8 *name)
 {
 	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>();
 	mh->SetName(name);

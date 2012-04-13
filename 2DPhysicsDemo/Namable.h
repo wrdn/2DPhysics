@@ -3,12 +3,12 @@
 class Namable
 {
 private:
-	char *name;
+	c8 *name;
 public:
 	Namable() : name(0) {};
-	Namable(const char *c) : name((char*)c) {};
+	Namable(const c8 *c) : name((c8*)c) {};
 	~Namable() {};
 
-	inline void SetName(const char *m) { name = (char*)m; };
-	inline const char* GetName() { return name; };
+	inline void SetName(const c8 *m) { name = (c8*)m; };
+	inline const c8* GetName() { return name; };
 };

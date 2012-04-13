@@ -2,8 +2,24 @@
 #include "GraphicsUtils.h"
 #include <time.h>
 
+// returns most tight fitting circle you can get given a set of vertices and a center position for the circle
+// used to get bounding circle for box and triangle (given their vertices and center positions)
+f32 CalculateBoundingCircle(const float2 &center, const float2 *verts, const u32 vertexCount)
+{
+	if(!verts) return 0;
+
+	f32 rlensqr = (verts[0] - center).length_squared();
+	for(u32 i=1;i<vertexCount;++i)
+	{
+		rlensqr = max(rlensqr, (verts[i]-center).length_squared());
+	}
+	return sqrtf(rlensqr);
+};
+
 void World::Load()
 {
+	CleanupVector(objects);
+
 	// parse configuration file
 	conf.ParseConfigFile("Data/ConfigFile.txt");
 
@@ -14,7 +30,19 @@ void World::Load()
 	zoom = conf.Read("ZoomLevel", -3.45f);
 	cameraPosition = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
 
+	if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
+	{
+		float2 g = SimBody::gravity;
+		SimBody::gravity.set( meters(g.x()), meters(g.y()) );
+	}
+
 	cameraSpeed = conf.Read("CameraSpeed", 5.0f);
+
+	updateRate = conf.Read("UpdateRate", 100U);
+
+	PHYSICS_THREAD_COUNT = conf.Read("PhysicsThreadCount", 3U); // default to 3 physics threads
+
+	drawBoundingCircles = conf.Read("DrawBoundingCircles", 0) != 0;
 
 	// Load textures
 	massTextures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
@@ -36,52 +64,72 @@ void World::Load()
 		Color::Normalize(conf.Read("HeavyColor", Color::YELLOW)) };
 
 	// Get row and column count (default 20,40)
-	u32 ROW_COUNT = conf.Read("BoxRowCount", 32U);
-	u32 COLUMN_COUNT = conf.Read("BoxColumnCount", 25U);
-	
-	/*if(ROW_COUNT * COLUMN_COUNT != 800)
-	{
-		ROW_COUNT = 20;
-		COLUMN_COUNT = 40;
-	}*/
-	
-	// around 1/3 of light, medium and heavy boxes, tune these parameters as you wish
-	u32 totalBoxes = ROW_COUNT * COLUMN_COUNT;
-	u32 th = totalBoxes / 3;
-	i32 massCounts[] = { th, th, th + totalBoxes%3 };
+	BOX_ROW_COUNT = conf.Read("BoxRowCount", 32U);
+	BOX_COLUMN_COUNT = conf.Read("BoxColumnCount", 25U);
+	BOX_COUNT = BOX_ROW_COUNT * BOX_COLUMN_COUNT;
+
+	objects.reserve(BOX_COUNT); // make enough space for boxes
+
+	u32 th = BOX_COUNT / 3;
+	i32 massCounts[] = { th, th, th + BOX_COUNT%3 };
 
 	srand((u32)time(NULL));
 
 	f32 xOffset = conf.Read("BoxXOffset", 0.003f);
 	f32 yOffset = conf.Read("BoxYOffset", 0.003f);
 
-	// Create boxes
-	for(u32 i=0;i<ROW_COUNT;++i)
-	{
-		for(u32 j=0;j<COLUMN_COUNT;++j)
-		{
-			const u32 index = (i * COLUMN_COUNT) + j;
-			
-			objects[index].mesh = boxMesh;
-			objects[index].position = float2( (j*BOX_WIDTH)+(j*xOffset), (i*BOX_HEIGHT)+(i*yOffset));
-			
-			float vmm = 0.06;
-			objects[index].velocity.x(randflt(-vmm,vmm));
 
+	const f32 masses[] = { 100, 500, 1000 };
+	const f32 invMasses[] = { 1.0f/masses[0], 1.0f/masses[1], 1.0f/masses[2] };
+	
+
+	// Create boxes
+	for(u32 i=0;i<BOX_ROW_COUNT;++i)
+	{
+		for(u32 j=0;j<BOX_COLUMN_COUNT;++j)
+		{
+			//const u32 index = (i * BOX_COLUMN_COUNT) + j;
+			
+			Box *b = new Box();
+
+			b->mesh = boxMesh;
+			b->position.set( (j*BOX_WIDTH)+(j*xOffset), (i*BOX_HEIGHT)+(i*yOffset));
+			b->extents.set( BOX_WIDTH/2.0f, BOX_HEIGHT/2.0f);
+
+			b->CalculateVertices();
+
+			b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), b->_cached_vertices, 4);
+
+			//b->boundingCircleRadius = max(b->extents.x(), b->extents.y());
+			//b->boundingCircleRadius += b->boundingCircleRadius*0.45f; // make is slightly bigger than the box, so we dont miss collisions
+			
 			i32 t = 0;
 			while(!massCounts[t=rand(0,2)]);
 
-			objects[index].objectMaterial.AddTexture(massTextures[t]);
-			objects[index].objectMaterial.SetObjectColor(objectColors[t]);
+			b->mass = masses[t];
+			b->invMass = invMasses[t];
+
+			//const f32 XVELM = 0.1f;
+			//f32 xvel = randflt(-XVELM, XVELM);
+			//b->velocity.x(xvel);
+
+			b->objectMaterial.AddTexture(massTextures[t]);
+			b->objectMaterial.SetObjectColor(objectColors[t]);
+			
+
+			objects.push_back(b);
 
 			--massCounts[t];
 		}
 	}
 
+	TOTAL_OBJECT_COUNT = BOX_COUNT;
 	// Create triangles
 };
 
 void World::UnLoad()
 {
 	ResourceManager::get().Cleanup();
+
+	CleanupVector(objects);
 };

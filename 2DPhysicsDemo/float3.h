@@ -12,8 +12,8 @@ private:
 public:
 	f32 * GetVec() const { return (f32*)vec; };
 
-	static const float3 ZERO;
-	static const float3 ONE;
+	//static const float3 ZERO;
+	//static const float3 ONE;
 
 	f32 x() const { return vec[0]; };
 	f32 y() const { return vec[1]; };
@@ -96,10 +96,13 @@ inline float3 operator-(const float3 &a, const f32 b) { return float3(a)-=float3
 inline float3 operator*(const float3 &a, const f32 b) { return float3(a)*=float3(b); }
 inline float3 operator/(const float3 &a, const f32 b) { return float3(a)/=float3(b); }
 
+/*
+// NEVER PUT THE FLOAT ON THE LEFT HAND SIDE
 inline float3 operator+(const f32 a, const float3 &b) { return float3(a)+=b; }
 inline float3 operator-(const f32 a, const float3 &b) { return float3(a)-=b; }
 inline float3 operator*(const f32 a, const float3 &b) { return float3(a)*=b; }
 inline float3 operator/(const f32 a, const float3 &b) { return float3(a)/=b; }
+*/
 
 inline float3 operator^(const float3 &a, const float3 &b) { return float3(a)^=b; }
 

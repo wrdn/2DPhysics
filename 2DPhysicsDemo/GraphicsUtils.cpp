@@ -1,9 +1,14 @@
 #include "GraphicsUtils.h"
 #include "ResourceManager.h"
 
-MeshHandle Create2DBox(f32 width, f32 height, const char *resourceName)
+MeshHandle Create2DBox(f32 width, f32 height, const c8 *resourceName)
 {
 	f32 w2 = width / 2.0f, h2 = height / 2.0f;
+
+	// The Create2DBox() function is only called at Load time. However, since we can reload the entire app at runtime,
+	// when we may have a different box width and height, we'll delete the resource and recreate it
+	// Alternative approach: create a 1x1 box once, then scale it by the width and height
+	ResourceManager::get().RemoveResource(resourceName);
 
 	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>(resourceName);
 	if(mh->Valid()) return mh; // dont recreate a mesh under the resourceName
@@ -30,9 +35,14 @@ MeshHandle Create2DBox(f32 width, f32 height, const char *resourceName)
 	return mh;
 };
 
-MeshHandle CreateEquilateralTriangle(f32 length, const char *resourceName)
+MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 {
 	f32 l2 = length / 2.0f;
+
+	// The CreateEquilateralTriangle() function is only called at Load time. However, since we can reload the entire app at runtime,
+	// when we may have a different box width and height, we'll delete the resource and recreate it
+	// Alternative approach: create a 1x1 box once, then scale it by the width and height
+	ResourceManager::get().RemoveResource(resourceName);
 
 	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>(resourceName);
 	if(mh->Valid()) return mh; // dont recreate a mesh under the resourceName

@@ -4,57 +4,45 @@
 #include "Mesh.h"
 #include "Material.h"
 
-const float2 gravity(0,-9.81f); // gravity defined as -9.81 m/s^2
+const float2 default_gravity(0, meters(-9.81f));
 
 // Base for physics objects
 class SimBody
 {
 public:
-	SimBody(void)
-	{
-		position = float2(0.0f);
-		rotation = 0.0f;
-		velocity = float2(0.0f);
-		angularVelocity = 0.0f;
-		force = float2(0.0f);
-		torque = 0.0f;
-		friction = 0.2f;
-
-		mass = I = 10;
-		invMass = invI = 1.0f/mass;
-
-		fillMode = GL_FILL;
-		mesh = MeshHandle(0);
-
-		use_textures = use_shaders = draw = true;
-	};
-
+	SimBody();
 	~SimBody(void) {};
+
+	static float2 gravity;
 
 	// PHYSICS VARIABLES
 	float2 position;
-	float rotation; // only need rotation about z
-
 	float2 velocity;
-	float angularVelocity; // around z
+	f32 mass, invMass;
+	f32 boundingCircleRadius; // all objects have a bounding circle, to allow for very fast rejection tests
 
+	f32 rotation; // only need rotation about z
+	f32 angularVelocity; // around z
 	float2 force;
-	float torque;
-
-	float friction;
-	float mass, invMass;
-	float I, invI; // impulse (see Catto)
-
+	f32 torque;
 	
+	f32 friction;
+	f32 dragCoefficient; // default 0.1
+	f32 I, invI; // impulse (see Catto)
+
 	// GRAPHICS VARIABLES
 	Material objectMaterial;
 	MeshHandle mesh;
 	GLenum fillMode;
 	bool use_textures, use_shaders;
+	
 	bool draw; // enable/disable drawing of the simbody
+	bool update;
 
 	void Draw();
 };
+
+bool BoundingCircleIntersects(const SimBody &a, const SimBody &b);
 
 // used to represent a box in the simulation
 // Since SimBody contains a "rotation" and "position" parameter, this
@@ -69,4 +57,31 @@ public:
 	~Box() {};
 
 	float2 extents; // half-width and half-height of box (from center)
+
+	// Top Left (TL), Top Right (TR), Bottom Left (BL), Bottom Right (BR)
+	enum boxvert { TL, TR, BL, BR };
+
+	float2 _cached_vertices[4];
+
+	// calculates and caches vertices from box extents
+	// origin is assumed to be at (0,0). In collision code, we use relative position
+	// of objects. This way, we don't have to recalculate vertex positions
+	void CalculateVertices()
+	{
+		_cached_vertices[BL].set(-extents.x(), -extents.y());
+		_cached_vertices[BR].set(extents.x(),  -extents.y());
+		_cached_vertices[TL].set(-extents.x(), extents.y());
+		_cached_vertices[TR].set(extents.x(),  extents.y());
+	};
 };
+
+struct MinMaxProjection
+{
+public:
+	f32 min;
+	f32 max;
+};
+
+bool Intersect(const Box &a, const Box &b, float2 &out_mtd_vec, f32 &t);
+void CalculateBoxVertices(const Box &b, float2 *verts);
+bool overlaps(MinMaxProjection &ax, MinMaxProjection &bx); // 1D overlap test
