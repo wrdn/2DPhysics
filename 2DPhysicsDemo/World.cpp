@@ -1,6 +1,8 @@
 #include "World.h"
 #include "GraphicsUtils.h"
 #include "util.h"
+#include "SATCollision.h"
+
 using namespace std;
 
 World::World(void) : zoom(-3.45f), objects(0), GLOBAL_FILL_MODE(GL_LINE), drawBoundingCircles(false) {}
@@ -13,7 +15,7 @@ void DrawCircle(float2 &pos, f32 radius)
 	glBegin(GL_LINE_LOOP);
 	for(u32 i=0;i<360;++i)
 	{
-		f32 f = DEGTORAD(i);
+		f32 f = DEGTORAD((f32)i);
 		glVertex2f(pos.x() + sin(f) * radius, pos.y() + cos(f) * radius);
 	}
 	glEnd();
@@ -37,6 +39,11 @@ void World::Draw()
 
 		objects[i]->fillMode = GLOBAL_FILL_MODE; // useful for debugging collision detection/response
 		objects[i]->Draw();
+
+		glPointSize(1);
+		glBegin(GL_POINTS);
+		glVertex2f(objects[i]->position.x(), objects[i]->position.y());
+		glEnd();
 	}
 	
 	// debug functionality: draw bounding circles
@@ -59,6 +66,9 @@ float2 CurrentForce(const SimBody &s)
 };
 float2 CurrentForce(const float2 &pos, const float2 &vel, const SimBody &s)
 {
+	f32 tmp = pos.x()+vel.x();
+	if(tmp){};
+
 	float2 totalForce = s.force;
 	totalForce += SimBody::gravity*s.mass;
 	return totalForce;
@@ -100,11 +110,74 @@ void rkintegrate(SimBody &s, f32 dt)
 
 	s.position += (xk1 + xk2*2.0f + xk3*2.0f + xk4) / 6.0f;
 	s.velocity += (vk1 + vk2*2.0f + vk3*2.0f + vk4) / 6.0f;
+};
 
-	//float2 xk2_2 = xk2*2.0f, xk3_2 = xk3*2.0f;
-	//float2 vk2_2 = vk2*2.0f, vk3_2 = vk3*2.0f;
-	//s.position += (xk1 + xk2_2 + xk3_2 + xk4) / 6.0f;
-	//s.velocity += (vk1 + vk2_2 + vk3_2 + vk4) / 6.0f;
+void World::update_triangles(f32 dt)
+{
+	for(u32 i=BOX_COUNT;i<TOTAL_OBJECT_COUNT;++i)
+	{
+		Triangle *t = (Triangle*)objects[i];
+		t->rotation += 0.02f;
+		t->rotation = t->rotation >= 360.0f ? t->rotation - 360.0f : t->rotation;
+		t->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(t->rotation));
+
+		float2 mtd;
+
+		// Triangle - box updates
+		for(u32 j=0;j<BOX_COUNT;++j)
+		{
+			Box *b = (Box*)objects[j];
+			//if(!BoundingCircleIntersects(*t, *b)) continue;
+
+			f32 tx=0;
+			if(IntersectOBBTriangle(*b, *t, mtd, tx))
+			{
+				t->objectMaterial.SetObjectColor(Color::WHITE);
+				b->objectMaterial.SetObjectColor(Color::WHITE);
+			}
+			else
+			{
+				t->objectMaterial.SetObjectColor(Color::RED);
+				b->objectMaterial.SetObjectColor(Color::RED);
+			}
+		}
+
+		// Triangle - triangle updates
+		for(u32 j=BOX_COUNT;j<i;++j)
+		{
+			Triangle *ot = (Triangle*)objects[j];
+			if(!BoundingCircleIntersects(*t, *ot)) continue;
+
+			f32 tx=0;
+			if(IntersectTriangleTriangle(*t, *ot, mtd, tx))
+			{
+				t->objectMaterial.SetObjectColor(Color::WHITE);
+				ot->objectMaterial.SetObjectColor(Color::WHITE);
+			}
+			else
+			{
+				t->objectMaterial.SetObjectColor(Color::RED);
+				ot->objectMaterial.SetObjectColor(Color::RED);
+			}
+		}
+		for(u32 j=i+1;j<TOTAL_OBJECT_COUNT;++j)
+		{
+			Triangle *ot = (Triangle*)objects[j];
+			if(!BoundingCircleIntersects(*t, *ot)) continue;
+
+			f32 tx=0;
+			if(IntersectTriangleTriangle(*t, *ot, mtd, tx))
+			{
+				t->objectMaterial.SetObjectColor(Color::WHITE);
+				ot->objectMaterial.SetObjectColor(Color::WHITE);
+			}
+			else
+			{
+				t->objectMaterial.SetObjectColor(Color::RED);
+				ot->objectMaterial.SetObjectColor(Color::RED);
+			}
+		}
+	}
 };
 
 void World::update_boxes(f32 dt)
@@ -114,9 +187,14 @@ void World::update_boxes(f32 dt)
 		Box *b = (Box*)objects[i];
 		if(!b->update) continue;
 
-		rkintegrate(*b, dt);
+		//rkintegrate(*b, dt);
 		b->position.y( max(0, b->position.y()));
-		b->position.y( min(b->position.y(), 0.5));
+		b->position.y( min(b->position.y(), 0.5f));
+
+		b->rotation += 0.02f;
+		b->rotation = b->rotation >= 360.0f ? b->rotation - 360.0f : b->rotation;
+		b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
+		continue;
 
 		float2 mtd;
 		
@@ -124,29 +202,40 @@ void World::update_boxes(f32 dt)
 		for(u32 j=0;j<i;++j)
 		{
 			Box *ob = (Box*)objects[j];
-
-			// Quick bounding circle rejection
 			if(!BoundingCircleIntersects(*b, *ob)) continue;
 
 			f32 t=0;
-			if(Intersect(*b, *ob, mtd, t))
+			if(IntersectOBB(*b, *ob, mtd, t))
 			{
-				b->position -= mtd * (t*0.5f);
-				ob->position += mtd * (t*0.5f);
+				b->objectMaterial.SetObjectColor(Color::WHITE);
+				ob->objectMaterial.SetObjectColor(Color::WHITE);
+				//b->position -= mtd * (t*0.5f);
+				//ob->position += mtd * (t*0.5f);
+			}
+			else
+			{
+				b->objectMaterial.SetObjectColor(Color::RED);
+				ob->objectMaterial.SetObjectColor(Color::RED);
 			}
 		}
 
 		for(u32 j=i+1;j<BOX_COUNT;++j)
 		{
 			Box *ob = (Box*)objects[j];
-
 			if(!BoundingCircleIntersects(*b, *ob)) continue;
 
-			f32 t = 0;
-			if(Intersect(*b, *ob, mtd, t))
+			f32 t=0;
+			if(IntersectOBB(*b, *ob, mtd, t))
 			{
-				b->position -= mtd * (t*0.5f);
-				ob->position += mtd * (t*0.5f);
+				b->objectMaterial.SetObjectColor(Color::WHITE);
+				ob->objectMaterial.SetObjectColor(Color::WHITE);
+				//b->position -= mtd * (t*0.5f);
+				//ob->position += mtd * (t*0.5f);
+			}
+			else
+			{
+				b->objectMaterial.SetObjectColor(Color::RED);
+				ob->objectMaterial.SetObjectColor(Color::RED);
 			}
 		}
 	}
@@ -156,50 +245,6 @@ void World::Update(f32 dt)
 {
 	dt = 1.0f / updateRate;
 
-	update_boxes(dt);
-
-	//for(u32 i=0;i<1001;++i)
-	//{
-	//	SimBody &body = *objects[i];
-	//	Box *b = (Box*)&objects[i];
-
-	//	if(!body.update) continue;
-
-	//	// for all the boxes
-	//	for(u32 i=0;i<BOX_COUNT;++i)
-	//	{
-	//		Box *ibox = (Box*)objects[i];
-
-
-	//		/*for(u32 j=0;j<i;++j) // boxes BEFORE i
-	//		{
-	//			Box *otherbox = (Box*)objects[j];
-
-	//			if(Intersect(*ibox, *otherbox))
-	//			{
-	//				ibox->update = false;
-	//				++i; continue;
-	//			}
-	//		}
-	//		for(u32 j=i+1;j<BOX_COUNT;++j) // boxes AFTER i
-	//		{
-	//			Box *otherbox = (Box*)objects[j];
-
-	//			if(Intersect(*ibox, *otherbox))
-	//			{
-	//				ibox->update = false;
-	//				++i; continue;
-	//			}
-	//		}*/
-	//	}
-
-		//rkintegrate(body, dt);
-
-		// HACK: make sure objects can't go below Y=0. We can now do collision detection to
-		// make sure they don't penetrate each other, but also never go below Y=0
-		// Later on we could add similar clamps for the X axis (left and right), and possibly an upper range for the Y
-		// axis, so we can keep everything inside a box. Eventually, we will do proper collisions against a plane
-		// so it can interact with the edges properly
-	//	body.position.y( max(0, body.position.y()) );
-	//}
+	//update_boxes(dt);
+	update_triangles(dt);
 };

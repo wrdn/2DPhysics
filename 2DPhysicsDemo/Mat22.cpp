@@ -1,4 +1,5 @@
 #include "Mat22.h"
+#include <math.h>
 
 Mat22::Mat22(void)
 {
@@ -35,6 +36,14 @@ void Mat22::Identity()
 {
 	mat[0] = 1; mat[1] = 0;
 	mat[2] = 0; mat[3] = 1;
+};
+
+Mat22 Mat22::RotationMatrix(f32 angle)
+{
+	f32 c = cosf(angle);
+	f32 s = sinf(angle);
+
+	return Mat22(c, s, -s, c);
 };
 
 Mat22 Mat22::Add(const Mat22 &other) const
@@ -107,4 +116,9 @@ Mat22 Mat22::Inverse() const
 {
 	f32 det = Determinant();
 	return Mat22(mat[3], -mat[1], -mat[2], mat[0]).Mul(det);
+};
+
+Mat22 Mat22::Transpose() const
+{
+	return Mat22(mat[0], mat[2], mat[1], mat[3]);
 };

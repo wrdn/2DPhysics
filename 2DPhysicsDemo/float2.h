@@ -77,7 +77,7 @@ public:
 	// similar to output of cross product in 3D, left hand perp vector points to left of vector,
 	// right hand perp vector points to right of vector
 	// default perp() calls the left hand version
-	float2 perp() const { return perpendicular_vector_left(); };
+	float2 perp() const { return perpendicular_vector_right(); };
 	float2 perpendicular_vector_left() const;
 	float2 perpendicular_vector_right() const;
 

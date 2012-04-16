@@ -57,3 +57,18 @@ bool Hit_Circle_Circle(const Circle &a, const Circle &b)
 	f32 radius_sum = a.radius + b.radius;
 	return dist_squared < radius_sum*radius_sum;
 };
+
+bool BoundingCircleIntersects(const SimBody &av, const SimBody &bv)
+{
+	f32 a = av.boundingCircleRadius + bv.boundingCircleRadius;
+	float2 dm = av.position - bv.position;
+	return (a*a) > dm.length_squared();
+};
+
+bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx)
+{
+	f32 d0 = ax.min - bx.max;
+	f32 d1 = bx.min - ax.max;
+	if(d0 > 0.0f || d1 > 0.0f) { return false; }
+	return true;
+};

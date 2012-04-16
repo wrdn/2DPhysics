@@ -14,10 +14,16 @@ private:
 	//SimBody objects[1001];
 	//SimBody *objects;
 	//static const u32 OBJECT_COUNT = 1001;
+
+	// Boxes first, up to BOX_COUNT elements. Then Triangles up to TRIANGLE_COUNT elements
+	// Boxes from indices 0 <= index < BOX_COUNT
+	// Triangles from indices BOX_COUNT <= index < BOX_COUNT + TRIANGLE_COUNT
 	vector<SimBody*> objects;
 
 	u32 BOX_ROW_COUNT, BOX_COLUMN_COUNT;
 	u32 BOX_COUNT; // = BOX_ROW_COUNT*BOX_COLUMN_COUNT
+
+	u32 TRIANGLE_COUNT;
 
 	u32 TOTAL_OBJECT_COUNT;
 
@@ -30,6 +36,7 @@ private:
 	f32 cameraSpeed;
 
 	void update_boxes(f32 dt);
+	void update_triangles(f32 dt);
 
 	u32 GLOBAL_FILL_MODE; // default GL_LINE
 

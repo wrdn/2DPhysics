@@ -109,22 +109,59 @@ void World::Load()
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
-			//const f32 XVELM = 0.1f;
-			//f32 xvel = randflt(-XVELM, XVELM);
+			const f32 XVELM = 0.1f;
+			f32 xvel = randflt(-XVELM, XVELM);
 			//b->velocity.x(xvel);
 
 			b->objectMaterial.AddTexture(massTextures[t]);
 			b->objectMaterial.SetObjectColor(objectColors[t]);
-			
 
 			objects.push_back(b);
 
 			--massCounts[t];
 		}
 	}
-
 	TOTAL_OBJECT_COUNT = BOX_COUNT;
+	
+	++BOX_COUNT;
+	++TOTAL_OBJECT_COUNT;
+	Box *b = new Box();
+	b->mesh = boxMesh;
+	b->position.set( 2*TRIANGLE_LENGTH, 0.3f );
+	b->extents.set( BOX_WIDTH/2.0f, BOX_HEIGHT/2.0f);
+	b->CalculateVertices();
+	b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), b->_cached_vertices, 4);
+	b->mass = masses[0];
+	b->invMass = invMasses[0];
+	b->objectMaterial.SetObjectColor(Color::RED);
+	b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
+	objects.push_back(b);
+
 	// Create triangles
+
+	// For now, we'll just create 2 triangles so we can test collisions
+	TRIANGLE_COUNT = 2;
+	for(int i=0;i<TRIANGLE_COUNT;++i)
+	{
+		Triangle *t = new Triangle();
+		t->sideLength = TRIANGLE_LENGTH;
+		t->CalculateVertices();
+
+		t->objectMaterial.SetObjectColor(Color::RED);
+
+		t->mass = masses[0];
+		t->invMass = invMasses[0];
+
+		t->mesh = triangleMesh;
+		
+		t->position.y(0.3f);
+		t->position.x(i*TRIANGLE_LENGTH + (i*-0.004f));
+
+		t->boundingCircleRadius = CalculateBoundingCircle(float2(), t->_cached_vertices, 3);
+
+		objects.push_back(t);
+	}
+	TOTAL_OBJECT_COUNT += TRIANGLE_COUNT;
 };
 
 void World::UnLoad()

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Mat22.h"
 #include "float2.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -21,14 +22,17 @@ public:
 	f32 mass, invMass;
 	f32 boundingCircleRadius; // all objects have a bounding circle, to allow for very fast rejection tests
 
-	f32 rotation; // only need rotation about z
+	// only need rotation about z, every time this is updated, you should also update _cached_rotation_matrix
+	// rotation specified in degrees
+	f32 rotation;
+	Mat22 _cached_rotation_matrix; // Mat22::RotationMatrix(rotation)
 	f32 angularVelocity; // around z
 	float2 force;
 	f32 torque;
 	
 	f32 friction;
 	f32 dragCoefficient; // default 0.1
-	f32 I, invI; // impulse (see Catto)
+	f32 I, invI; // impulse? (see Catto)
 
 	// GRAPHICS VARIABLES
 	Material objectMaterial;
@@ -50,9 +54,9 @@ bool BoundingCircleIntersects(const SimBody &a, const SimBody &b);
 class Box : public SimBody
 {
 public:
-	Box()
+	Box() : extents(1,1)
 	{
-		extents = float2(1,1);
+		CalculateVertices();
 	};
 	~Box() {};
 
@@ -75,13 +79,26 @@ public:
 	};
 };
 
-struct MinMaxProjection
+class Triangle : public SimBody // designed for equilateral triangles only
 {
 public:
-	f32 min;
-	f32 max;
-};
+	Triangle() : sideLength(1)
+	{
+		CalculateVertices();
+	};
+	~Triangle() {};
 
-bool Intersect(const Box &a, const Box &b, float2 &out_mtd_vec, f32 &t);
-void CalculateBoxVertices(const Box &b, float2 *verts);
-bool overlaps(MinMaxProjection &ax, MinMaxProjection &bx); // 1D overlap test
+	f32 sideLength;
+
+	enum TriVert { T=0, BL=1, BR=2 };
+	float2 _cached_vertices[3];
+
+	void CalculateVertices()
+	{
+		f32 l2 = sideLength / 2.0f;
+
+		_cached_vertices[T].set(0, l2);
+		_cached_vertices[BL].set(-l2, -l2);
+		_cached_vertices[BR].set(l2, -l2);
+	};
+};

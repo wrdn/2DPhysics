@@ -24,6 +24,8 @@ public:
 
 	void Identity();
 
+	static Mat22 RotationMatrix(f32 angle);
+
 	Mat22 Add(const Mat22 &other) const;
 	Mat22 Add(const f32 v) const;
 	
@@ -37,10 +39,15 @@ public:
 	f32 Determinant() const;
 	Mat22 Inverse() const;
 
+	Mat22 Transpose() const;
+
 	inline const Mat22& operator+=(const Mat22 &rhs) { *this = Add(rhs); return *this; }
 	inline const Mat22& operator-=(const Mat22 &rhs) { *this = Sub(rhs); return *this; }
 	inline const Mat22& operator*=(const Mat22 &rhs) { *this = Mul(rhs); return *this; }
 };
+
+inline float2 operator*(const Mat22 &a, const float2 &b) { return a.Mul(b); };
+inline float2 operator*(const float2 &a, const Mat22 &b) { return b.Mul(a); };
 
 inline Mat22 operator+(const Mat22 &a, const Mat22 &b) { return Mat22(a)+=b; }
 inline Mat22 operator-(const Mat22 &a, const Mat22 &b) { return Mat22(a)-=b; }
@@ -49,13 +56,3 @@ inline Mat22 operator*(const Mat22 &a, const Mat22 &b) { return Mat22(a)*=b; }
 inline Mat22 operator+(const Mat22 &a, const f32 b) { return a.Add(b); };
 inline Mat22 operator-(const Mat22 &a, const f32 b) { return a.Sub(b); };
 inline Mat22 operator*(const Mat22 &a, const f32 b) { return a.Mul(b); };
-
-/*
-// NEVER PUT THE FLOAT ON THE LEFT HAND SIDE
-inline Mat22 operator+(const f32 a, const Mat22 &b) { return b.Add(a); };
-inline Mat22 operator-(const f32 a, const Mat22 &b) { return b.Sub(a); };
-inline Mat22 operator*(const f32 a, const Mat22 &b) { return b.Mul(a); };
-*/
-
-inline float2 operator*(const Mat22 &a, const float2 &b) { return a.Mul(b); };
-inline float2 operator*(const float2 &a, const Mat22 &b) { return b.Mul(a); };

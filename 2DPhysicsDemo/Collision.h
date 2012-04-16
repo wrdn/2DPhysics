@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimBody.h"
 #include "Line.h"
 #include "float2.h"
 #include "float3.h"
@@ -40,8 +41,19 @@ public:
 	~CollisionPoint2D() { };
 };
 
+struct MinMaxProjection
+{
+public:
+	f32 min;
+	f32 max;
+};
+
 bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &cp);
 
 bool Hit_AABB_AABB(const AABB &a, const AABB &b);
 
 bool Hit_Circle_Circle(const Circle &a, const Circle &b);
+
+bool BoundingCircleIntersects(const SimBody &av, const SimBody &bv);
+
+bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx);
