@@ -4,6 +4,8 @@
 #include "AppConfig.h"
 #include "SimBody.h"
 #include "GameTime.h"
+#include "CBODY.h"
+
 
 class World
 {
@@ -19,6 +21,10 @@ private:
 	// Boxes from indices 0 <= index < BOX_COUNT
 	// Triangles from indices BOX_COUNT <= index < BOX_COUNT + TRIANGLE_COUNT
 	vector<SimBody*> objects;
+
+
+	CBODY *box, *triangle;
+	
 
 	u32 BOX_ROW_COUNT, BOX_COLUMN_COUNT;
 	u32 BOX_COUNT; // = BOX_ROW_COUNT*BOX_COLUMN_COUNT
@@ -37,6 +43,8 @@ private:
 
 	void update_boxes(f32 dt);
 	void update_triangles(f32 dt);
+
+	void test_collisions_tri_box(f32 dt);
 
 	u32 GLOBAL_FILL_MODE; // default GL_LINE
 

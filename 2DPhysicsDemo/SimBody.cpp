@@ -62,3 +62,49 @@ void SimBody::Draw()
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 };
+
+void Triangle::CalculateVerticesAndSeperatingAxis()
+{
+	vertices.resize(3);
+	seperatingAxis.resize(3);
+
+	const f32 l2 = sideLength;
+	const float2 vT(0, l2);
+	const float2 vBL(-l2,-l2);
+	const float2 vBR(l2,-l2);
+
+	vertices[0] = float2(0, l2);
+	vertices[2] = float2(l2, -l2);
+	vertices[1] = float2(-l2, -l2);
+
+	const float2 firstAxis =  (vT - vBL).perp().normalize();
+	const float2 secondAxis = (vT - vBR).perp().normalize();
+	const float2 thirdAxis =  (vBL - vBR).perp().normalize();
+
+	seperatingAxis[0] = firstAxis;
+	seperatingAxis[1] = secondAxis;
+	seperatingAxis[2] = thirdAxis;
+};
+
+void Box::CalculateVerticesAndSeperatingAxis()
+{
+	vertices.resize(4);
+	seperatingAxis.resize(2);
+
+	const float2 vBL(-extents.x(), -extents.y());
+	const float2 vBR(extents.x(), -extents.y());
+	const float2 vTL(-extents.x(), extents.y());
+	const float2 vTR(extents.x(), extents.y());
+
+	vertices[BL] = vBL;
+	vertices[BR] = vBR;
+	vertices[TL] = vTR;
+	vertices[TR] = vTL;
+
+	// For a box, there are only ever 2 seperating axis (4 possible, but 2 of the 4 are redundant)
+	const float2 firstAxis =  (vTL - vBL).perp().normalize();
+	const float2 secondAxis = (vBL - vBR).perp().normalize();
+
+	seperatingAxis[0] = firstAxis;
+	seperatingAxis[1] = secondAxis;
+};

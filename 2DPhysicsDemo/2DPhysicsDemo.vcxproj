@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppConfig.cpp" />
+    <ClCompile Include="CBODY.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="FizzyWindow.cpp" />
@@ -95,22 +96,23 @@
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="SATCollisionAABB.cpp" />
     <ClCompile Include="SATCollisionCommon.cpp" />
-    <ClCompile Include="SATCollisionOBB.cpp" />
     <ClCompile Include="SATCollisionOBBTriangle.cpp" />
-    <ClCompile Include="SATCollisionTriangleTriangle.cpp" />
+    <ClCompile Include="SATCollisionSimBody.cpp" />
+    <ClCompile Include="SATCollision_TutCode.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderObject.cpp" />
     <ClCompile Include="SimBody.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="util.cpp" />
+    <ClCompile Include="Vector.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="World_Load.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
+    <ClInclude Include="CBODY.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="ctypes.h" />
@@ -126,6 +128,7 @@
     <ClInclude Include="Mat22.h" />
     <ClInclude Include="Mat44.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Namable.h" />
@@ -141,6 +144,7 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="units.h" />
     <ClInclude Include="util.h" />
+    <ClInclude Include="Vector.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

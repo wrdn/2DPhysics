@@ -1,12 +1,17 @@
 #pragma once
 
+#include "CBODY.h"
 #include "SimBody.h"
 #include "Collision.h"
 
-bool IntersectAABB(const Box &a, const Box &b, float2 &out_mtd_vec, f32 &t);
+/*bool IntersectAABB(const Box &a, const Box &b, float2 &out_mtd_vec, f32 &t);
 bool IntersectOBB(const Box &a, const Box &b, float2 &out_mtd_vec, f32 &t);
 bool IntersectTriangleTriangle(const Triangle &a, const Triangle &b, float2 &out_mtd_vec, f32 &t);
-bool IntersectOBBTriangle(const Box &a, const Triangle &b, float2 &out_mtd_vec, f32 &t);
+bool IntersectOBBTriangle(const Box &a, const Triangle &b, float2 &out_mtd_vec, f32 &t);*/
+
+// This is the function you are advised to use. It uses the SimBody vertex and seperating axis list data, and "should" work
+// with any 2 SimBodies, as long as the combined number of seperating axis is less than or equal to 6
+bool Intersect(SimBody &a, SimBody &b, float2 &out_mtd_vec, f32 &t);
 
 // Find minimum translation vector
 bool FindMTD(const float2 *axis, f32 *taxis, u32 axisCount, float2 &N, f32 &t);
@@ -20,3 +25,5 @@ bool IntervalIntersect(
 	const Mat22 &xOrient=Mat22());
 
 void GetInterval(const float2 &axis, const float2 * const verts, const u32 vertCount, MinMaxProjection &proj);
+
+bool Intersect_TutCode(CBODY &a, CBODY &b);

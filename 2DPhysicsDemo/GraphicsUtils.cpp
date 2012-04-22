@@ -37,8 +37,6 @@ MeshHandle Create2DBox(f32 width, f32 height, const c8 *resourceName)
 
 MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 {
-	f32 l2 = length/2.0f;
-
 	// The CreateEquilateralTriangle() function is only called at Load time. However, since we can reload the entire app at runtime,
 	// when we may have a different box width and height, we'll delete the resource and recreate it
 	// Alternative approach: create a 1x1 box once, then scale it by the width and height
@@ -50,6 +48,8 @@ MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 	mh->SetName(resourceName);
 
 	VERTEX verts[3];
+
+	f32 l2 = length;
 
 	verts[0] = VERTEX( float2(0, l2), float2(0.5f, 1) ); // top
 	verts[1] = VERTEX( float2(-l2, -l2), float2(0, 0) ); // bottom left

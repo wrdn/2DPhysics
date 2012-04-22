@@ -94,11 +94,13 @@ void World::Load()
 
 			b->mesh = boxMesh;
 			b->position.set( (j*BOX_WIDTH)+(j*xOffset), (i*BOX_HEIGHT)+(i*yOffset));
+			b->position.x(b->position.x() - (j*0.03f));
+
 			b->extents.set( BOX_WIDTH/2.0f, BOX_HEIGHT/2.0f);
 
-			b->CalculateVertices();
+			b->CalculateVerticesAndSeperatingAxis();
 
-			b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), b->_cached_vertices, 4);
+			b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &b->vertices[0], b->vertices.size());
 
 			//b->boundingCircleRadius = max(b->extents.x(), b->extents.y());
 			//b->boundingCircleRadius += b->boundingCircleRadius*0.45f; // make is slightly bigger than the box, so we dont miss collisions
@@ -109,8 +111,8 @@ void World::Load()
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
-			const f32 XVELM = 0.1f;
-			f32 xvel = randflt(-XVELM, XVELM);
+			//const f32 XVELM = 0.1f;
+			//f32 xvel = randflt(-XVELM, XVELM);
 			//b->velocity.x(xvel);
 
 			b->objectMaterial.AddTexture(massTextures[t]);
@@ -122,30 +124,50 @@ void World::Load()
 		}
 	}
 	TOTAL_OBJECT_COUNT = BOX_COUNT;
-	
+
 	++BOX_COUNT;
 	++TOTAL_OBJECT_COUNT;
 	Box *b = new Box();
 	b->mesh = boxMesh;
 	b->position.set( 2*TRIANGLE_LENGTH, 0.3f );
 	b->extents.set( BOX_WIDTH/2.0f, BOX_HEIGHT/2.0f);
-	b->CalculateVertices();
-	b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), b->_cached_vertices, 4);
+	b->CalculateVerticesAndSeperatingAxis();
+	b->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &b->vertices[0], b->vertices.size());
 	b->mass = masses[0];
 	b->invMass = invMasses[0];
 	b->objectMaterial.SetObjectColor(Color::RED);
+	b->rotation = 0;
 	b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
 	objects.push_back(b);
+
+	box = new CBODY();
+	box->position = Vector(b->position.x(), b->position.y());
+	box->rotation = 0;
+	box->r = 1; box->g=0;box->b=0;
+	Vector extents(b->extents.x(), b->extents.y());
+	box->vertices.push_back(Vector(-extents.x, -extents.y));
+	box->vertices.push_back(Vector(extents.x, -extents.y));
+	box->vertices.push_back(Vector(extents.x, extents.y));
+	box->vertices.push_back(Vector(-extents.x, extents.y));
+
+	triangle = new CBODY();
+	triangle->position = Vector(0.075, 0.3);
+	triangle->rotation = 0;
+	triangle->r = 1; triangle->g=0;triangle->b=0;
+	float SL = TRIANGLE_LENGTH;
+	triangle->vertices.push_back(Vector(0, SL));
+	triangle->vertices.push_back(Vector(SL, -SL));
+	triangle->vertices.push_back(Vector(-SL, -SL));
 
 	// Create triangles
 
 	// For now, we'll just create 2 triangles so we can test collisions
 	TRIANGLE_COUNT = 2;
-	for(int i=0;i<TRIANGLE_COUNT;++i)
+	for(u32 i=0;i<TRIANGLE_COUNT;++i)
 	{
 		Triangle *t = new Triangle();
 		t->sideLength = TRIANGLE_LENGTH;
-		t->CalculateVertices();
+		t->CalculateVerticesAndSeperatingAxis();
 
 		t->objectMaterial.SetObjectColor(Color::RED);
 
@@ -155,9 +177,12 @@ void World::Load()
 		t->mesh = triangleMesh;
 		
 		t->position.y(0.3f);
-		t->position.x(i*TRIANGLE_LENGTH + (i*-0.004f));
+		t->position.x(i*TRIANGLE_LENGTH + (0.10f));
 
-		t->boundingCircleRadius = CalculateBoundingCircle(float2(), t->_cached_vertices, 3);
+		t->boundingCircleRadius = CalculateBoundingCircle(float2(), &t->vertices[0], t->vertices.size());
+
+		t->rotation = 45;
+		t->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(t->rotation));
 
 		objects.push_back(t);
 	}

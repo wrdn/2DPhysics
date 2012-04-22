@@ -4,14 +4,13 @@
 
 class Mat22
 {
-private:
+public:
 	f32 mat[4];
 	/*
 	[ 0  1]   [m11 m12]
 	[ 2  3]   [m21 m22]
 	*/
 
-public:
 	Mat22(void);
 	Mat22(const f32 * const fpArray);
 	Mat22(const f32 m11, const f32 m12, const f32 m21, const f32 m22);

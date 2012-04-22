@@ -4,6 +4,7 @@
 #include "float2.h"
 #include "Mesh.h"
 #include "Material.h"
+#include <vector>
 
 const float2 default_gravity(0, meters(-9.81f));
 
@@ -43,6 +44,10 @@ public:
 	bool draw; // enable/disable drawing of the simbody
 	bool update;
 
+	// Data used during SAT collision phase. You should ONLY use CalculateVerticesAndSeperatingAxis() to set this data
+	std::vector<float2> vertices;
+	std::vector<float2> seperatingAxis;
+
 	void Draw();
 };
 
@@ -56,27 +61,18 @@ class Box : public SimBody
 public:
 	Box() : extents(1,1)
 	{
-		CalculateVertices();
+		CalculateVerticesAndSeperatingAxis();
 	};
 	~Box() {};
 
 	float2 extents; // half-width and half-height of box (from center)
 
-	// Top Left (TL), Top Right (TR), Bottom Left (BL), Bottom Right (BR)
-	enum boxvert { TL, TR, BL, BR };
-
-	float2 _cached_vertices[4];
+	enum { BL, BR, TL, TR };
 
 	// calculates and caches vertices from box extents
 	// origin is assumed to be at (0,0). In collision code, we use relative position
 	// of objects. This way, we don't have to recalculate vertex positions
-	void CalculateVertices()
-	{
-		_cached_vertices[BL].set(-extents.x(), -extents.y());
-		_cached_vertices[BR].set(extents.x(),  -extents.y());
-		_cached_vertices[TL].set(-extents.x(), extents.y());
-		_cached_vertices[TR].set(extents.x(),  extents.y());
-	};
+	void CalculateVerticesAndSeperatingAxis();
 };
 
 class Triangle : public SimBody // designed for equilateral triangles only
@@ -84,21 +80,16 @@ class Triangle : public SimBody // designed for equilateral triangles only
 public:
 	Triangle() : sideLength(1)
 	{
-		CalculateVertices();
+		CalculateVerticesAndSeperatingAxis();
 	};
 	~Triangle() {};
 
 	f32 sideLength;
 
-	enum TriVert { T=0, BL=1, BR=2 };
-	float2 _cached_vertices[3];
+	//enum TriVert { T=0, BL=1, BR=2 };
+	//float2 _cached_vertices[3];
 
-	void CalculateVertices()
-	{
-		f32 l2 = sideLength / 2.0f;
+	enum { T, BL, BR };
 
-		_cached_vertices[T].set(0, l2);
-		_cached_vertices[BL].set(-l2, -l2);
-		_cached_vertices[BR].set(l2, -l2);
-	};
+	void CalculateVerticesAndSeperatingAxis();
 };

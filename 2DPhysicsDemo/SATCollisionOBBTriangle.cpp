@@ -2,7 +2,9 @@
 
 bool IntersectOBBTriangle(const Box &a, const Triangle &b, float2 &out_mtd_vec, f32 &t)
 {
-	const Mat22 &OA = a._cached_rotation_matrix;
+	if(&a||&b||&out_mtd_vec||&t){};
+	return false;
+	/*const Mat22 &OA = a._cached_rotation_matrix;
 	const Mat22 &OB = b._cached_rotation_matrix;
 
 	Mat22 xOrient = OA * OB.Transpose();
@@ -75,5 +77,5 @@ bool IntersectOBBTriangle(const Box &a, const Triangle &b, float2 &out_mtd_vec, 
 	out_mtd_vec = out_mtd_vec.dot(xOffset) < 0.0f ? out_mtd_vec.negate() : out_mtd_vec;
 	out_mtd_vec = out_mtd_vec * OB;
 
-	return true;
+	return true;*/
 };

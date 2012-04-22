@@ -32,7 +32,11 @@ void World::Draw()
 
 	glTranslatef(cameraPosition.x(), cameraPosition.y(), 0);
 
-	for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	box->Draw();
+	triangle->Draw();
+
+	/*for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
 	{
 		//objects[i]->rotation += 0.1f;
 		//if(objects[i]->rotation >= 360) { objects[i]->rotation -= 360; }
@@ -44,16 +48,28 @@ void World::Draw()
 		glBegin(GL_POINTS);
 		glVertex2f(objects[i]->position.x(), objects[i]->position.y());
 		glEnd();
-	}
+
+		glPushMatrix();
+		glPointSize(5);
+		glTranslatef(objects[i]->position.x(),objects[i]->position.y(),0);
+		glRotatef(objects[i]->rotation,0,0,1);
+		glBegin(GL_POINTS);
+		for(int j=0;j<objects[i]->vertices.size();++j)
+		{
+			glVertex2f(objects[i]->vertices[j].x(), objects[i]->vertices[j].y());
+		}
+		glEnd();
+		glPopMatrix();
+	}*/
 	
 	// debug functionality: draw bounding circles
-	if(drawBoundingCircles)
+	/*if(drawBoundingCircles)
 	{
 		for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
 		{
 			DrawCircle(objects[i]->position, objects[i]->boundingCircleRadius);
 		}
-	}
+	}*/
 
 	glPopMatrix();
 };
@@ -112,61 +128,67 @@ void rkintegrate(SimBody &s, f32 dt)
 	s.velocity += (vk1 + vk2*2.0f + vk3*2.0f + vk4) / 6.0f;
 };
 
+void World::test_collisions_tri_box(f32 dt)
+{
+	Triangle *triangle = (Triangle*)objects[1];
+	Box *box = (Box*)objects[0];
+
+	triangle->position.x(0.01);
+	triangle->rotation += 0.02;
+
+	box->rotation = 0;
+
+	triangle->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(triangle->rotation));
+	box->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(box->rotation));
+
+	float2 mtd;
+	f32 tx=0;
+
+	if(Intersect(*triangle, *box, mtd, tx))
+	{
+		triangle->objectMaterial.SetObjectColor(Color::WHITE);
+		box->objectMaterial.SetObjectColor(Color::WHITE);
+	}
+	else
+	{
+		triangle->objectMaterial.SetObjectColor(Color::RED);
+		box->objectMaterial.SetObjectColor(Color::RED);
+	}
+
+	if(Intersect(*box, *triangle, mtd, tx))
+	{
+		triangle->objectMaterial.SetObjectColor(Color::WHITE);
+		box->objectMaterial.SetObjectColor(Color::WHITE);
+	}
+	else
+	{
+		triangle->objectMaterial.SetObjectColor(Color::RED);
+		box->objectMaterial.SetObjectColor(Color::RED);
+	}
+};
+
 void World::update_triangles(f32 dt)
 {
 	for(u32 i=BOX_COUNT;i<TOTAL_OBJECT_COUNT;++i)
 	{
 		Triangle *t = (Triangle*)objects[i];
-		t->rotation += 0.02f;
-		t->rotation = t->rotation >= 360.0f ? t->rotation - 360.0f : t->rotation;
+
+		f32 v[] = { -1, 1 };
+		t->rotation += 0.02f * v[i%2];
 		t->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(t->rotation));
 
 		float2 mtd;
-
-		// Triangle - box updates
-		for(u32 j=0;j<BOX_COUNT;++j)
-		{
-			Box *b = (Box*)objects[j];
-			//if(!BoundingCircleIntersects(*t, *b)) continue;
-
-			f32 tx=0;
-			if(IntersectOBBTriangle(*b, *t, mtd, tx))
-			{
-				t->objectMaterial.SetObjectColor(Color::WHITE);
-				b->objectMaterial.SetObjectColor(Color::WHITE);
-			}
-			else
-			{
-				t->objectMaterial.SetObjectColor(Color::RED);
-				b->objectMaterial.SetObjectColor(Color::RED);
-			}
-		}
+		f32 tx=0;
 
 		// Triangle - triangle updates
-		for(u32 j=BOX_COUNT;j<i;++j)
+		for(u32 j=BOX_COUNT;j<TOTAL_OBJECT_COUNT;++j)
 		{
-			Triangle *ot = (Triangle*)objects[j];
-			if(!BoundingCircleIntersects(*t, *ot)) continue;
+			if(i == j) continue; // dont test self
 
-			f32 tx=0;
-			if(IntersectTriangleTriangle(*t, *ot, mtd, tx))
-			{
-				t->objectMaterial.SetObjectColor(Color::WHITE);
-				ot->objectMaterial.SetObjectColor(Color::WHITE);
-			}
-			else
-			{
-				t->objectMaterial.SetObjectColor(Color::RED);
-				ot->objectMaterial.SetObjectColor(Color::RED);
-			}
-		}
-		for(u32 j=i+1;j<TOTAL_OBJECT_COUNT;++j)
-		{
 			Triangle *ot = (Triangle*)objects[j];
-			if(!BoundingCircleIntersects(*t, *ot)) continue;
+			ot->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(ot->rotation));
 
-			f32 tx=0;
-			if(IntersectTriangleTriangle(*t, *ot, mtd, tx))
+			if(Intersect(*t, *ot, mtd, tx))
 			{
 				t->objectMaterial.SetObjectColor(Color::WHITE);
 				ot->objectMaterial.SetObjectColor(Color::WHITE);
@@ -191,51 +213,29 @@ void World::update_boxes(f32 dt)
 		b->position.y( max(0, b->position.y()));
 		b->position.y( min(b->position.y(), 0.5f));
 
-		b->rotation += 0.02f;
+		b->rotation += randflt(0.02, 0.05);
 		b->rotation = b->rotation >= 360.0f ? b->rotation - 360.0f : b->rotation;
 		b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
-		continue;
 
 		float2 mtd;
-		
-		// test for collisions (but DONT test collisions with self)
-		for(u32 j=0;j<i;++j)
-		{
-			Box *ob = (Box*)objects[j];
-			if(!BoundingCircleIntersects(*b, *ob)) continue;
+		f32 t=0;
 
-			f32 t=0;
-			if(IntersectOBB(*b, *ob, mtd, t))
+		for(u32 j=0;j<BOX_COUNT;++j)
+		{
+			if(i==j) continue; // dont test self
+
+			Box *otherBox = (Box*)objects[j];
+			if(!BoundingCircleIntersects(*b, *otherBox)) continue;
+
+			if(Intersect(*b, *otherBox, mtd, t))
 			{
 				b->objectMaterial.SetObjectColor(Color::WHITE);
-				ob->objectMaterial.SetObjectColor(Color::WHITE);
-				//b->position -= mtd * (t*0.5f);
-				//ob->position += mtd * (t*0.5f);
+				otherBox->objectMaterial.SetObjectColor(Color::WHITE);
 			}
 			else
 			{
 				b->objectMaterial.SetObjectColor(Color::RED);
-				ob->objectMaterial.SetObjectColor(Color::RED);
-			}
-		}
-
-		for(u32 j=i+1;j<BOX_COUNT;++j)
-		{
-			Box *ob = (Box*)objects[j];
-			if(!BoundingCircleIntersects(*b, *ob)) continue;
-
-			f32 t=0;
-			if(IntersectOBB(*b, *ob, mtd, t))
-			{
-				b->objectMaterial.SetObjectColor(Color::WHITE);
-				ob->objectMaterial.SetObjectColor(Color::WHITE);
-				//b->position -= mtd * (t*0.5f);
-				//ob->position += mtd * (t*0.5f);
-			}
-			else
-			{
-				b->objectMaterial.SetObjectColor(Color::RED);
-				ob->objectMaterial.SetObjectColor(Color::RED);
+				otherBox->objectMaterial.SetObjectColor(Color::RED);
 			}
 		}
 	}
@@ -245,6 +245,25 @@ void World::Update(f32 dt)
 {
 	dt = 1.0f / updateRate;
 
+	CBODY &a = *box;
+	CBODY &b = *triangle;
+
+	a.rotation -= 0.01f;
+	a.rotation = a.rotation >= 360.0f ? a.rotation - 360.0f : a.rotation;
+
+	b.rotation += 0.01f;
+	b.rotation = b.rotation >= 360.0f ? b.rotation - 360.0f : b.rotation;
+
+	a.r = 1; a.g = 0; a.b = 0;
+	b.r = 1; b.g = 0; b.b = 0;
+
+	if(Intersect_TutCode(a,b))
+	{
+		a.r = 1; a.g = 1; a.b = 1;
+		b.r = 1; b.g = 1; b.b = 1;
+	}
+
+	//test_collisions_tri_box(0);
+	//update_triangles(dt);
 	//update_boxes(dt);
-	update_triangles(dt);
 };
