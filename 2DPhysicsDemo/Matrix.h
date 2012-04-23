@@ -27,6 +27,8 @@
 
 #include "Vector.h"
 
+#pragma warning(disable : 4201) // disable "nonstandard extension used", for anonymous unions
+
 class Matrix
 {
 public:

@@ -33,7 +33,7 @@ void World::Load()
 	if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
 	{
 		float2 g = SimBody::gravity;
-		SimBody::gravity.set( meters(g.x()), meters(g.y()) );
+		SimBody::gravity.set( meters(g.x), meters(g.y) );
 	}
 
 	cameraSpeed = conf.Read("CameraSpeed", 5.0f);
@@ -94,7 +94,7 @@ void World::Load()
 
 			b->mesh = boxMesh;
 			b->position.set( (j*BOX_WIDTH)+(j*xOffset), (i*BOX_HEIGHT)+(i*yOffset));
-			b->position.x(b->position.x() - (j*0.03f));
+			b->position.x -= j*0.03f;
 
 			b->extents.set( BOX_WIDTH/2.0f, BOX_HEIGHT/2.0f);
 
@@ -140,29 +140,57 @@ void World::Load()
 	b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
 	objects.push_back(b);
 
-	box = new CBODY();
-	box->position = Vector(b->position.x(), b->position.y());
+	box = new SimBody();
+	box->mesh = boxMesh;
+	box->fillMode = GL_LINE;
+	box->position = b->position;
 	box->rotation = 0;
-	box->r = 1; box->g=0;box->b=0;
-	Vector extents(b->extents.x(), b->extents.y());
-	box->vertices.push_back(Vector(-extents.x, -extents.y));
-	box->vertices.push_back(Vector(extents.x, -extents.y));
-	box->vertices.push_back(Vector(extents.x, extents.y));
-	box->vertices.push_back(Vector(-extents.x, extents.y));
+	box->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(box->rotation));
+	box->objectMaterial.SetObjectColor(Color::RED);
+	float2 extents = b->extents;
+	box->vertices.push_back(float2(-extents.x, -extents.y));
+	box->vertices.push_back(float2(extents.x, -extents.y));
+	box->vertices.push_back(float2(extents.x, extents.y));
+	box->vertices.push_back(float2(-extents.x, extents.y));
+	{
+		float2 *A = &box->vertices[0];
+		u32 Anum = box->vertices.size();
+		for(u32 j = Anum-1, i = 0; i < Anum; j = i, i ++)
+		{
+			float2 E0 = A[j], E1 = A[i];
+			float2 E = E1 - E0;
+			box->seperatingAxis.push_back(float2(-E.y, E.x));
+		}
 
-	triangle = new CBODY();
-	triangle->position = Vector(0.075, 0.3);
+		// we only need 2 seperating axis for boxes
+		box->seperatingAxis.erase(box->seperatingAxis.begin()+2, box->seperatingAxis.end());
+	}
+
+	triangle = new SimBody();
+	triangle->mesh = triangleMesh;
+	triangle->fillMode = GL_LINE;
+	triangle->position.set(0.08f, 0.3f);
 	triangle->rotation = 0;
-	triangle->r = 1; triangle->g=0;triangle->b=0;
+	triangle->objectMaterial.SetObjectColor(Color::RED);
 	float SL = TRIANGLE_LENGTH;
-	triangle->vertices.push_back(Vector(0, SL));
-	triangle->vertices.push_back(Vector(SL, -SL));
-	triangle->vertices.push_back(Vector(-SL, -SL));
+	triangle->vertices.push_back(float2(0, SL));
+	triangle->vertices.push_back(float2(SL, -SL));
+	triangle->vertices.push_back(float2(-SL, -SL));
+	{
+		float2 *A = &triangle->vertices[0];
+		u32 Anum = triangle->vertices.size();
+		for(u32 j = Anum-1, i = 0; i < Anum; j = i, i ++)
+		{
+			float2 E0 = A[j], E1 = A[i];
+			float2 E = E1 - E0;
+			triangle->seperatingAxis.push_back(float2(-E.y, E.x));
+		}
+	}
 
 	// Create triangles
 
 	// For now, we'll just create 2 triangles so we can test collisions
-	TRIANGLE_COUNT = 2;
+	TRIANGLE_COUNT = 1;
 	for(u32 i=0;i<TRIANGLE_COUNT;++i)
 	{
 		Triangle *t = new Triangle();
@@ -176,8 +204,8 @@ void World::Load()
 
 		t->mesh = triangleMesh;
 		
-		t->position.y(0.3f);
-		t->position.x(i*TRIANGLE_LENGTH + (0.10f));
+		t->position.x = i*TRIANGLE_LENGTH + (0.10f);
+		t->position.y = 0.3f;
 
 		t->boundingCircleRadius = CalculateBoundingCircle(float2(), &t->vertices[0], t->vertices.size());
 

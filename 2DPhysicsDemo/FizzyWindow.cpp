@@ -68,16 +68,20 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		scn.SetZoom(scn.GetZoom() - dt * camSpeed);
 		break;
 	case 'w':
-		camPos.y( camPos.y() - dt * camSpeed);
+		//camPos.y( camPos.y() - dt * camSpeed);
+		camPos.y -= dt * camSpeed;
 		break;
 	case 's':
-		camPos.y( camPos.y() + dt * camSpeed);
+		//camPos.y( camPos.y() + dt * camSpeed);
+		camPos.y += dt * camSpeed;
 		break;
 	case 'a':
-		camPos.x( camPos.x() + dt * camSpeed);
+		//camPos.x( camPos.x() + dt * camSpeed);
+		camPos.x += dt * camSpeed;
 		break;
 	case 'd':
-		camPos.x( camPos.x() - dt * camSpeed);
+		//camPos.x( camPos.x() - dt * camSpeed);
+		camPos.x -= dt * camSpeed;
 		break;
 	case 'r':
 		scn.Load();

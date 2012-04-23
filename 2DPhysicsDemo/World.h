@@ -4,7 +4,6 @@
 #include "AppConfig.h"
 #include "SimBody.h"
 #include "GameTime.h"
-#include "CBODY.h"
 
 
 class World
@@ -23,7 +22,7 @@ private:
 	vector<SimBody*> objects;
 
 
-	CBODY *box, *triangle;
+	SimBody *box, *triangle;
 	
 
 	u32 BOX_ROW_COUNT, BOX_COLUMN_COUNT;

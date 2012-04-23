@@ -4,6 +4,7 @@
 #include "float2.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "util.h"
 #include <vector>
 
 const float2 default_gravity(0, meters(-9.81f));
@@ -47,6 +48,11 @@ public:
 	// Data used during SAT collision phase. You should ONLY use CalculateVerticesAndSeperatingAxis() to set this data
 	std::vector<float2> vertices;
 	std::vector<float2> seperatingAxis;
+
+	void CalculateRotationMatrix()
+	{
+		_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(rotation));
+	}
 
 	void Draw();
 };

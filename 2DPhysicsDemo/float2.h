@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4201) // disable "nonstandard extension used", for anonymous unions
 
 #include "ctypes.h"
 #include <iosfwd>
@@ -15,11 +16,12 @@ public:
 
 class float2
 {
-private:
-	f32 vec[2];
 public:
-	//static const float2 ZERO;
-	//static const float2 ONE;
+	union
+	{
+		struct { f32 x, y; };
+		struct { f32 vec[2]; };
+	};
 
 	~float2();
 	float2();
@@ -27,26 +29,17 @@ public:
 	explicit float2(const f32 _x, f32 _y);
 	explicit float2(const f32 * v);
 
-	f32 * GetVec() const { return (f32*)vec; };
-
-	f32 x() const { return vec[0]; };
-	f32 y() const { return vec[1]; };
-
-	f32 r() const { return x(); };
-	f32 g() const { return y(); };
-
-	void x(const f32 v) { vec[0]=v; };
-	void y(const f32 v) { vec[1]=v; };
+	f32* GetVec() const { return (f32*)vec; };
 
 	void set(const f32 _x, const f32 _y)
 	{
-		vec[0] = _x;
-		vec[1] = _y;
+		x = _x;
+		y = _y;
 	};
 	void set(const f32 * const v)
 	{
-		vec[0] = v[0];
-		vec[1] = v[1];
+		x = v[0];
+		y = v[1];
 	};
 
 	void zero(); // zero's the current vector
@@ -76,7 +69,7 @@ public:
 
 	// similar to output of cross product in 3D, left hand perp vector points to left of vector,
 	// right hand perp vector points to right of vector
-	// default perp() calls the left hand version
+	// default perp() calls the right hand version
 	float2 perp() const { return perpendicular_vector_right(); };
 	float2 perpendicular_vector_left() const;
 	float2 perpendicular_vector_right() const;
@@ -104,14 +97,6 @@ inline float2 operator+(const float2 &a, const f32 b) { return float2(a)+=float2
 inline float2 operator-(const float2 &a, const f32 b) { return float2(a)-=float2(b); };
 inline float2 operator*(const float2 &a, const f32 b) { return float2(a)*=float2(b); };
 inline float2 operator/(const float2 &a, const f32 b) { return float2(a)/=float2(b); };
-
-/*
-// NEVER PUT THE FLOAT ON THE LEFT HAND SIDE
-inline float2 operator+(const f32 a, const float2 &b) { return float2(a)+=b; };
-inline float2 operator-(const f32 a, const float2 &b) { return float2(a)+=b; };
-inline float2 operator*(const f32 a, const float2 &b) { return float2(a)+=b; };
-inline float2 operator/(const f32 a, const float2 &b) { return float2(a)+=b; };
-*/
 
 std::ostream& operator<<(std::ostream &out, float2 &m);
 std::istream& operator>>(std::istream &in, float2& out);

@@ -1,6 +1,6 @@
 #include "SATCollision.h"
 
-bool FindMTD(const float2 *axis, f32 *taxis, u32 axisCount, float2 &N, f32 &t)
+bool FindMTD(const float2 *axis, f32 *taxis, const u32 axisCount, float2 &N, f32 &t)
 {
 	i32 mini = -1;
 
@@ -25,11 +25,6 @@ bool FindMTD(const float2 *axis, f32 *taxis, u32 axisCount, float2 &N, f32 &t)
 
 	return mini != -1;
 };
-
-bool TestOverlap(float mina, float maxa, float minb, float maxb)
-{
-	return !(maxa < minb || maxb < mina);
-}
 
 bool IntervalIntersect(
 	const float2 &axis, const float2 * const polyAverts,
@@ -59,33 +54,13 @@ bool IntervalIntersect(
 	return true;
 };
 
-/*void GetInterval(const Vector *axVertices, int iNumVertices, const Vector& xAxis, float& min, float& max)
-{
-	min = max = (axVertices[0] * xAxis);
-
-	for(int i = 1; i < iNumVertices; i ++)
-	{
-		float d = (axVertices[i] * xAxis);
-		if (d < min) min = d; else if (d > max) max = d;
-	}
-}*/
 void GetInterval(const float2 &axis, const float2 * const verts, const u32 vertCount, MinMaxProjection &proj)
 {
-	float min=0,max=0;
-	min = max = verts[0].dot(axis);
-	for(int i=1;i<vertCount;++i)
+	proj.min = proj.max = verts[0].dot(axis);
+	for(u32 i = 1; i < vertCount; ++i)
 	{
-		float d = (verts[i].dot(axis));
-		if(d<min) min = d; else if(d>max) max=d;
+		float d = verts[i].dot(axis);
+		proj.min = min(d, proj.min);
+		proj.max = max(d, proj.max);
 	}
-	proj.min = min;
-	proj.max = max;
-
-	/*proj.min = proj.max = verts[0].dot(axis);
-	for(u32 i=1;i<vertCount;++i)
-	{
-		const f32 D = verts[i].dot(axis);
-		proj.min = min(proj.min, D);
-		proj.max = max(proj.max, D);
-	}*/
 };

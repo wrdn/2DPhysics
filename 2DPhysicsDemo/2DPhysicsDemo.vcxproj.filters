@@ -132,9 +132,6 @@
     <ClCompile Include="SATCollisionCommon.cpp">
       <Filter>Source Files\Physics\Collision</Filter>
     </ClCompile>
-    <ClCompile Include="SATCollisionOBBTriangle.cpp">
-      <Filter>Source Files\Physics\Collision</Filter>
-    </ClCompile>
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files\Physics\Collision</Filter>
     </ClCompile>
@@ -143,12 +140,6 @@
     </ClCompile>
     <ClCompile Include="Vector.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CBODY.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SATCollision_TutCode.cpp">
-      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -252,9 +243,6 @@
       <Filter>Header Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="Vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CBODY.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

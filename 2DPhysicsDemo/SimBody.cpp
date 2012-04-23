@@ -43,7 +43,7 @@ void SimBody::Draw()
 	glPushMatrix();
 
 	// translate and rotate
-	glTranslatef(position.x(), position.y(), 0);
+	glTranslatef(position.x, position.y, 0);
 	glRotatef(rotation, 0,0,1);
 
 	// draw
@@ -91,10 +91,10 @@ void Box::CalculateVerticesAndSeperatingAxis()
 	vertices.resize(4);
 	seperatingAxis.resize(2);
 
-	const float2 vBL(-extents.x(), -extents.y());
-	const float2 vBR(extents.x(), -extents.y());
-	const float2 vTL(-extents.x(), extents.y());
-	const float2 vTR(extents.x(), extents.y());
+	const float2 vBL(-extents.x, -extents.y);
+	const float2 vBR(extents.x, -extents.y);
+	const float2 vTL(-extents.x, extents.y);
+	const float2 vTR(extents.x, extents.y);
 
 	vertices[BL] = vBL;
 	vertices[BR] = vBR;

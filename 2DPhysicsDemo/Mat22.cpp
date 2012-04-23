@@ -102,9 +102,8 @@ Mat22 Mat22::Mul(const Mat22 &other) const
 
 float2 Mat22::Mul(const float2 &vec) const
 {
-	return float2(
-		mat[0]*vec.x() + mat[1]*vec.y(),
-		mat[2]*vec.x() + mat[3]*vec.y());
+	return float2(mat[0]*vec.x + mat[1]*vec.y,
+		mat[2]*vec.x + mat[3]*vec.y);
 };
 
 f32 Mat22::Determinant() const

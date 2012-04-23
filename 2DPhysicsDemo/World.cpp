@@ -16,7 +16,7 @@ void DrawCircle(float2 &pos, f32 radius)
 	for(u32 i=0;i<360;++i)
 	{
 		f32 f = DEGTORAD((f32)i);
-		glVertex2f(pos.x() + sin(f) * radius, pos.y() + cos(f) * radius);
+		glVertex2f(pos.x + sin(f) * radius, pos.y + cos(f) * radius);
 	}
 	glEnd();
 };
@@ -30,46 +30,45 @@ void World::Draw()
 	if(zoom <= 0.05f) zoom = 0.05f;
 	glScalef(zoom,zoom,1);
 
-	glTranslatef(cameraPosition.x(), cameraPosition.y(), 0);
+	glTranslatef(cameraPosition.x, cameraPosition.y, 0);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	box->Draw();
-	triangle->Draw();
+	//box->Draw();
+	//triangle->Draw();
 
-	/*for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
+	for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
 	{
-		//objects[i]->rotation += 0.1f;
-		//if(objects[i]->rotation >= 360) { objects[i]->rotation -= 360; }
+		SimBody &o = *objects[i];
 
-		objects[i]->fillMode = GLOBAL_FILL_MODE; // useful for debugging collision detection/response
-		objects[i]->Draw();
+		o.fillMode = GLOBAL_FILL_MODE;
+		
+		// Draw object
+		o.Draw();
 
+		// Draw vertices
 		glPointSize(1);
 		glBegin(GL_POINTS);
-		glVertex2f(objects[i]->position.x(), objects[i]->position.y());
+		glVertex2f(o.position.x, o.position.y);
 		glEnd();
-
 		glPushMatrix();
 		glPointSize(5);
-		glTranslatef(objects[i]->position.x(),objects[i]->position.y(),0);
-		glRotatef(objects[i]->rotation,0,0,1);
+		glTranslatef(o.position.x, o.position.y, 0);
+		glRotatef(o.rotation,0,0,1);
 		glBegin(GL_POINTS);
-		for(int j=0;j<objects[i]->vertices.size();++j)
-		{
-			glVertex2f(objects[i]->vertices[j].x(), objects[i]->vertices[j].y());
-		}
+		for(int j=0;j<o.vertices.size();++j)
+			glVertex2f(o.vertices[j].x, o.vertices[j].y);
 		glEnd();
 		glPopMatrix();
-	}*/
+	}
 	
-	// debug functionality: draw bounding circles
-	/*if(drawBoundingCircles)
+	// Draw bounding circles
+	if(drawBoundingCircles)
 	{
 		for(u32 i=0;i<TOTAL_OBJECT_COUNT;++i)
 		{
 			DrawCircle(objects[i]->position, objects[i]->boundingCircleRadius);
 		}
-	}*/
+	}
 
 	glPopMatrix();
 };
@@ -82,7 +81,7 @@ float2 CurrentForce(const SimBody &s)
 };
 float2 CurrentForce(const float2 &pos, const float2 &vel, const SimBody &s)
 {
-	f32 tmp = pos.x()+vel.x();
+	f32 tmp = pos.x+vel.x;
 	if(tmp){};
 
 	float2 totalForce = s.force;
@@ -130,11 +129,12 @@ void rkintegrate(SimBody &s, f32 dt)
 
 void World::test_collisions_tri_box(f32 dt)
 {
+	if(dt){}
 	Triangle *triangle = (Triangle*)objects[1];
 	Box *box = (Box*)objects[0];
 
-	triangle->position.x(0.01);
-	triangle->rotation += 0.02;
+	triangle->position.x = 0.01f;
+	triangle->rotation += 0.02f;
 
 	box->rotation = 0;
 
@@ -169,6 +169,8 @@ void World::test_collisions_tri_box(f32 dt)
 
 void World::update_triangles(f32 dt)
 {
+	if(dt){}
+
 	for(u32 i=BOX_COUNT;i<TOTAL_OBJECT_COUNT;++i)
 	{
 		Triangle *t = (Triangle*)objects[i];
@@ -204,16 +206,17 @@ void World::update_triangles(f32 dt)
 
 void World::update_boxes(f32 dt)
 {
+	if(dt){}
+
 	for(u32 i=0;i<BOX_COUNT;++i)
 	{
 		Box *b = (Box*)objects[i];
 		if(!b->update) continue;
 
 		//rkintegrate(*b, dt);
-		b->position.y( max(0, b->position.y()));
-		b->position.y( min(b->position.y(), 0.5f));
+		b->position.y = max(0, b->position.y);
 
-		b->rotation += randflt(0.02, 0.05);
+		b->rotation += randflt(0.02f, 0.05f);
 		b->rotation = b->rotation >= 360.0f ? b->rotation - 360.0f : b->rotation;
 		b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
 
@@ -241,29 +244,29 @@ void World::update_boxes(f32 dt)
 	}
 };
 
+f32 t; float2 tmp;
 void World::Update(f32 dt)
 {
 	dt = 1.0f / updateRate;
 
-	CBODY &a = *box;
-	CBODY &b = *triangle;
+	/*triangle->rotation += 0.01f;
+	box->rotation -= 0.01f;
 
-	a.rotation -= 0.01f;
-	a.rotation = a.rotation >= 360.0f ? a.rotation - 360.0f : a.rotation;
+	triangle->CalculateRotationMatrix();
+	box->CalculateRotationMatrix();
 
-	b.rotation += 0.01f;
-	b.rotation = b.rotation >= 360.0f ? b.rotation - 360.0f : b.rotation;
-
-	a.r = 1; a.g = 0; a.b = 0;
-	b.r = 1; b.g = 0; b.b = 0;
-
-	if(Intersect_TutCode(a,b))
+	if(Intersect(*box, *triangle, tmp, t))
 	{
-		a.r = 1; a.g = 1; a.b = 1;
-		b.r = 1; b.g = 1; b.b = 1;
+		box->objectMaterial.SetObjectColor(Color::WHITE);
+		triangle->objectMaterial.SetObjectColor(Color::WHITE);
 	}
+	else
+	{
+		box->objectMaterial.SetObjectColor(Color::RED);
+		triangle->objectMaterial.SetObjectColor(Color::RED);
+	}*/
 
 	//test_collisions_tri_box(0);
 	//update_triangles(dt);
-	//update_boxes(dt);
+	update_boxes(dt);
 };
