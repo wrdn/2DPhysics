@@ -140,6 +140,33 @@ void World::Load()
 	b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
 	objects.push_back(b);
 
+	// TEST OBJECT GENERATION
+	body_box = new CBODY();
+	body_box->angle = 0;
+	body_box->orientationMatrix = Matrix(body_box->angle);
+	body_box->pos = Vector(90,55);
+	body_box->bodyColor.set(1,0,0);
+	{
+		float2 extents(10,10);
+		body_box->vertices.push_back(Vector(-extents.x, -extents.y));
+		body_box->vertices.push_back(Vector(extents.x, -extents.y));
+		body_box->vertices.push_back(Vector(extents.x, extents.y));
+		body_box->vertices.push_back(Vector(-extents.x, extents.y));
+	}
+
+	body_triangle = new CBODY();
+	body_triangle->angle = 0;
+	body_triangle->orientationMatrix = Matrix(DegreesToRadians(body_triangle->angle));
+	body_triangle->pos = Vector(75,55);
+	body_triangle->bodyColor.set(1,0,0);
+	{
+		float SL = 20;
+		body_triangle->vertices.push_back(Vector(0, SL));
+		body_triangle->vertices.push_back(Vector(SL, -SL));
+		body_triangle->vertices.push_back(Vector(-SL, -SL));
+	}
+	// END OF TEST OBJECT GENERATION
+
 	box = new SimBody();
 	box->mesh = boxMesh;
 	box->fillMode = GL_LINE;
@@ -169,7 +196,7 @@ void World::Load()
 	triangle = new SimBody();
 	triangle->mesh = triangleMesh;
 	triangle->fillMode = GL_LINE;
-	triangle->position.set(0.08f, 0.3f);
+	triangle->position.set(0.07f, 0.3f);
 	triangle->rotation = 0;
 	triangle->objectMaterial.SetObjectColor(Color::RED);
 	float SL = TRIANGLE_LENGTH;

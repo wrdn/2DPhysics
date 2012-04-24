@@ -25,7 +25,7 @@ void FizzyWindow::OnDisplay()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	scn.Update(gameTime.GetDeltaTime());
-	scn.Draw();
+	scn.Draw(gameTime.GetDeltaTime());
 
 	/*glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);

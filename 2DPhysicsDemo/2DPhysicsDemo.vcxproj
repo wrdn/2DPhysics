@@ -79,8 +79,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppConfig.cpp" />
+    <ClCompile Include="CBODY.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
+    <ClCompile Include="Contacts.cpp" />
     <ClCompile Include="FizzyWindow.cpp" />
     <ClCompile Include="float2.cpp" />
     <ClCompile Include="float3.cpp" />
@@ -109,8 +111,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
+    <ClInclude Include="CBODY.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="Contacts.h" />
     <ClInclude Include="ctypes.h" />
     <ClInclude Include="FizzyWindow.h" />
     <ClInclude Include="float2.h" />
