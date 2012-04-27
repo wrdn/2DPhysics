@@ -79,10 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppConfig.cpp" />
-    <ClCompile Include="CBODY.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
-    <ClCompile Include="Contacts.cpp" />
     <ClCompile Include="FizzyWindow.cpp" />
     <ClCompile Include="float2.cpp" />
     <ClCompile Include="float3.cpp" />
@@ -97,8 +95,7 @@
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="Quaternion.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="SATCollisionCommon.cpp" />
-    <ClCompile Include="SATCollisionSimBody.cpp" />
+    <ClCompile Include="SAT.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderObject.cpp" />
     <ClCompile Include="SimBody.cpp" />
@@ -111,10 +108,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
-    <ClInclude Include="CBODY.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
-    <ClInclude Include="Contacts.h" />
     <ClInclude Include="ctypes.h" />
     <ClInclude Include="FizzyWindow.h" />
     <ClInclude Include="float2.h" />
@@ -136,7 +131,7 @@
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderTarget.h" />
     <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="SATCollision.h" />
+    <ClInclude Include="SAT.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderObject.h" />
     <ClInclude Include="SimBody.h" />

@@ -52,9 +52,6 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{fbc2fe5d-ba23-4186-9c9f-057dfe379e34}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Physics\Collision">
-      <UniqueIdentifier>{77e41bc8-45a7-4fc4-90f9-9be8010ab55b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -129,23 +126,14 @@
     <ClCompile Include="World_Load.cpp">
       <Filter>Source Files\World</Filter>
     </ClCompile>
-    <ClCompile Include="SATCollisionCommon.cpp">
-      <Filter>Source Files\Physics\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>Source Files\Physics\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="SATCollisionSimBody.cpp">
-      <Filter>Source Files\Physics\Collision</Filter>
-    </ClCompile>
-    <ClCompile Include="Contacts.cpp">
-      <Filter>Source Files\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="CBODY.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vector.cpp">
       <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SAT.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -242,20 +230,14 @@
     <ClInclude Include="Collision.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="SATCollision.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="Matrix.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Contacts.h">
-      <Filter>Header Files\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="CBODY.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vector.h">
       <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="SAT.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

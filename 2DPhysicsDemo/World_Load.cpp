@@ -1,6 +1,7 @@
 #include "World.h"
 #include "GraphicsUtils.h"
 #include <time.h>
+#include "SAT.h"
 
 // returns most tight fitting circle you can get given a set of vertices and a center position for the circle
 // used to get bounding circle for box and triangle (given their vertices and center positions)
@@ -51,9 +52,9 @@ void World::Load()
 
 	// Build meshes
 	f32
-		BOX_WIDTH = meters(conf.Read("BoxWidth", 1.0f)),
-		BOX_HEIGHT = meters(conf.Read("BoxHeight",1.0f)),
-		TRIANGLE_LENGTH = meters(conf.Read("TriangleLength", 1.0f));
+		BOX_WIDTH = (conf.Read("BoxWidth", 1.0f)),
+		BOX_HEIGHT = (conf.Read("BoxHeight",1.0f)),
+		TRIANGLE_LENGTH = (conf.Read("TriangleLength", 1.0f));
 	MeshHandle boxMesh = Create2DBox(BOX_WIDTH, BOX_HEIGHT);
 	MeshHandle triangleMesh = CreateEquilateralTriangle(TRIANGLE_LENGTH);
 
@@ -136,12 +137,46 @@ void World::Load()
 	b->mass = masses[0];
 	b->invMass = invMasses[0];
 	b->objectMaterial.SetObjectColor(Color::RED);
-	b->rotation = 0;
-	b->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(b->rotation));
+	b->rotation_in_rads = 0;
+	b->CalculateRotationMatrix();
 	objects.push_back(b);
 
 	// TEST OBJECT GENERATION
-	body_box = new CBODY();
+	body_box = new SimBody();
+	body_box->mass = masses[0]; body_box->invMass = invMasses[0];
+	body_box->mesh = boxMesh;
+	body_box->rotation_in_rads = 0;
+	body_box->rotation_matrix = Mat22::RotationMatrix(body_box->rotation_in_rads);
+	body_box->position.set(100,55);
+	body_box->objectMaterial.SetObjectColor(Color::WHITE);
+	{
+		float2 extents(10,10);
+		body_box->vertices.push_back(float2(-extents.x, -extents.y));
+		body_box->vertices.push_back(float2(extents.x, -extents.y));
+		body_box->vertices.push_back(float2(extents.x, extents.y));
+		body_box->vertices.push_back(float2(-extents.x, extents.y));
+	}
+	SAT::GenerateSeperatingAxes(body_box->vertices, body_box->seperatingAxis);
+	body_box->seperatingAxis.erase(body_box->seperatingAxis.begin()+2, body_box->seperatingAxis.end());
+
+	body_triangle = new SimBody();
+	body_triangle->mesh = triangleMesh;
+	body_triangle->rotation_in_rads = 0;
+	body_triangle->rotation_matrix = Mat22::RotationMatrix(body_triangle->rotation_in_rads);
+	body_triangle->position.set(75,55);
+	body_triangle->objectMaterial.SetObjectColor(Color::WHITE);
+	{
+		float SL = 20;
+		body_triangle->vertices.push_back(float2(0, SL));
+		body_triangle->vertices.push_back(float2(SL, -SL));
+		body_triangle->vertices.push_back(float2(-SL, -SL));
+	}
+	SAT::GenerateSeperatingAxes(body_triangle->vertices, body_triangle->seperatingAxis);
+	
+	body_box->fillMode = GL_LINE;
+	body_triangle->fillMode = GL_LINE;
+
+	/*body_box = new CBODY();
 	body_box->angle = 0;
 	body_box->orientationMatrix = Matrix(body_box->angle);
 	body_box->pos = Vector(90,55);
@@ -164,15 +199,15 @@ void World::Load()
 		body_triangle->vertices.push_back(Vector(0, SL));
 		body_triangle->vertices.push_back(Vector(SL, -SL));
 		body_triangle->vertices.push_back(Vector(-SL, -SL));
-	}
+	}*/
 	// END OF TEST OBJECT GENERATION
 
 	box = new SimBody();
 	box->mesh = boxMesh;
 	box->fillMode = GL_LINE;
 	box->position = b->position;
-	box->rotation = 0;
-	box->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(box->rotation));
+	box->rotation_in_rads = 0;
+	box->CalculateRotationMatrix();
 	box->objectMaterial.SetObjectColor(Color::RED);
 	float2 extents = b->extents;
 	box->vertices.push_back(float2(-extents.x, -extents.y));
@@ -197,7 +232,8 @@ void World::Load()
 	triangle->mesh = triangleMesh;
 	triangle->fillMode = GL_LINE;
 	triangle->position.set(0.07f, 0.3f);
-	triangle->rotation = 0;
+	triangle->rotation_in_rads = 0;
+	triangle->CalculateRotationMatrix();
 	triangle->objectMaterial.SetObjectColor(Color::RED);
 	float SL = TRIANGLE_LENGTH;
 	triangle->vertices.push_back(float2(0, SL));
@@ -236,8 +272,8 @@ void World::Load()
 
 		t->boundingCircleRadius = CalculateBoundingCircle(float2(), &t->vertices[0], t->vertices.size());
 
-		t->rotation = 45;
-		t->_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(t->rotation));
+		t->rotation_in_rads = 45;
+		t->CalculateRotationMatrix();
 
 		objects.push_back(t);
 	}

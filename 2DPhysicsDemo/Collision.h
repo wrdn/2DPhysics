@@ -31,6 +31,7 @@ public:
 	float2 center;
 	f32 radius;
 };
+
 struct CollisionPoint2D
 {
 public:
@@ -50,10 +51,14 @@ public:
 
 bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &cp);
 
-bool Hit_AABB_AABB(const AABB &a, const AABB &b);
+bool Hit(const AABB &a, const AABB &b);
 
-bool Hit_Circle_Circle(const Circle &a, const Circle &b);
+bool Hit(const Circle &a, const Circle &b);
 
 bool BoundingCircleIntersects(const SimBody &av, const SimBody &bv);
 
 bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx);
+
+void ProjectPointOnSegment(const float2 &V, const float2 &A, const float2 &B, float2 &W, f32 &pt);
+
+float2 TransformVector(const float2 &vertex, const float2 &p, const float2 &v, const Mat22 xOrient, f32 t);

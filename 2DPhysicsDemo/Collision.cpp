@@ -44,14 +44,14 @@ bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &
 	}
 };
 
-bool Hit_AABB_AABB(const AABB &a, const AABB &b)
+bool Hit(const AABB &a, const AABB &b)
 {
 	if(abs(a.center.x - b.center.x) > (a.extents.x + b.extents.x)) return false;
 	if(abs(a.center.y - b.center.y) > (a.extents.y + b.extents.y)) return false;
 	return true;
 };
 
-bool Hit_Circle_Circle(const Circle &a, const Circle &b)
+bool Hit(const Circle &a, const Circle &b)
 {
 	f32 dist_squared = a.center.distance_squared(b.center); // use distance squared to avoid sqrt
 	f32 radius_sum = a.radius + b.radius;
@@ -71,4 +71,22 @@ bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx)
 	f32 d1 = bx.min - ax.max;
 	if(d0 > 0.0f || d1 > 0.0f) { return false; }
 	return true;
+};
+
+void ProjectPointOnSegment(const float2 &V, const float2 &A, const float2 &B, float2 &W, f32 &pt)
+{
+	float2 AV = V-A, AB = B-A;
+	
+	f32 t = AV.dot(AB) / AB.dot(AB);
+	t = max(0.0f,t);
+	t = min(1.0f,t);
+
+	pt = t;
+
+	W = A + (AB * t);
+};
+
+float2 TransformVector(const float2 &vertex, const float2 &p, const float2 &v, const Mat22 xOrient, f32 t)
+{
+	return p+(vertex*xOrient);
 };

@@ -5,7 +5,7 @@ float2 SimBody::gravity = float2(0, meters(-9.81f));
 SimBody::SimBody(void)
 {
 	position = float2(0.0f);
-	rotation = 0.0f;
+	rotation_in_rads = 0.0f;
 	velocity = float2(0.0f);
 	angularVelocity = 0.0f;
 	force = float2(0.0f);
@@ -44,7 +44,7 @@ void SimBody::Draw()
 
 	// translate and rotate
 	glTranslatef(position.x, position.y, 0);
-	glRotatef(rotation, 0,0,1);
+	glRotatef(RADTODEG(rotation_in_rads), 0,0,-1);
 
 	// draw
 	glDisable(GL_CULL_FACE);

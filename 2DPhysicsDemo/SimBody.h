@@ -26,8 +26,8 @@ public:
 
 	// only need rotation about z, every time this is updated, you should also update _cached_rotation_matrix
 	// rotation specified in degrees
-	f32 rotation;
-	Mat22 _cached_rotation_matrix; // Mat22::RotationMatrix(rotation)
+	f32 rotation_in_rads;
+	Mat22 rotation_matrix; // Mat22::RotationMatrix(rotation)
 	f32 angularVelocity; // around z
 	float2 force;
 	f32 torque;
@@ -51,7 +51,7 @@ public:
 
 	void CalculateRotationMatrix()
 	{
-		_cached_rotation_matrix = Mat22::RotationMatrix(DEGTORAD(rotation));
+		rotation_matrix = Mat22::RotationMatrix(rotation_in_rads);
 	}
 
 	void Draw();
