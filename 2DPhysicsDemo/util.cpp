@@ -147,3 +147,17 @@ std::string strtoupper(const std::string &sp)
 		s[i] = (c8)toupper(s[i]);
 	return s;
 };
+
+f32 wrapf(f32 x, f32 min, f32 max)
+{
+	if(x < min)
+	{
+		return (x-min)+max;
+	}
+	else if(x > max)
+	{
+		return (x-max)+min;
+	}
+
+	return x;
+};

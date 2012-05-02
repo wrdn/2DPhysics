@@ -18,7 +18,9 @@ void SAT::GenerateSeperatingAxes(const std::vector<float2> &vertices,
 
 	if(Anum == 2)
 	{
-		output_axes.push_back(vertices[1]-vertices[0]);
+		float2 ax = vertices[1] - vertices[0];
+		ax = ax.perp();
+		output_axes.push_back(ax);
 		return;
 	}
 
@@ -88,6 +90,8 @@ bool SAT::GetMinimumTranslationVector(float2 *axis, f32 *taxis, u32 numAxes, flo
 
 bool SAT::Collide(SimBody &a, SimBody &b, float2 &N, f32 &t)
 {
+	if(a.vertices.size() < 2 && b.vertices.size() < 2) return false;
+
 	Mat22 &OA = a.rotation_matrix;
 	Mat22 &OB = b.rotation_matrix;
 	Mat22 OB_T = OB.Transpose();
@@ -110,7 +114,6 @@ bool SAT::Collide(SimBody &a, SimBody &b, float2 &N, f32 &t)
 		}
 		++axisCount;
 	}
-
 	for(u32 i=0;i<b.seperatingAxis.size();++i)
 	{
 		xAxis[axisCount] = b.seperatingAxis[i];
@@ -128,7 +131,7 @@ bool SAT::Collide(SimBody &a, SimBody &b, float2 &N, f32 &t)
 	}
 
 	f32 D = N.dot(xOffset);
-	N =  D < 0.0000001f ? -N : N;
+	N =  D < 0.0f ? -N : N;
 
 	N = N * OB;
 

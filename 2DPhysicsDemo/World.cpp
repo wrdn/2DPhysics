@@ -8,30 +8,49 @@ World::~World() { Unload(); };
 
 void World::Update(f32 dt)
 {
-	dt = 1.0f/60.0f;
+	dt = 1.0f/520.0f;
 
 	const float2 &gravity = SimBody::gravity;
 
-	// add gravity
-	for(u32 i=1;i<total_cnt;++i)
-	{
-		SimBody &obj = *objects[i];
-		float2 accel = gravity/obj.mass;
-		obj.velocity += accel*dt;
-		obj.position += obj.velocity * dt;
-	}
-
+	/************************************/
+	/************ ADD FORCES ************/
+	/************************************/
 	for(u32 i=0;i<total_cnt;++i)
 	{
+		SimBody &obj = *objects[i];
+		
+		if(obj.Unmovable()) continue;
+
+		obj.AddForce(float2(0, -9.81f*obj.mass));
+	}
+
+	/************************************/
+	/********** TEST COLLISION **********/
+	/************************************/
+	for(u32 i=0;i<total_cnt;++i)
+	{
+		SimBody &obj = *objects[i];
+
 		for(u32 j=0;j<total_cnt;++j)
 		{
-			if(i==j)continue;
+			if(i==j) continue;
 
-			SimBody &obj = *objects[i];
 			SimBody &other = *objects[j];
-			
+
+			if(obj.Unmovable() && other.Unmovable()) continue;
+
 			obj.Collide(other, dt);
 		}
+	}
+
+	/***********************************/
+	/************ INTEGRATE ************/
+	/***********************************/
+	for(u32 i=0;i<total_cnt;++i)
+	{
+		if(objects[i]->Unmovable()) continue;
+
+		objects[i]->Update(dt);
 	}
 };
 

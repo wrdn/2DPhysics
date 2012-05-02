@@ -16,7 +16,7 @@ FizzyWindow::~FizzyWindow(void)
 
 void FizzyWindow::OnDisplay()
 {
-	gameTime.Update();
+	f32 DT = gameTime.Update();
 
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
@@ -24,7 +24,7 @@ void FizzyWindow::OnDisplay()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	scn.Update(gameTime.GetDeltaTime());
+	scn.Update(DT);
 	scn.Draw();
 
 	/*glDisable(GL_DEPTH_TEST);

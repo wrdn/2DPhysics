@@ -69,6 +69,9 @@ bool SimBody::Collide(SimBody &other, f32 dt)
 	f32 t = dt;
 	float2 N;
 
+	this->CalculateRotationMatrix();
+	other.CalculateRotationMatrix();
+
 	if(SAT::Collide(*this, other, N, t))
 	{
 		float2 CA[4];

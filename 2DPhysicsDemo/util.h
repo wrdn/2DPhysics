@@ -7,6 +7,7 @@
 
 const f32 EPSILON = 0.000001f; // rough epsilon
 const f32 PI = 3.1415926f;
+const f32 TWOPI = 2.0f*PI;
 const f32 PIOVER180 = PI/180.0f;
 
 void SAFE_DELETE(const void *p);
@@ -64,5 +65,7 @@ void swap(T &a, T &b)
 	a = b;
 	b = c;
 };
+
+f32 wrapf(f32 x, f32 min, f32 max);
 
 #endif

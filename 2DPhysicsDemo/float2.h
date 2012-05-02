@@ -84,6 +84,7 @@ public:
 	inline const float2& operator-=(const float2 &rhs) { *this = sub(rhs); return *this; }
 	inline const float2& operator*=(const float2 &rhs) { *this = mul(rhs); return *this; }
 	inline const float2& operator/=(const float2 &rhs) { *this = div(rhs); return *this; }
+	inline float operator ^ (const float2 &v) { return (x*v.y)-(y*v.x); };
 };
 
 // Auxiliary Functions (operator overloads)

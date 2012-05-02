@@ -72,12 +72,13 @@ void World::Load()
 	SimBody *bottomWall = new SimBody();
 	bottomWall->objectMaterial.SetObjectColor(Color::RED);
 	bottomWall->mass = bottomWall->invMass = 0;
-	bottomWall->rotation_in_rads = 0; bottomWall->CalculateRotationMatrix();
-	bottomWall->vertices.push_back(float2(-10,0));
-	bottomWall->vertices.push_back(float2(10,0));
+	bottomWall->rotation_in_rads = 0;
+	bottomWall->CalculateRotationMatrix();
+	bottomWall->vertices.push_back(float2(-30,0));
+	bottomWall->vertices.push_back(float2(30,0));
 	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
 	bottomWall->fillMode = GL_LINE;
-	bottomWall->position.set(0,-2);
+	bottomWall->position.set(0,-5);
 	objects.push_back(bottomWall);
 
 	/********** CREATE BOXES ***********/
@@ -109,14 +110,21 @@ void World::Load()
 		{
 			SimBody *b = new SimBody(baseBox);
 			b->position.set((j*box_width)+(j*xOffset), (i*box_height)+(i*yOffset));
-			//b->position.x -= j*0.03f;
-			
+
+			int t = rand(0,2);
+			b->mass = masses[t];
+			b->invMass = invMasses[t];
+
+			b->inertia = b->CalculateInertia();
+			b->invInertia = 1.0f/b->inertia;
+
+			b->position.x += randflt(0, 0.8f);
+
 			b->fillMode = GL_LINE;
 
 			objects.push_back(b);
 		}
 	}
-	total_cnt = 1+box_cnt;
 
 	/********** CREATE TRIANGLES ***********/
 	SimBody baseTriangle;
@@ -133,4 +141,6 @@ void World::Load()
 		baseTriangle.vertices.push_back(float2(-SL, -SL));
 	}
 	SAT::GenerateSeperatingAxes(baseTriangle.vertices, baseTriangle.seperatingAxis);
+
+	total_cnt = objects.size();
 };

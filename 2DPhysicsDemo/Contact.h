@@ -2,10 +2,23 @@
 
 #include "SimBody.h"
 
+struct CollisionMaterial
+{
+public:
+	f32 coFriction, coRestitution, coStaticFriction, coSep;
+
+	CollisionMaterial(f32 fCoF = 0.035f, f32 fCoR = 0.3f,
+		f32 fCoS = 0.4f, f32 fSep=0.5f)
+		: coFriction(fCoF), coRestitution(fCoR),
+		coStaticFriction(fCoS), coSep(fSep) {};
+};
+
 class Contact
 {
 public:
 	enum { MAX_CONTACTS = 2 };
+
+	static CollisionMaterial cmat;
 
 	SimBody *collidingBodies[2]; // pointer to each colliding body (2 bodies)
 	float2 contacts[MAX_CONTACTS][2]; // contact pairs
@@ -24,7 +37,12 @@ public:
 	void Solve();
 
 	// Both assume we have 2 objects
-	void ResolveOverlap(const float2 &C0, const float2 &C1);
-	void ResolveCollision(const float2 &C0, const float2 &C1);
+	void ResolveOverlap(float2 &C0, float2 &C1);
+	void ResolveCollision(float2 &C0, float2 &C1);
+
+	void ResolveCollisions(const float2& Ncoll, float t, float fCoF, float fCoR,
+					  const float2& C0, const float2& P0, float2& V0, float& w0, float m0, float i0, 
+					  const float2& C1, const float2& P1, float2& V1, float& w1, float m1, float i1);
+
 };
 
