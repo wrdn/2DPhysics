@@ -16,8 +16,14 @@ void SAT::GenerateSeperatingAxes(const std::vector<float2> &vertices,
 	u32 Anum = vertices.size();
 	if(!Anum) return;
 
-	maxAxis = maxAxis <= 0 ? (i32)Anum : min((i32)Anum, maxAxis);
+	if(Anum == 2)
+	{
+		output_axes.push_back(vertices[1]-vertices[0]);
+		return;
+	}
 
+	maxAxis = maxAxis <= 0 ? (i32)Anum : min((i32)Anum, maxAxis);
+	
 	for(i32 j = Anum-1, i = 0; i < maxAxis; j = i, i ++)
 		output_axes.push_back(GenAxis(vertices[i], vertices[j]));
 };

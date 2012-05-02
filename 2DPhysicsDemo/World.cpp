@@ -13,15 +13,12 @@ void World::Update(f32 dt)
 	const float2 &gravity = SimBody::gravity;
 
 	// add gravity
-	for(u32 i=0;i<total_cnt;++i)
+	for(u32 i=1;i<total_cnt;++i)
 	{
 		SimBody &obj = *objects[i];
 		float2 accel = gravity/obj.mass;
-		obj.velocity += accel;
+		obj.velocity += accel*dt;
 		obj.position += obj.velocity * dt;
-
-		if(obj.position.y < 0)
-			obj.position.y=0;
 	}
 
 	for(u32 i=0;i<total_cnt;++i)
@@ -38,10 +35,8 @@ void World::Update(f32 dt)
 	}
 };
 
-void World::Draw(f32 dt)
+void World::Draw()
 {
-	if(dt){};
-
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glPushMatrix();
@@ -49,7 +44,14 @@ void World::Draw(f32 dt)
 	glTranslatef(camPos.x, camPos.y, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
-	for(u32 i=0;i<total_cnt;++i)
+	const SimBody &wall = *objects[0];
+
+	DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1],
+		1,0,0,2.0f);
+
+	//DrawLine(objects[0]->vertices[0], objects[0]->vertices[1], 1,0,0,2.0f);
+
+	for(u32 i=1;i<total_cnt;++i)
 	{
 		objects[i]->Draw();
 	}

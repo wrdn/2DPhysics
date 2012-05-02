@@ -52,11 +52,12 @@ void World::Load()
 
 	MeshHandle boxMesh = Create2DBox(box_width, box_height);
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
+	MeshHandle lineMesh = CreateLine(float2(-1,0), float2(1,0));
 
 	box_row_cnt = conf.Read("BoxRowCount", 32U);
 	box_col_cnt = conf.Read("BoxColumnCount", 25U);
 	box_cnt = box_row_cnt * box_col_cnt;
-	objects.reserve(4 + box_cnt);
+	//objects.reserve(box_cnt);
 
 	u32 th = box_cnt / 3;
 	i32 massCounts[] = { th, th, th + box_cnt%3 };
@@ -68,7 +69,16 @@ void World::Load()
 	const f32 invMasses[] = { 1.0f/masses[0], 1.0f/masses[1], 1.0f/masses[2] };
 
 	/********** CREATE WALLS ***********/
-
+	SimBody *bottomWall = new SimBody();
+	bottomWall->objectMaterial.SetObjectColor(Color::RED);
+	bottomWall->mass = bottomWall->invMass = 0;
+	bottomWall->rotation_in_rads = 0; bottomWall->CalculateRotationMatrix();
+	bottomWall->vertices.push_back(float2(-10,0));
+	bottomWall->vertices.push_back(float2(10,0));
+	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
+	bottomWall->fillMode = GL_LINE;
+	bottomWall->position.set(0,-2);
+	objects.push_back(bottomWall);
 
 	/********** CREATE BOXES ***********/
 	// Create a base box that will be copied for each new box we create
@@ -106,7 +116,7 @@ void World::Load()
 			objects.push_back(b);
 		}
 	}
-	total_cnt = box_cnt;
+	total_cnt = 1+box_cnt;
 
 	/********** CREATE TRIANGLES ***********/
 	SimBody baseTriangle;

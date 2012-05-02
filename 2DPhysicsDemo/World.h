@@ -29,7 +29,7 @@ public:
 	~World();
 
 	void Update(f32 dt);
-	void Draw(f32 dt);
+	void Draw();
 	void Load();
 	void Unload();
 

@@ -65,6 +65,28 @@ MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 	return mh;
 };
 
+MeshHandle CreateLine(float2 start, float2 end, const c8 *resourceName)
+{
+	ResourceManager::get().RemoveResource(resourceName);
+
+	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>(resourceName);
+	if(mh->Valid()) return mh;
+
+	mh->SetName(resourceName);
+
+	VERTEX verts[2]; // ccw order
+	verts[0] = VERTEX( float2(end.x, end.y), float2(1, 0) ); // right
+	verts[1] = VERTEX( float2(start.x, start.y), float2(0, 0) ); // left
+	u32 indices[] = { 0, 1 };
+
+	if(!mh->BuildVBO(verts, 2, indices, 2))
+	{
+		mh.reset();
+		ResourceManager::get().RemoveResource(mh->GetResourceID());
+	}
+	return mh;
+};
+
 void DrawPoint(float2 pos, float r, float g, float b)
 {
 	glPushMatrix();
@@ -88,4 +110,20 @@ void DrawCircle(float2 &pos, f32 radius)
 		glVertex2f(pos.x + sin(f) * radius, pos.y + cos(f) * radius);
 	}
 	glEnd();
+};
+
+void DrawLine(const float2 &start, const float2 &end,
+	const float r, const float g, const float b, const float lineWidth)
+{
+	float outf=0; glGetFloatv(GL_LINE_WIDTH, &outf);
+	glLineWidth(lineWidth);
+	glColor3f(r,g,b);
+
+	glBegin(GL_LINES);
+	glVertex2fv(start.vec);
+	glVertex2fv(end.vec);
+	glEnd();
+
+	glColor3f(1,1,1);
+	glLineWidth(outf);
 };
