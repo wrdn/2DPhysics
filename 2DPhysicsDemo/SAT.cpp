@@ -4,19 +4,22 @@
 SAT::SAT(void)  {}
 SAT::~SAT(void) {}
 
+float2 GenAxis(const float2 &E0, const float2 &E1)
+{
+	float2 E = E1-E0;
+	return float2(-E.y, E.x);
+};
+
 void SAT::GenerateSeperatingAxes(const std::vector<float2> &vertices,
-	std::vector<float2> &output_axes)
+	std::vector<float2> &output_axes, i32 maxAxis)
 {
 	u32 Anum = vertices.size();
 	if(!Anum) return;
 
-	for(u32 j = Anum-1, i = 0; i < Anum; j = i, i ++)
-	{
-		float2 E0 = vertices[j];
-		float2 E1 = vertices[i];
-		float2 E  = E1 - E0;
-		output_axes.push_back(float2(-E.y, E.x));
-	}
+	maxAxis = maxAxis <= 0 ? (i32)Anum : min((i32)Anum, maxAxis);
+
+	for(i32 j = Anum-1, i = 0; i < maxAxis; j = i, i ++)
+		output_axes.push_back(GenAxis(vertices[i], vertices[j]));
 };
 
 SATProjection SAT::GetInterval(const std::vector<float2> &vertices, const float2 &axis)

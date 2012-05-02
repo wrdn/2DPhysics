@@ -64,3 +64,28 @@ MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 	}
 	return mh;
 };
+
+void DrawPoint(float2 pos, float r, float g, float b)
+{
+	glPushMatrix();
+	glColor3f(r,g,b);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(pos.x, pos.y);
+	glEnd();
+	glColor3f(1,1,1);
+	glPopMatrix();
+};
+
+void DrawCircle(float2 &pos, f32 radius)
+{
+	// for a more efficient way of drawing a circle, see http://slabode.exofire.net/circle_draw.shtml
+	glEnable(GL_LINE_SMOOTH);
+	glBegin(GL_LINE_LOOP);
+	for(u32 i=0;i<360;++i)
+	{
+		f32 f = DEGTORAD((f32)i);
+		glVertex2f(pos.x + sin(f) * radius, pos.y + cos(f) * radius);
+	}
+	glEnd();
+};

@@ -135,6 +135,9 @@
     <ClCompile Include="SAT.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
+    <ClCompile Include="Contact.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Namable.h">
@@ -237,6 +240,9 @@
       <Filter>Header Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="SAT.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Contact.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>

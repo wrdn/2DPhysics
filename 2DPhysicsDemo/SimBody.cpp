@@ -5,20 +5,19 @@ float2 SimBody::gravity = float2(0, meters(-9.81f));
 SimBody::SimBody(void)
 {
 	position = float2(0.0f);
-	rotation_in_rads = 0.0f;
 	velocity = float2(0.0f);
-	angularVelocity = 0.0f;
 	force = float2(0.0f);
-	torque = 0.0f;
+
+	dragCoefficient = 0.1f;
 	friction = 0.2f;
+	density = inertia = invInertia = rotation_in_rads = angularVelocity = torque = 0;
+	rotation_matrix.Identity();
 
 	mass = I = 10;
 	invMass = invI = 1.0f/mass;
 
 	fillMode = GL_FILL;
 	mesh = MeshHandle(0);
-
-	dragCoefficient = 0.1f;
 
 	use_textures = use_shaders = draw = update = true;
 };
@@ -63,48 +62,24 @@ void SimBody::Draw()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 };
 
-void Triangle::CalculateVerticesAndSeperatingAxis()
+#include "SAT.h"
+#include "Contact.h"
+bool SimBody::Collide(SimBody &other, f32 dt)
 {
-	vertices.resize(3);
-	seperatingAxis.resize(3);
+	f32 t = dt;
+	float2 N;
 
-	const f32 l2 = sideLength;
-	const float2 vT(0, l2);
-	const float2 vBL(-l2,-l2);
-	const float2 vBR(l2,-l2);
+	if(SAT::Collide(*this, other, N, t))
+	{
+		float2 CA[4];
+		float2 CB[4];
+		u32 Cnum=0;
 
-	vertices[0] = float2(0, l2);
-	vertices[2] = float2(l2, -l2);
-	vertices[1] = float2(-l2, -l2);
+		FindContacts(*this, other, N, t, CA, CB, Cnum);
 
-	const float2 firstAxis =  (vT - vBL).perp().normalize();
-	const float2 secondAxis = (vT - vBR).perp().normalize();
-	const float2 thirdAxis =  (vBL - vBR).perp().normalize();
-
-	seperatingAxis[0] = firstAxis;
-	seperatingAxis[1] = secondAxis;
-	seperatingAxis[2] = thirdAxis;
-};
-
-void Box::CalculateVerticesAndSeperatingAxis()
-{
-	vertices.resize(4);
-	seperatingAxis.resize(2);
-
-	const float2 vBL(-extents.x, -extents.y);
-	const float2 vBR(extents.x, -extents.y);
-	const float2 vTL(-extents.x, extents.y);
-	const float2 vTR(extents.x, extents.y);
-
-	vertices[BL] = vBL;
-	vertices[BR] = vBR;
-	vertices[TL] = vTR;
-	vertices[TR] = vTL;
-
-	// For a box, there are only ever 2 seperating axis (4 possible, but 2 of the 4 are redundant)
-	const float2 firstAxis =  (vTL - vBL).perp().normalize();
-	const float2 secondAxis = (vBL - vBR).perp().normalize();
-
-	seperatingAxis[0] = firstAxis;
-	seperatingAxis[1] = secondAxis;
+		Contact cont(CA, CB, Cnum, N, t, this, &other);
+		cont.Solve();
+		return true;
+	}
+	return false;
 };

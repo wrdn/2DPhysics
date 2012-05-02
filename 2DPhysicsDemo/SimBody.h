@@ -36,6 +36,10 @@ public:
 	f32 dragCoefficient; // default 0.1
 	f32 I, invI; // impulse? (see Catto)
 
+	f32 density;
+	f32 inertia;
+	f32 invInertia;
+
 	// GRAPHICS VARIABLES
 	Material objectMaterial;
 	MeshHandle mesh;
@@ -49,53 +53,19 @@ public:
 	std::vector<float2> vertices;
 	std::vector<float2> seperatingAxis;
 
+	float2 extents; // box info
+	float side_len; // triangle info
+
 	void CalculateRotationMatrix()
 	{
 		rotation_matrix = Mat22::RotationMatrix(rotation_in_rads);
 	}
 
 	void Draw();
+
+	bool Collide(SimBody &other, f32 dt);
+
+	bool Unmovable() { return mass <= EPSILON; };
 };
 
 bool BoundingCircleIntersects(const SimBody &a, const SimBody &b);
-
-// used to represent a box in the simulation
-// Since SimBody contains a "rotation" and "position" parameter, this
-// object only needs to store the extents of the box
-class Box : public SimBody
-{
-public:
-	Box() : extents(1,1)
-	{
-		CalculateVerticesAndSeperatingAxis();
-	};
-	~Box() {};
-
-	float2 extents; // half-width and half-height of box (from center)
-
-	enum { BL, BR, TL, TR };
-
-	// calculates and caches vertices from box extents
-	// origin is assumed to be at (0,0). In collision code, we use relative position
-	// of objects. This way, we don't have to recalculate vertex positions
-	void CalculateVerticesAndSeperatingAxis();
-};
-
-class Triangle : public SimBody // designed for equilateral triangles only
-{
-public:
-	Triangle() : sideLength(1)
-	{
-		CalculateVerticesAndSeperatingAxis();
-	};
-	~Triangle() {};
-
-	f32 sideLength;
-
-	//enum TriVert { T=0, BL=1, BR=2 };
-	//float2 _cached_vertices[3];
-
-	enum { T, BL, BR };
-
-	void CalculateVerticesAndSeperatingAxis();
-};

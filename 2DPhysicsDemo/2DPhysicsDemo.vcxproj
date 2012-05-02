@@ -81,6 +81,7 @@
     <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
+    <ClCompile Include="Contact.cpp" />
     <ClCompile Include="FizzyWindow.cpp" />
     <ClCompile Include="float2.cpp" />
     <ClCompile Include="float3.cpp" />
@@ -110,6 +111,7 @@
     <ClInclude Include="AppConfig.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="Contact.h" />
     <ClInclude Include="ctypes.h" />
     <ClInclude Include="FizzyWindow.h" />
     <ClInclude Include="float2.h" />

@@ -24,8 +24,10 @@ private:
 	static bool GetMinimumTranslationVector(float2 *axis, f32 *taxis, u32 numAxes, float2 &N, f32 &t);
 
 public:
+
+	// set maxAxis to <= 1 to disable it, otherwise we only generate up to maxAxis number of axis
 	static void GenerateSeperatingAxes(const std::vector<float2> &vertices,
-		std::vector<float2> &output_axes);
+		std::vector<float2> &output_axes, i32 maxAxis=-1);
 
 	static bool Collide(SimBody &a, SimBody &b, float2 &N, f32 &t);
 };

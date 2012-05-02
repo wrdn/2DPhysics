@@ -55,17 +55,17 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		Close();
 	}
 
-	float2 camPos = scn.GetCameraPosition();
+	float2 camPos = scn.get_cam_pos();
 	f32 dt = gameTime.GetDeltaTime();
-	f32 camSpeed = scn.GetCameraSpeed();
+	f32 camSpeed = scn.get_cam_speed();
 
 	switch(tolower(key))
 	{
 	case 'q':
-		scn.SetZoom(scn.GetZoom() + dt * camSpeed);
+		scn.set_zoom(scn.get_zoom() + dt * camSpeed);
 		break;
 	case 'e':
-		scn.SetZoom(scn.GetZoom() - dt * camSpeed);
+		scn.set_zoom(scn.get_zoom() - dt * camSpeed);
 		break;
 	case 'w':
 		//camPos.y( camPos.y() - dt * camSpeed);
@@ -85,14 +85,15 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		break;
 	case 'r':
 		scn.Load();
+		return;
 		break;
 	case 'f':
 		if(!down) break;
-		scn.SetGlobalFillMode(scn.GetGlobalFillMode() == GL_LINE ? GL_FILL : GL_LINE);
+		scn.set_global_fill_mode(scn.get_global_fill_mode() == GL_LINE ? GL_FILL : GL_LINE);
 		break;
 	}
 
-	scn.SetCameraPosition(camPos);
+	scn.set_cam_pos(camPos);
 };
 
 void FizzyWindow::OnCreate()
