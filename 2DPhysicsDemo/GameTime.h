@@ -1,20 +1,22 @@
 #pragma once
 
+#include "PerfTimer.h"
 #include "ctypes.h"
-#include <Windows.h>
 
 class GameTime
 {
 private:
-	DWORD oldTime;
-	f32 deltaTime;
-	f32 currentTime;
+	PerfTimer pt;
+	double dt;
 
 public:
 	GameTime();
 	~GameTime();
 
-	f32 GetCurrentTime() const { return currentTime; };
-	f32 GetDeltaTime();
-	f32 Update();
+	double GetDeltaTime() { return dt; };
+	double Update()
+	{
+		dt = pt.GetDT();
+		return dt;
+	};
 };

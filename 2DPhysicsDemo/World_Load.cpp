@@ -66,6 +66,9 @@ void World::CreateBoxes()
 			i32 t = 0;
 			while(!massCounts[t=rand(0,2)]);
 
+			b->rotation_in_rads = randflt(-TWOPI, TWOPI);
+			b->CalculateRotationMatrix();
+
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
@@ -107,6 +110,9 @@ void World::CreateTriangles()
 
 		int t = rand(0,2);
 		tri->position.set(1.0f*i,10);
+
+		tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
+		tri->CalculateRotationMatrix();
 
 		tri->mass = masses[t];
 		tri->invMass = invMasses[t];
@@ -153,6 +159,7 @@ void World::CreateWalls()
 	objects.push_back(topWall);
 };
 
+#include "Contact.h"
 void World::Load()
 {
 	Unload();
@@ -164,10 +171,15 @@ void World::Load()
 	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
 	camSpeed = conf.Read("CameraSpeed", 5.0f);
 
-	if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
-		SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
+	SimBody::gravity = conf.Read("gravity", default_gravity);
+	//if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
+	//SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
 	
 	updateRate = conf.Read("UpdateRate", 100U);
+
+	Contact::cmat.coFriction = conf.Read("Friction", Contact::cmat.coFriction);
+	Contact::cmat.coRestitution = conf.Read("Restitution", Contact::cmat.coRestitution);
+	Contact::cmat.coStaticFriction = conf.Read("StaticFriction", Contact::cmat.coStaticFriction);
 
 	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
 	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));

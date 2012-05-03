@@ -35,7 +35,7 @@ public:
 	World();
 	~World();
 
-	void Update(f32 dt);
+	void Update(f64 dt);
 	void Draw();
 	void Load();
 	void Unload();

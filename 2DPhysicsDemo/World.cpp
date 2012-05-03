@@ -6,9 +6,9 @@
 World::World() : zoom(-3.45f), objects(0) {};
 World::~World() { Unload(); };
 
-void World::Update(f32 dt)
+void World::Update(f64 dt)
 {
-	dt = 1.0f/220.0f;
+	dt = min(dt, 0.005f);
 
 	const float2 &gravity = SimBody::gravity;
 
@@ -21,7 +21,7 @@ void World::Update(f32 dt)
 		
 		if(obj.Unmovable()) continue;
 
-		obj.AddForce(float2(0, meters(-9.81f)*obj.mass));
+		obj.AddForce(float2((gravity.x), (gravity.y))*obj.mass);;
 	}
 
 	/************************************/

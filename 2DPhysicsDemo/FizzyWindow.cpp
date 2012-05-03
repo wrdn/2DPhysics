@@ -16,7 +16,7 @@ FizzyWindow::~FizzyWindow(void)
 
 void FizzyWindow::OnDisplay()
 {
-	f32 DT = gameTime.Update();
+	//double DT = gameTime.Update();
 
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
@@ -24,7 +24,7 @@ void FizzyWindow::OnDisplay()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	scn.Update(DT);
+	//scn.Update(DT);
 	scn.Draw();
 
 	/*glDisable(GL_DEPTH_TEST);
@@ -124,7 +124,7 @@ void FizzyWindow::OnCreate()
 	glMatrixMode(GL_MODELVIEW); glPopMatrix();
 	glEnable(GL_DEPTH_TEST);
 
-	scn.gt = &gameTime;
+	gameTime.Update();
 	gameTime.Update();
 };
 
@@ -134,6 +134,6 @@ void FizzyWindow::OnDestroy()
 
 void FizzyWindow::OnIdle()
 {
-	gameTime.Update();
+	scn.Update(gameTime.Update());
 	Redraw();
 };
