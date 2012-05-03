@@ -65,28 +65,6 @@ MeshHandle CreateEquilateralTriangle(f32 length, const c8 *resourceName)
 	return mh;
 };
 
-MeshHandle CreateLine(float2 start, float2 end, const c8 *resourceName)
-{
-	ResourceManager::get().RemoveResource(resourceName);
-
-	MeshHandle mh = ResourceManager::get().CreateAndGetResource<Mesh>(resourceName);
-	if(mh->Valid()) return mh;
-
-	mh->SetName(resourceName);
-
-	VERTEX verts[2]; // ccw order
-	verts[0] = VERTEX( float2(end.x, end.y), float2(1, 0) ); // right
-	verts[1] = VERTEX( float2(start.x, start.y), float2(0, 0) ); // left
-	u32 indices[] = { 0, 1 };
-
-	if(!mh->BuildVBO(verts, 2, indices, 2))
-	{
-		mh.reset();
-		ResourceManager::get().RemoveResource(mh->GetResourceID());
-	}
-	return mh;
-};
-
 void DrawPoint(float2 pos, float r, float g, float b)
 {
 	glPushMatrix();

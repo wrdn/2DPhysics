@@ -5,9 +5,13 @@
 struct CollisionMaterial
 {
 public:
+
+	// Friction, Restitution, Static Friction and Seperation
+	// Coefficient of Restitution is the elasticity of collisions
+	// Keep all in range 0 to 1
 	f32 coFriction, coRestitution, coStaticFriction, coSep;
 
-	CollisionMaterial(f32 fCoF = 0.035f, f32 fCoR = 0.3f,
+	CollisionMaterial(f32 fCoF = 0.4f, f32 fCoR = 0.3f,
 		f32 fCoS = 0.4f, f32 fSep=0.5f)
 		: coFriction(fCoF), coRestitution(fCoR),
 		coStaticFriction(fCoS), coSep(fSep) {};

@@ -23,68 +23,21 @@ void World::Unload()
 	CleanupVector(objects);
 }
 
-void World::Load()
+void World::CreateBoxes()
 {
-	Unload();
-	srand((u32)time(NULL));
-
-	conf.ParseConfigFile("Data/ConfigFile.txt");
-	
-	zoom = conf.Read("ZoomLevel", -3.45f);
-	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
-	camSpeed = conf.Read("CameraSpeed", 5.0f);
-
-	if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
-	{
-		float2 g = SimBody::gravity;
-		SimBody::gravity.set(meters(g.x), meters(g.y));
-	}
-	
-	updateRate = conf.Read("UpdateRate", 100U);
-
-	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
-	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));
-	mass_textures[2] = LoadTexture("Data/" + conf.Read("HeavyTexture", "Heavy.bmp"));
-
 	f32 box_width  = meters(conf.Read("BoxWidth"  , 1.0f));
 	f32 box_height = meters(conf.Read("BoxHeight" , 1.0f));
-	f32 triangle_len = conf.Read("TriangleLength", 1.0f);
-
+	f32 xOffset = conf.Read("BoxXOffset", 0.003f);
+	f32 yOffset = conf.Read("BoxYOffset", 0.003f);
 	MeshHandle boxMesh = Create2DBox(box_width, box_height);
-	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
-	MeshHandle lineMesh = CreateLine(float2(-1,0), float2(1,0));
 
 	box_row_cnt = conf.Read("BoxRowCount", 32U);
 	box_col_cnt = conf.Read("BoxColumnCount", 25U);
 	box_cnt = box_row_cnt * box_col_cnt;
-	//objects.reserve(box_cnt);
-
 	u32 th = box_cnt / 3;
 	i32 massCounts[] = { th, th, th + box_cnt%3 };
+	assert(massCounts[0]+massCounts[1]+massCounts[2] >= box_cnt);
 
-	f32 xOffset = conf.Read("BoxXOffset", 0.003f);
-	f32 yOffset = conf.Read("BoxYOffset", 0.003f);
-
-	const f32 masses[] = { 100, 500, 1000 };
-	const f32 invMasses[] = { 1.0f/masses[0], 1.0f/masses[1], 1.0f/masses[2] };
-
-	/********** CREATE WALLS ***********/
-	SimBody *bottomWall = new SimBody();
-	bottomWall->objectMaterial.SetObjectColor(Color::RED);
-	bottomWall->mass = bottomWall->invMass = 0;
-	bottomWall->rotation_in_rads = 0;
-	bottomWall->CalculateRotationMatrix();
-	bottomWall->vertices.push_back(float2(-30,0));
-	bottomWall->vertices.push_back(float2(30,0));
-	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
-	bottomWall->fillMode = GL_LINE;
-	bottomWall->position.set(0,-5);
-	objects.push_back(bottomWall);
-
-	/********** CREATE BOXES ***********/
-	// Create a base box that will be copied for each new box we create
-	// For a shared property, set it here and at load time, it will be put
-	// in EVERY box. Easier and faster than doing it in the loop itself
 	SimBody baseBox;
 	baseBox.mesh = boxMesh;
 	baseBox.extents.set(box_width/2, box_height/2);
@@ -100,9 +53,8 @@ void World::Load()
 		baseBox.vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
-	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0],
-		baseBox.vertices.size());
-	
+	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
+
 	// Generate boxes
 	for(u32 i=0;i<box_row_cnt;++i)
 	{
@@ -111,12 +63,13 @@ void World::Load()
 			SimBody *b = new SimBody(baseBox);
 			b->position.set((j*box_width)+(j*xOffset), (i*box_height)+(i*yOffset));
 
-			int t = rand(0,2);
+			i32 t = 0;
+			while(!massCounts[t=rand(0,2)]);
+
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
-			b->inertia = b->CalculateInertia();
-			b->invInertia = 1.0f/b->inertia;
+			b->CalculateInertia();
 
 			b->position.x += randflt(0, 0.8f);
 
@@ -125,8 +78,13 @@ void World::Load()
 			objects.push_back(b);
 		}
 	}
+};
 
-	/********** CREATE TRIANGLES ***********/
+void World::CreateTriangles()
+{
+	f32 triangle_len = meters(conf.Read("TriangleLength", 1.0f));
+	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
+
 	SimBody baseTriangle;
 	baseTriangle.mesh = triMesh;
 	baseTriangle.rotation_in_rads = 0; baseTriangle.CalculateRotationMatrix();
@@ -141,6 +99,90 @@ void World::Load()
 		baseTriangle.vertices.push_back(float2(-SL, -SL));
 	}
 	SAT::GenerateSeperatingAxes(baseTriangle.vertices, baseTriangle.seperatingAxis);
+	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
+
+	for(int i=0;i<10;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+
+		int t = rand(0,2);
+		tri->position.set(1.0f*i,10);
+
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+
+		objects.push_back(tri);
+	}
+};
+
+void World::CreateWalls()
+{
+	SimBody *bottomWall = new SimBody();
+	SimBody *leftWall, *rightWall, *topWall;
+
+	bottomWall->objectMaterial.SetObjectColor(Color::RED);
+	bottomWall->mass = bottomWall->invMass = 0;
+	bottomWall->rotation_in_rads = 0;
+	bottomWall->CalculateRotationMatrix();
+	bottomWall->fillMode = GL_LINE;
+	leftWall = new SimBody(*bottomWall); rightWall = new SimBody(*bottomWall); topWall = new SimBody(*bottomWall);
+	bottomWall->vertices.push_back(float2(-30,0));
+	bottomWall->vertices.push_back(float2(30,0));
+	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
+	bottomWall->position.set(0,-30);
+	objects.push_back(bottomWall);
+
+	leftWall->vertices.push_back(float2(0,30));
+	leftWall->vertices.push_back(float2(0,-30));
+	SAT::GenerateSeperatingAxes(leftWall->vertices, leftWall->seperatingAxis);
+	leftWall->position.set(-30,0);
+	objects.push_back(leftWall);
+
+	rightWall->vertices.push_back(float2(0,30));
+	rightWall->vertices.push_back(float2(0,-30));
+	SAT::GenerateSeperatingAxes(rightWall->vertices, rightWall->seperatingAxis);
+	rightWall->position.set(30,0);
+	objects.push_back(rightWall);
+
+	topWall->vertices.push_back(float2(-30,0));
+	topWall->vertices.push_back(float2(30,0));
+	SAT::GenerateSeperatingAxes(topWall->vertices, topWall->seperatingAxis);
+	topWall->position.set(0,30);
+	objects.push_back(topWall);
+};
+
+void World::Load()
+{
+	Unload();
+	srand((u32)time(NULL));
+
+	conf.ParseConfigFile("Data/ConfigFile.txt");
+	
+	zoom = conf.Read("ZoomLevel", -3.45f);
+	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
+	camSpeed = conf.Read("CameraSpeed", 5.0f);
+
+	if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
+		SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
+	
+	updateRate = conf.Read("UpdateRate", 100U);
+
+	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
+	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));
+	mass_textures[2] = LoadTexture("Data/" + conf.Read("HeavyTexture", "Heavy.bmp"));
+
+	masses[0] = conf.Read("MassLight", 100.0f);
+	masses[1] = conf.Read("MassMedium", 200.0f);
+	masses[2] = conf.Read("MassHeavy", 300.0f);
+	invMasses[0] = 1.0f/masses[0];
+	invMasses[1] = 1.0f/masses[1];
+	invMasses[2] = 1.0f/masses[2];
+
+	CreateWalls();
+	CreateBoxes();
+	CreateTriangles();
 
 	total_cnt = objects.size();
 };

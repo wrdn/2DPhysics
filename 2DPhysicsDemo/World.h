@@ -11,6 +11,8 @@ private:
 	AppConfig conf;
 	TextureHandle mass_textures[3];
 
+	f32 masses[3], invMasses[3];
+
 	vector<SimBody*> objects;
 
 	u32 box_row_cnt, box_col_cnt, box_cnt, tri_cnt, total_cnt;
@@ -21,6 +23,11 @@ private:
 
 	f32 zoom, camSpeed;
 	float2 camPos;
+
+
+	void CreateBoxes();
+	void CreateTriangles();
+	void CreateWalls();
 
 public:
 	GameTime *gt;

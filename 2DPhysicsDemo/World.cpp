@@ -8,7 +8,7 @@ World::~World() { Unload(); };
 
 void World::Update(f32 dt)
 {
-	dt = 1.0f/520.0f;
+	dt = 1.0f/220.0f;
 
 	const float2 &gravity = SimBody::gravity;
 
@@ -21,7 +21,7 @@ void World::Update(f32 dt)
 		
 		if(obj.Unmovable()) continue;
 
-		obj.AddForce(float2(0, -9.81f*obj.mass));
+		obj.AddForce(float2(0, meters(-9.81f)*obj.mass));
 	}
 
 	/************************************/
@@ -63,10 +63,22 @@ void World::Draw()
 	glTranslatef(camPos.x, camPos.y, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	
-	const SimBody &wall = *objects[0];
-
-	DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1],
-		1,0,0,2.0f);
+	{ // bottom wall
+		const SimBody &wall = *objects[0];
+		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
+	}
+	{ // left wall
+		const SimBody &wall = *objects[1];
+		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
+	}
+	{ // right wall
+		const SimBody &wall = *objects[2];
+		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
+	}
+	{ // top wall
+		const SimBody &wall = *objects[3];
+		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
+	}
 
 	//DrawLine(objects[0]->vertices[0], objects[0]->vertices[1], 1,0,0,2.0f);
 

@@ -64,9 +64,13 @@ public:
 	}
 
 	// http://www.physicsforums.com/showthread.php?s=e251fddad79b926d003e2d4154799c14&t=25293&page=2&pp=15
-	float CalculateInertia()
+	void CalculateInertia()
 	{
-		if(vertices.size() == 1) return 0.0f;
+		if(vertices.size() == 1)
+		{
+			inertia = invInertia = 0;
+			return;
+		}
 
 		f32 denom = 0, numer = 0;
 
@@ -83,7 +87,9 @@ public:
 			denom += (a * b);
 			numer += a;
 		}
-		return (mass / 6.0f) * (denom / numer);
+		
+		inertia = (mass / 6.0f) * (denom / numer);
+		invInertia = 1.0f / inertia;
 	};
 
 	void Init()
@@ -94,8 +100,7 @@ public:
 		torque = 0;
 		angularVelocity = 0;
 		
-		inertia = CalculateInertia();
-		invInertia = 1.0f/inertia;
+		CalculateInertia();
 	};
 
 	void Draw();
