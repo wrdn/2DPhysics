@@ -1,30 +1,7 @@
 #include "Arbiter.h"
 
-/*
-* Copyright (c) 2006-2007 Erin Catto http://www.gphysics.com
-*
-* Permission to use, copy, modify, distribute and sell this software
-* and its documentation for any purpose is hereby granted without fee,
-* provided that the above copyright notice appear in all copies.
-* Erin Catto makes no representations about the suitability 
-* of this software for any purpose.  
-* It is provided "as is" without express or implied warranty.
-*/
-
 #include "Arbiter.h"
 #include "Body.h"
-
-// Box vertex and edge numbering:
-//
-//        ^ y
-//        |
-//        e1
-//   v2 ------ v1
-//    |        |
-// e2 |        | e4  --> x
-//    |        |
-//   v3 ------ v4
-//        e3
 
 enum Axis
 {
@@ -45,7 +22,7 @@ enum EdgeNumbers
 
 struct ClipVertex
 {
-	ClipVertex() { fp.value = 0; }
+	ClipVertex() { fp.value = 0; };
 	Vector2f v;
 	FeaturePair fp;
 };
@@ -320,9 +297,9 @@ int Collide(Contact* contacts, Body* bodyA, Body* bodyB)
 		if (separation <= 0)
 		{
 			contacts[numContacts].separation = separation;
-			contacts[numContacts].normal = normal;
+			contacts[numContacts].normal = normal.tofloat2();
 			// slide contact point onto reference face (easy to cull)
-			contacts[numContacts].position = clipPoints2[i].v - separation * frontNormal;
+			contacts[numContacts].position = (clipPoints2[i].v - separation * frontNormal).tofloat2();
 			contacts[numContacts].feature = clipPoints2[i].fp;
 			if (axis == FACE_B_X || axis == FACE_B_Y)
 				Flip(contacts[numContacts].feature);

@@ -25,9 +25,9 @@ public:
 
 	~float2();
 	float2();
-	explicit float2(const f32 v);
+	//explicit float2(const f32 v);
 	explicit float2(const f32 _x, f32 _y);
-	explicit float2(const f32 * v);
+	//explicit float2(const f32 * v);
 
 	f32* GetVec() const { return (f32*)vec; };
 
@@ -91,15 +91,15 @@ public:
 	inline float operator ^ (const float2 &v) { return (x*v.y)-(y*v.x); };
 };
 
-inline float vcross(const float2 &a, const float2 &b)
+inline float cross(const float2 &a, const float2 &b)
 {
 	return a.x*b.y - a.y*b.x;
 };
-inline float2 vcross(const float2 &a, float s)
+inline float2 cross(const float2 &a, float s)
 {
 	return float2(s*a.y, -s*a.x);
 };
-inline float2 vcross(float s, const float2 &a)
+inline float2 cross(float s, const float2 &a)
 {
 	return float2(-s*a.y, s*a.x);
 };
@@ -111,10 +111,15 @@ inline float2 operator-(const float2 &a, const float2 &b) { return float2(a)-=b;
 inline float2 operator*(const float2 &a, const float2 &b) { return float2(a)*=b; };
 inline float2 operator/(const float2 &a, const float2 &b) { return float2(a)/=b; };
 
-inline float2 operator+(const float2 &a, const f32 b) { return float2(a)+=float2(b); };
-inline float2 operator-(const float2 &a, const f32 b) { return float2(a)-=float2(b); };
-inline float2 operator*(const float2 &a, const f32 b) { return float2(a)*=float2(b); };
-inline float2 operator/(const float2 &a, const f32 b) { return float2(a)/=float2(b); };
+inline float2 operator+(const float2 &a, const f32 b) { return float2(a)+=float2(b,b); };
+inline float2 operator-(const float2 &a, const f32 b) { return float2(a)-=float2(b,b); };
+inline float2 operator*(const float2 &a, const f32 b) { return float2(a)*=float2(b,b); };
+inline float2 operator/(const float2 &a, const f32 b) { return float2(a)/=float2(b,b); };
+
+inline float2 operator+(const float &a, const float2 b) { return float2(a,a)+=float2(b); };
+inline float2 operator-(const float &a, const float2 b) { return float2(a,a)-=float2(b); };
+inline float2 operator*(const float &a, const float2 b) { return float2(a,a)*=float2(b); };
+inline float2 operator/(const float &a, const float2 b) { return float2(a,a)/=float2(b); };
 
 std::ostream& operator<<(std::ostream &out, float2 &m);
 std::istream& operator>>(std::istream &in, float2& out);

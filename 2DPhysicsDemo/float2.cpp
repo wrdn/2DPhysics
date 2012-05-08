@@ -9,7 +9,7 @@ float2::~float2() { };
 
 float2::float2() { zero(); };
 
-float2::float2(const f32 v) { setall(v); };
+//float2::float2(const f32 v) { setall(v); };
 
 float2::float2(const f32 _x, f32 _y)
 {
@@ -17,11 +17,11 @@ float2::float2(const f32 _x, f32 _y)
 	y = _y;
 };
 
-float2::float2(const f32 * v)
-{
-	x = v[0];
-	y = v[1];
-};
+//float2::float2(const f32 * v)
+//{
+//	x = v[0];
+//	y = v[1];
+//};
 
 void float2::zero()
 {

@@ -55,7 +55,8 @@ bool Hit(const AABB &a, const AABB &b);
 
 bool Hit(const Circle &a, const Circle &b);
 
-bool BoundingCircleIntersects(const SimBody &av, const SimBody &bv);
+// bounding circle test
+bool BoundingCircleHit(const float2 &pos1, const float radius1, const float2 &pos2, const float radius2);
 
 bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx);
 

@@ -1,9 +1,7 @@
 #include "World.h"
 #include "GraphicsUtils.h"
 #include "util.h"
-
-//typedef map<PhysArbiterKey, PhysArbiter>::iterator ArbIter;
-//typedef pair<PhysArbiterKey, PhysArbiter> ArbPair;
+#include "Collision.h"
 
 World::World() : zoom(-3.45f), objects(0) {};
 World::~World() { Unload(); };
@@ -21,6 +19,11 @@ void World::BroadPhase()
 		{
 			Body* bj = bodies[j];
 
+			if(!BoundingCircleHit(bi->position, bi->boundingCircleRadius, bj->position, bj->boundingCircleRadius))
+			{
+				continue;
+			}
+			
 			if (bi->invMass == 0.0f && bj->invMass == 0.0f)
 				continue;
 
@@ -47,9 +50,11 @@ void World::BroadPhase()
 	}
 };
 
-Vector2f gravity(0.0f, -10.0f);
+float2 gravity(0.0f, -10.0f);
 void World::Update(f64 dt)
 {
+	//dt = min(dt, 0.005f); // if you hold the window, the app is paused. when it comes back, dt will be BIG, so just clamp it to a maximum of 0.005 seconds (200hz)
+	dt = 1.0f/320.0f;
 	float inv_dt = dt > 0.0f ? 1.0f / dt : 0.0f;
 
 	BroadPhase();
@@ -85,7 +90,7 @@ void World::Update(f64 dt)
 		b->position += dt * b->velocity;
 		b->rotation += dt * b->angularVelocity;
 
-		b->force.Set(0.0f, 0.0f);
+		b->force.set(0.0f, 0.0f);
 		b->torque = 0.0f;
 	}
 }

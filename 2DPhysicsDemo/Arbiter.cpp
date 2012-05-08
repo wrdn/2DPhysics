@@ -78,28 +78,28 @@ void Arbiter::Update(Contact* newContacts, int numNewContacts)
 
 void Arbiter::PreStep(float inv_dt)
 {
-	const float k_allowedPenetration = 0.01f;
+	const float k_allowedPenetration = 0.1f;
 	float k_biasFactor = POSITION_CORRECTION ? 0.2f : 0.0f;
 
 	for (int i = 0; i < numContacts; ++i)
 	{
 		Contact* c = contacts + i;
 
-		Vector2f r1 = c->position - body1->position;
-		Vector2f r2 = c->position - body2->position;
+		float2 r1 = c->position - body1->position;
+		float2 r2 = c->position - body2->position;
 
 		// Precompute normal mass, tangent mass, and bias.
-		float rn1 = Dot(r1, c->normal);
-		float rn2 = Dot(r2, c->normal);
+		float rn1 =r1.dot(c->normal);
+		float rn2 =r2.dot(c->normal);
 		float kNormal = body1->invMass + body2->invMass;
-		kNormal += body1->invI * (Dot(r1, r1) - rn1 * rn1) + body2->invI * (Dot(r2, r2) - rn2 * rn2);
+		kNormal += body1->invI * (r1.dot(r1) - rn1 * rn1) + body2->invI * (r2.dot(r2) - rn2 * rn2);
 		c->massNormal = 1.0f / kNormal;
-
-		Vector2f tangent = Cross(c->normal, 1.0f);
-		float rt1 = Dot(r1, tangent);
-		float rt2 = Dot(r2, tangent);
+		
+		float2 tangent = cross(c->normal, 1.0f);
+		float rt1 = r1.dot(tangent);
+		float rt2 = r2.dot(tangent);
 		float kTangent = body1->invMass + body2->invMass;
-		kTangent += body1->invI * (Dot(r1, r1) - rt1 * rt1) + body2->invI * (Dot(r2, r2) - rt2 * rt2);
+		kTangent += body1->invI * (r1.dot(r1) - rt1 * rt1) + body2->invI * (r2.dot(r2) - rt2 * rt2);
 		c->massTangent = 1.0f /  kTangent;
 
 		c->bias = -k_biasFactor * inv_dt * Min(0.0f, c->separation + k_allowedPenetration);
@@ -107,13 +107,13 @@ void Arbiter::PreStep(float inv_dt)
 		if (ACCUMULATE_IMPULSES)
 		{
 			// Apply normal + friction impulse
-			Vector2f P = c->Pn * c->normal + c->Pt * tangent;
+			float2 P = c->Pn * c->normal + c->Pt * tangent;
 
 			body1->velocity -= body1->invMass * P;
-			body1->angularVelocity -= body1->invI * Cross(r1, P);
+			body1->angularVelocity -= body1->invI * cross(r1, P);
 
 			body2->velocity += body2->invMass * P;
-			body2->angularVelocity += body2->invI * Cross(r2, P);
+			body2->angularVelocity += body2->invI * cross(r2, P);
 		}
 	}
 }
@@ -130,12 +130,12 @@ void Arbiter::ApplyImpulse()
 		c->r2 = c->position - b2->position;
 
 		// Relative velocity at contact
-		Vector2f dv = b2->velocity +
-			Cross(b2->angularVelocity, c->r2) -
-			b1->velocity - Cross(b1->angularVelocity, c->r1);
+		float2 dv = b2->velocity +
+			cross(b2->angularVelocity, c->r2) -
+			b1->velocity - cross(b1->angularVelocity, c->r1);
 
 		// Compute normal impulse
-		float vn = Dot(dv, c->normal);
+		float vn = dv.dot(c->normal);
 
 		float dPn = c->massNormal * (-vn + c->bias);
 
@@ -152,20 +152,20 @@ void Arbiter::ApplyImpulse()
 		}
 
 		// Apply contact impulse
-		Vector2f Pn = dPn * c->normal;
+		float2 Pn = dPn * c->normal;
 
 		b1->velocity -= b1->invMass * Pn;
-		b1->angularVelocity -= b1->invI * Cross(c->r1, Pn);
+		b1->angularVelocity -= b1->invI * cross(c->r1, Pn);
 
 		b2->velocity += b2->invMass * Pn;
-		b2->angularVelocity += b2->invI * Cross(c->r2, Pn);
+		b2->angularVelocity += b2->invI * cross(c->r2, Pn);
 
 		// Relative velocity at contact
-		dv = b2->velocity + Cross(b2->angularVelocity, c->r2) -
-			b1->velocity - Cross(b1->angularVelocity, c->r1);
+		dv = b2->velocity + cross(b2->angularVelocity, c->r2) -
+			b1->velocity - cross(b1->angularVelocity, c->r1);
 
-		Vector2f tangent = Cross(c->normal, 1.0f);
-		float vt = Dot(dv, tangent);
+		float2 tangent = cross(c->normal, 1.0f);
+		float vt = dv.dot(tangent);
 		float dPt = c->massTangent * (-vt);
 
 		if (ACCUMULATE_IMPULSES)
@@ -185,12 +185,12 @@ void Arbiter::ApplyImpulse()
 		}
 
 		// Apply contact impulse
-		Vector2f Pt = dPt * tangent;
+		float2 Pt = dPt * tangent;
 
 		b1->velocity -= b1->invMass * Pt;
-		b1->angularVelocity -= b1->invI * Cross(c->r1, Pt);
+		b1->angularVelocity -= b1->invI * cross(c->r1, Pt);
 
 		b2->velocity += b2->invMass * Pt;
-		b2->angularVelocity += b2->invI * Cross(c->r2, Pt);
+		b2->angularVelocity += b2->invI * cross(c->r2, Pt);
 	}
 }

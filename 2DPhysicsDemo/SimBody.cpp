@@ -4,9 +4,9 @@ float2 SimBody::gravity = float2(0, meters(-9.81f));
 
 SimBody::SimBody(void)
 {
-	position = float2(0.0f);
-	velocity = float2(0.0f);
-	force = float2(0.0f);
+	position.zero();
+	velocity.zero();
+	force.zero();
 
 	dragCoefficient = 0.1f;
 	friction = 0.2f;

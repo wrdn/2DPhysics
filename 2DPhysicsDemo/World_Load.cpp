@@ -21,6 +21,8 @@ void World::Unload()
 {
 	ResourceManager::get().Cleanup();
 	CleanupVector(objects);
+	CleanupVector(bodies);
+	arbiters.clear();
 }
 
 void World::CreateBoxes()
@@ -197,27 +199,43 @@ void World::Load()
 	CreateTriangles();
 	total_cnt = objects.size();
 
-
 	Body *b = new Body();
-	b->Set(Vector2f(100.0f, 20.0f), FLT_MAX);
-	b->position.Set(0.0f, -0.5f * b->width.y);
+	b->Set(float2(100.0f, 20.0f), FLT_MAX);
+	b->position.set(0.0f, -0.5f * b->width.y);
 	b->mass = b->invMass = b->invI = b->I = 0;
+	b->boundingCircleRadius = 150;;
 	bodies.push_back(new Body(*b));
 
-	b->Set(Vector2f(1.0f, 1.0f), 200.0f);
-	b->position.Set(0.0f, 4.0f);
-	bodies.push_back(new Body(*b));
+	float bottomPos = b->position.y + b->width.y/2 + 0.6f;
 
-	b->Set(Vector2f(1.0f, 1.0f), 200.0f);
-	b->position.Set(0.4,8);
-	bodies.push_back(new Body(*b));
+	for(int i=0;i<20;++i)
+	{
+		for(int j=0;j<20;++j)
+		{
+			b->Set(float2(1.0f, 1.0f), 200.0f);
+			b->position.set(i*b->width.x+(0.1*i), bottomPos+j*b->width.y+(j*0.15f));
+			b->boundingCircleRadius = 1.1;
+			bodies.push_back(new Body(*b));
+		}
+	}
 
 	delete b;
 
+	/*Body *b = new Body();
+	b->Set(float2(100.0f, 20.0f), FLT_MAX);
+	b->position.set(0.0f, -0.5f * b->width.y);
+	b->mass = b->invMass = b->invI = b->I = 0;
+	bodies.push_back(new Body(*b));
 
+	b->Set(float2(1.0f, 1.0f), 200.0f);
+	b->position.set(0.0f, 4.0f);
+	bodies.push_back(new Body(*b));
 
+	b->Set(float2(1.0f, 1.0f), 200.0f);
+	b->position.set(0.4,8);
+	bodies.push_back(new Body(*b));
 
-
+	delete b;*/
 
 
 

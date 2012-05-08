@@ -58,11 +58,9 @@ bool Hit(const Circle &a, const Circle &b)
 	return dist_squared < radius_sum*radius_sum;
 };
 
-bool BoundingCircleIntersects(const SimBody &av, const SimBody &bv)
+bool BoundingCircleHit(const float2 &pos1, const float radius1, const float2 &pos2, const float radius2)
 {
-	f32 a = av.boundingCircleRadius + bv.boundingCircleRadius;
-	float2 dm = av.position - bv.position;
-	return (a*a) > dm.length_squared();
+	return Hit(Circle(pos1, radius1), Circle(pos2, radius2));
 };
 
 bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx)

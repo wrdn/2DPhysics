@@ -8,17 +8,17 @@ void Body::Draw()
 {
 	glPushMatrix();
 	
-	Vector2f x = position;
+	float2 x = position;
 	glTranslatef(x.x, x.y,0);
 	
 	float RotationInDegrees = RADTODEG(rotation);
 	glRotatef(RotationInDegrees,0,0,1);
 
-	Vector2f h = 0.5f * width;
-	Vector2f v1 = Vector2f(-h.x, -h.y);
-	Vector2f v2 = Vector2f( h.x, -h.y);
-	Vector2f v3 = Vector2f( h.x,  h.y);
-	Vector2f v4 = Vector2f(-h.x,  h.y);
+	float2 h = 0.5f * width;
+	float2 v1 = float2(-h.x, -h.y);
+	float2 v2 = float2( h.x, -h.y);
+	float2 v3 = float2( h.x,  h.y);
+	float2 v4 = float2(-h.x,  h.y);
 
 	glColor3f(0.8f, 0.8f, 0.9f);
 
@@ -34,28 +34,28 @@ void Body::Draw()
 
 Body::Body()
 {
-	position.Set(0.0f, 0.0f);
+	position.set(0.0f, 0.0f);
 	rotation = 0.0f;
-	velocity.Set(0.0f, 0.0f);
+	velocity.set(0.0f, 0.0f);
 	angularVelocity = 0.0f;
-	force.Set(0.0f, 0.0f);
+	force.set(0.0f, 0.0f);
 	torque = 0.0f;
 	friction = 0.2f;
 
-	width.Set(1.0f, 1.0f);
+	width.set(1.0f, 1.0f);
 	mass = FLT_MAX;
 	invMass = 0.0f;
 	I = FLT_MAX;
 	invI = 0.0f;
 }
 
-void Body::Set(const Vector2f& w, float m)
+void Body::Set(const float2& w, float m)
 {
-	position.Set(0.0f, 0.0f);
+	position.set(0.0f, 0.0f);
 	rotation = 0.0f;
-	velocity.Set(0.0f, 0.0f);
+	velocity.set(0.0f, 0.0f);
 	angularVelocity = 0.0f;
-	force.Set(0.0f, 0.0f);
+	force.set(0.0f, 0.0f);
 	torque = 0.0f;
 	friction = 0.2f;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MathUtils.h"
+#include "float2.h"
 
 struct Body;
 
@@ -20,9 +21,9 @@ struct Contact
 {
 	Contact();
 
-	Vector2f position;
-	Vector2f normal;
-	Vector2f r1, r2;
+	float2 position;
+	float2 normal;
+	float2 r1, r2;
 	float separation;
 	float Pn;	// accumulated normal impulse
 	float Pt;	// accumulated tangent impulse

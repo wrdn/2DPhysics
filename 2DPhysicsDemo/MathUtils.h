@@ -16,6 +16,7 @@
 #include <float.h>
 #include <assert.h>
 #include <stdlib.h>
+#include "float2.h"
 
 const float k_pi = 3.14159265358979323846264f;
 
@@ -23,6 +24,13 @@ struct Vector2f
 {
 	Vector2f() {}
 	Vector2f(float x, float y) : x(x), y(y) {}
+	Vector2f(float2 f)
+	{
+		x = f.x;
+		y = f.y;
+	}
+
+	float2 tofloat2() { return float2(x,y); };
 
 	void Set(float x_, float y_) { x = x_; y = y_; }
 
