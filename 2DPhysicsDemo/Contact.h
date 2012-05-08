@@ -17,24 +17,24 @@ public:
 		coStaticFriction(fCoS), coSep(fSep) {};
 };
 
-class Contact
+class DContact
 {
 public:
-	enum { MAX_CONTACTS = 2 };
+	enum { MAX_DContactS = 2 };
 
 	static CollisionMaterial cmat;
 
 	SimBody *collidingBodies[2]; // pointer to each colliding body (2 bodies)
-	float2 contacts[MAX_CONTACTS][2]; // contact pairs
-	float2 contactNormal;
+	float2 DContacts[MAX_DContactS][2]; // DContact pairs
+	float2 DContactNormal;
 	f32 t; // depth (or time to hit)
-	u32 numContacts; // <= MAX_CONTACTS
+	u32 numDContacts; // <= MAX_DContactS
 
-	Contact();
-	Contact(const float2 *CA, const float2 *CB, const u32 Cnum,
+	DContact();
+	DContact(const float2 *CA, const float2 *CB, const u32 Cnum,
 		const float2 &N, const f32 m_t,
 		SimBody *a, SimBody *b);
-	~Contact();
+	~DContact();
 
 	void Reset();
 

@@ -1,51 +1,51 @@
 #include "Contact.h"
 
-CollisionMaterial Contact::cmat = CollisionMaterial();
+CollisionMaterial DContact::cmat = CollisionMaterial();
 
-Contact::Contact(void)
+DContact::DContact(void)
 {
 	Reset();
 }
-Contact::Contact(const float2 *CA, const float2 *CB, const u32 Cnum,
+DContact::DContact(const float2 *CA, const float2 *CB, const u32 Cnum,
 		const float2 &N, const f32 m_t,
 		SimBody *a, SimBody *b)
 {
-	numContacts = min(MAX_CONTACTS, Cnum);
+	numDContacts = min(MAX_DContactS, Cnum);
 	collidingBodies[0] = a;
 	collidingBodies[1] = b;
-	contactNormal = N;
+	DContactNormal = N;
 	t = m_t;
 
-	for(u32 i=0;i<numContacts;++i)
+	for(u32 i=0;i<numDContacts;++i)
 	{
-		contacts[i][0] = CA[i];
-		contacts[i][1] = CB[i];
+		DContacts[i][0] = CA[i];
+		DContacts[i][1] = CB[i];
 	}
 };
-Contact::~Contact(void) {};
+DContact::~DContact(void) {};
 
-void Contact::Reset()
+void DContact::Reset()
 {
 	collidingBodies[0] = collidingBodies[1] = 0;
-	numContacts = 0;
+	numDContacts = 0;
 };
 
-void Contact::Solve()
+void DContact::Solve()
 {
 	// since we don't support time-to-collision, this will always be true
 	if(t<0.0f)
 	{
 		// resolve overlaps
-		for(u32 i=0;i<numContacts;++i)
-			ResolveOverlap(contacts[i][0], contacts[i][1]);
+		for(u32 i=0;i<numDContacts;++i)
+			ResolveOverlap(DContacts[i][0], DContacts[i][1]);
 	}
 
 	// resolve collisions
-	for(u32 i=0;i<numContacts;++i)
-		ResolveCollision(contacts[i][0], contacts[i][1]);
+	for(u32 i=0;i<numDContacts;++i)
+		ResolveCollision(DContacts[i][0], DContacts[i][1]);
 };
 
-void Contact::ResolveOverlap(float2 &C0, float2 &C1)
+void DContact::ResolveOverlap(float2 &C0, float2 &C1)
 {
 	f32 m0 = collidingBodies[0]->invMass;
 	f32 m1 = collidingBodies[1]->invMass;
@@ -65,7 +65,7 @@ void Contact::ResolveOverlap(float2 &C0, float2 &C1)
 	}
 };
 
-void Contact::ResolveCollision(float2 &C0, float2 &C1)
+void DContact::ResolveCollision(float2 &C0, float2 &C1)
 {
 	SimBody &a = *collidingBodies[0];
 	SimBody &b = *collidingBodies[1];
@@ -86,12 +86,12 @@ void Contact::ResolveCollision(float2 &C0, float2 &C1)
 	//float fCoR = 0.3f;
 	//fCoF = 0.2f;
 
-	ResolveCollisions(-contactNormal, t, cmat.coFriction, cmat.coRestitution,
+	ResolveCollisions(-DContactNormal, t, cmat.coFriction, cmat.coRestitution,
 		C1, P1, V1, w1, m1, i1,
 		C0, P0, V0, w0, m0, i0);
 };
 
-void Contact::ResolveCollisions(const float2& Ncoll, float t, float fCoF, float fCoR,
+void DContact::ResolveCollisions(const float2& Ncoll, float t, float fCoF, float fCoR,
 					  const float2& C0, const float2& P0, float2& V0, float& w0, float m0, float i0, 
 					  const float2& C1, const float2& P1, float2& V1, float& w1, float m1, float i1)
 {

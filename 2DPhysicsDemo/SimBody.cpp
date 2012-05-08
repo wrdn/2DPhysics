@@ -80,7 +80,7 @@ bool SimBody::Collide(SimBody &other, f32 dt)
 
 		FindContacts(*this, other, N, t, CA, CB, Cnum);
 
-		Contact cont(CA, CB, Cnum, N, t, this, &other);
+		DContact cont(CA, CB, Cnum, N, t, this, &other);
 		cont.Solve();
 		return true;
 	}

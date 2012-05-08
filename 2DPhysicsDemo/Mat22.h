@@ -40,6 +40,8 @@ public:
 
 	Mat22 Transpose() const;
 
+	Mat22 Abs() const;
+
 	inline const Mat22& operator+=(const Mat22 &rhs) { *this = Add(rhs); return *this; }
 	inline const Mat22& operator-=(const Mat22 &rhs) { *this = Sub(rhs); return *this; }
 	inline const Mat22& operator*=(const Mat22 &rhs) { *this = Mul(rhs); return *this; }

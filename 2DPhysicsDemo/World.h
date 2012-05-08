@@ -4,6 +4,8 @@
 #include "AppConfig.h"
 #include "SimBody.h"
 #include "GameTime.h"
+#include <map>
+#include "Body.h"
 
 class World
 {
@@ -14,6 +16,12 @@ private:
 	f32 masses[3], invMasses[3];
 
 	vector<SimBody*> objects;
+	
+	std::vector<Body*> bodies;
+	std::map<ArbiterKey, Arbiter> arbiters;
+
+	//vector<Body*> bodies;
+	//std::map<PhysArbiterKey, PhysArbiter> arbiters;
 
 	u32 box_row_cnt, box_col_cnt, box_cnt, tri_cnt, total_cnt;
 	
@@ -24,10 +32,11 @@ private:
 	f32 zoom, camSpeed;
 	float2 camPos;
 
-
 	void CreateBoxes();
 	void CreateTriangles();
 	void CreateWalls();
+
+	void BroadPhase();
 
 public:
 	GameTime *gt;

@@ -36,11 +36,15 @@ public:
 		x = _x;
 		y = _y;
 	};
-	void set(const f32 * const v)
+	void set(const f32 singleValue)
+	{
+		x = y = singleValue;
+	};
+	/*void set(const f32 * const v)
 	{
 		x = v[0];
 		y = v[1];
-	};
+	};*/
 
 	void zero(); // zero's the current vector
 	void setall(const f32 v);
@@ -85,6 +89,19 @@ public:
 	inline const float2& operator*=(const float2 &rhs) { *this = mul(rhs); return *this; }
 	inline const float2& operator/=(const float2 &rhs) { *this = div(rhs); return *this; }
 	inline float operator ^ (const float2 &v) { return (x*v.y)-(y*v.x); };
+};
+
+inline float vcross(const float2 &a, const float2 &b)
+{
+	return a.x*b.y - a.y*b.x;
+};
+inline float2 vcross(const float2 &a, float s)
+{
+	return float2(s*a.y, -s*a.x);
+};
+inline float2 vcross(float s, const float2 &a)
+{
+	return float2(-s*a.y, s*a.x);
 };
 
 // Auxiliary Functions (operator overloads)

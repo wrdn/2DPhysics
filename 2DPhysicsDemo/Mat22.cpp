@@ -121,3 +121,13 @@ Mat22 Mat22::Transpose() const
 {
 	return Mat22(mat[0], mat[2], mat[1], mat[3]);
 };
+
+Mat22 Mat22::Abs() const
+{
+	Mat22 res;
+	res.mat[0] = fabs(mat[0]);
+	res.mat[1] = fabs(mat[1]);
+	res.mat[2] = fabs(mat[2]);
+	res.mat[3] = fabs(mat[3]);
+	return res;
+};

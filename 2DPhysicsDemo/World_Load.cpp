@@ -177,9 +177,9 @@ void World::Load()
 	
 	updateRate = conf.Read("UpdateRate", 100U);
 
-	Contact::cmat.coFriction = conf.Read("Friction", Contact::cmat.coFriction);
-	Contact::cmat.coRestitution = conf.Read("Restitution", Contact::cmat.coRestitution);
-	Contact::cmat.coStaticFriction = conf.Read("StaticFriction", Contact::cmat.coStaticFriction);
+	DContact::cmat.coFriction = conf.Read("Friction", DContact::cmat.coFriction);
+	DContact::cmat.coRestitution = conf.Read("Restitution", DContact::cmat.coRestitution);
+	DContact::cmat.coStaticFriction = conf.Read("StaticFriction", DContact::cmat.coStaticFriction);
 
 	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
 	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));
@@ -195,6 +195,83 @@ void World::Load()
 	CreateWalls();
 	CreateBoxes();
 	CreateTriangles();
-
 	total_cnt = objects.size();
+
+
+	Body *b = new Body();
+	b->Set(Vector2f(100.0f, 20.0f), FLT_MAX);
+	b->position.Set(0.0f, -0.5f * b->width.y);
+	b->mass = b->invMass = b->invI = b->I = 0;
+	bodies.push_back(new Body(*b));
+
+	b->Set(Vector2f(1.0f, 1.0f), 200.0f);
+	b->position.Set(0.0f, 4.0f);
+	bodies.push_back(new Body(*b));
+
+	b->Set(Vector2f(1.0f, 1.0f), 200.0f);
+	b->position.Set(0.4,8);
+	bodies.push_back(new Body(*b));
+
+	delete b;
+
+
+
+
+
+
+
+
+
+	/*float boxWidth = 100, boxHeight = 20;
+	Body *testBox = new Body();
+	testBox->mass = FLT_MAX; testBox->invMass = 0;
+	testBox->pos.set(0,-10);
+	testBox->dimensions.set(boxWidth, boxHeight);
+	testBox->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
+	testBox->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
+	testBox->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
+	testBox->vertices.push_back(float2(boxWidth/2, boxHeight/2));
+	testBox->restitution=0;
+	testBox->inertia = FLT_MAX; testBox->invInertia=0;
+	bodies.push_back(testBox);
+
+	{
+		Box *n = new Body();
+		n->friction = 0.2;
+		n->restitution = 0;
+		n->inertia = n->invInertia = 0;
+		n->dimensions.set(1,1);
+		n->pos.set(0,4);
+		boxWidth=n->dimensions.x; boxHeight=n->dimensions.y;
+		n->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
+		n->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
+		n->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
+		n->vertices.push_back(float2(boxWidth/2, boxHeight/2));
+		n->mass = 200; n->invMass = 1.0f/n->mass;
+		n->inertia = n->mass*(n->dimensions.x*n->dimensions.x + 
+			n->dimensions.y*n->dimensions.y)/12.0f;
+		n->invInertia=1.0f/n->inertia;
+		bodies.push_back(n);
+	}
+
+	{
+		Box *n = new Body();
+		n->friction = 0.2;
+		n->restitution = 0;
+		n->inertia = n->invInertia = 0;
+		n->dimensions.set(1,1);
+		n->pos.set(0.4,8);
+		boxWidth=n->dimensions.x; boxHeight=n->dimensions.y;
+		n->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
+		n->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
+		n->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
+		n->vertices.push_back(float2(boxWidth/2, boxHeight/2));
+		n->mass = 200; n->invMass = 1.0f/n->mass;
+		n->inertia = n->mass*(n->dimensions.x*n->dimensions.x + 
+			n->dimensions.y*n->dimensions.y)/12.0f;
+		n->invInertia=1.0f/n->inertia;
+		bodies.push_back(n);
+	}*/
+
+	
 };

@@ -45,9 +45,19 @@ void clamp(i32 &v, i32 lower, i32 upper)
 	else if(v > upper) { v = upper; }
 };
 
+float clamp(float a, float low, float high)
+{
+	return max(low, min(a,high));
+};
+
 bool NearZero(const f32 v)
 {
 		return fabs(v) < EPSILON;
+};
+
+bool Near(const f32 val, const f32 target)
+{
+	return val >= target-EPSILON && val <= target+EPSILON;
 };
 
 // Fast inverse square root, from http://pizer.wordpress.com/2008/10/12/fast-inverse-square-root/

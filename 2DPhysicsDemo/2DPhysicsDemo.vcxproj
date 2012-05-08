@@ -79,6 +79,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppConfig.cpp" />
+    <ClCompile Include="Arbiter.cpp" />
+    <ClCompile Include="Body.cpp" />
+    <ClCompile Include="BoxCollide.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="Contact.cpp" />
@@ -109,6 +112,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
+    <ClInclude Include="Arbiter.h" />
+    <ClInclude Include="Body.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="Contact.h" />
@@ -125,6 +130,7 @@
     <ClInclude Include="Mat22.h" />
     <ClInclude Include="Mat44.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MyApp.h" />

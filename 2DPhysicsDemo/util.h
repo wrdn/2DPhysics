@@ -20,8 +20,10 @@ void toggle_bit(u32 &opt, const u32 bit);
 
 void clamp(u32 &v, u32 lower, u32 upper);
 void clamp(i32 &v, i32 lower, i32 upper);
+float clamp(float a, float low, float high);
 
 bool NearZero(const f32 v);
+bool Near(const f32 val, const f32 target);
 
 f32 InvSqrt(f32 x);
 
