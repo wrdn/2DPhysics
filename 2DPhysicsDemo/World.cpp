@@ -22,10 +22,10 @@ void World::BroadPhase()
 			SimBody* bj = objects[j];
 			if(!bj->isbox) continue;
 
-			/*if(!BoundingCircleHit(bi->position, bi->boundingCircleRadius, bj->position, bj->boundingCircleRadius))
+			if(!BoundingCircleHit(bi->position, bi->boundingCircleRadius, bj->position, bj->boundingCircleRadius))
 			{
 				continue;
-			}*/
+			}
 			
 			if (bi->invMass == 0.0f && bj->invMass == 0.0f)
 				continue;
@@ -75,6 +75,11 @@ void World::OldUpdate(f64 dt)
 		{
 			if(i==j) continue;
 
+			if(!BoundingCircleHit(obj.position, obj.boundingCircleRadius, objects[i]->position, objects[i]->boundingCircleRadius))
+			{
+				continue;
+			}
+
 			SimBody &other = *objects[j];
 			if(obj.Unmovable() && other.Unmovable()) continue;
 
@@ -92,7 +97,8 @@ void World::OldUpdate(f64 dt)
 
 void World::Update(f64 dt)
 {
-	dt = min(dt,0.01f);
+	//dt = min(dt,0.007f);
+	dt = 1.0/120.0; // constant dt makes for a MUCH more stable simulation, with dynamic dt (default) the simulation sometimes explodes :( - maybe an issue with QueryPerformanceCounter???
 
 	double inv_dt = 1.0/dt;
 
@@ -116,7 +122,7 @@ void World::Update(f64 dt)
 		arb->second.PreStep(inv_dt);
 	}
 
-	for (int i = 0; i < 20; ++i)
+	for (int i = 0; i < 50; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 		{

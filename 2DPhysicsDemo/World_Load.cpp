@@ -88,7 +88,7 @@ void World::CreateTriangles()
 {
 	f32 triangle_len = meters(conf.Read("TriangleLength", 1.0f));
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
-	return;
+	
 	SimBody baseTriangle;
 	baseTriangle.mesh = triMesh;
 	baseTriangle.rotation_in_rads = 0; baseTriangle.CalculateRotationMatrix();
@@ -106,15 +106,17 @@ void World::CreateTriangles()
 	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
 	baseTriangle.isbox=false;
 
-	for(int i=0;i<1;++i)
+	float startX = 5;
+
+	for(int i=0;i<10;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
 
 		int t = rand(0,2);
-		tri->position.set(1.0f*i,60);
+		tri->position.set(startX+(1.0f*i), 20);
 
 
-		//tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
+		tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
 		tri->rotation_in_rads=0;
 		tri->CalculateRotationMatrix();
 
@@ -204,8 +206,9 @@ void World::Load()
 	CreateBoxes();
 
 	SimBody *bottomBox = new SimBody();
+	bottomBox->boundingCircleRadius = 500;
 	bottomBox->mesh = objects.back()->mesh;
-	bottomBox->width.set(200, 5);
+	bottomBox->width.set(800, 5);
 	bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
