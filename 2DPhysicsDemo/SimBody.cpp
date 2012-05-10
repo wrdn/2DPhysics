@@ -19,6 +19,8 @@ SimBody::SimBody(void)
 	fillMode = GL_FILL;
 	mesh = MeshHandle(0);
 
+	isbox=true;
+
 	use_textures = use_shaders = draw = update = true;
 };
 
@@ -43,14 +45,29 @@ void SimBody::Draw()
 
 	// translate and rotate
 	glTranslatef(position.x, position.y, 0);
-	glRotatef(RADTODEG(rotation_in_rads), 0,0,-1);
+
+	if(isbox)
+	{
+		glRotatef(RADTODEG(rotation_in_rads), 0,0, 1);
+	}
+	else
+	{
+		glRotatef(RADTODEG(rotation_in_rads), 0,0, -1);
+	}
 
 	// draw
 	glDisable(GL_CULL_FACE);
 	glColor3fv(objectMaterial.GetObjectColor().GetVec());
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
-	mesh->Draw();
+	glBegin(GL_LINE_LOOP);
+	for(int i=0;i<vertices.size();++i)
+	{
+		glVertex2f(vertices[i].x, vertices[i].y);
+	}
+	glEnd();
+
+	//mesh->Draw();
 
 	glPopMatrix();
 

@@ -7,6 +7,7 @@
 #include "SAT.h"
 using namespace std;
 
+/*
 class Body
 {
 public:
@@ -47,3 +48,4 @@ public:
 
 	void GetVertices(vector<float2> &out);
 };
+*/

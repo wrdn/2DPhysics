@@ -7,6 +7,7 @@ using namespace std;
 typedef f32 float32;
 typedef i32 int32;
 
+/*
 float32 EdgeSeparation(Body& a, int32 edge1, Body& b)
 {
 	float2 *vertices1 = &a.vertices[0];
@@ -376,3 +377,4 @@ void test_collide_polygons()
 	Manifold out;
 	CollidePolygons(out, a, b);
 };
+*/

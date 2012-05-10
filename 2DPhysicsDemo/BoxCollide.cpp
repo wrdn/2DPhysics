@@ -1,6 +1,4 @@
 #include "Arbiter.h"
-
-#include "Arbiter.h"
 #include "Body.h"
 
 enum Axis
@@ -132,7 +130,8 @@ static void ComputeIncidentEdge(BClipVertex c[2], const Vector2f& h, const Vecto
 }
 
 // The normal points from A to B
-int Collide(Contact* contacts, Body* bodyA, Body* bodyB)
+//Contact* contacts, SimBody* body1, SimBody* body2
+int Collide(Contact* contacts, SimBody* bodyA, SimBody* bodyB)
 {
 	// Setup
 	Vector2f hA = 0.5f * bodyA->width;
@@ -141,7 +140,7 @@ int Collide(Contact* contacts, Body* bodyA, Body* bodyB)
 	Vector2f posA = bodyA->position;
 	Vector2f posB = bodyB->position;
 
-	Matrix22 RotA(bodyA->rotation), RotB(bodyB->rotation);
+	Matrix22 RotA(bodyA->rotation_in_rads), RotB(bodyB->rotation_in_rads);
 
 	Matrix22 RotAT = RotA.Transpose();
 	Matrix22 RotBT = RotB.Transpose();

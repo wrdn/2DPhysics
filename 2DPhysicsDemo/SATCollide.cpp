@@ -61,16 +61,15 @@ bool GetMinimumTranslationVector(float2 *axis, f32 *taxis, u32 numAxes, float2 &
 	return mini != -1;
 };
 
-bool SATCollide(Body *body1, Body *body2,
-	float2 &N, f32 &t)
+bool SATCollide(SimBody *body1, SimBody *body2, float2 &N, f32 &t)
 {
-	Body &a = *body1;
-	Body &b = *body2;
+	SimBody &a = *body1;
+	SimBody &b = *body2;
 
 	if(a.vertices.size() < 2 && b.vertices.size() < 2) return false;
 
-	Mat22 &OA = Mat22::RotationMatrix(a.rotation);
-	Mat22 &OB = Mat22::RotationMatrix(b.rotation);
+	Mat22 &OA = Mat22::RotationMatrix(a.rotation_in_rads);
+	Mat22 &OB = Mat22::RotationMatrix(b.rotation_in_rads);
 	Mat22 OB_T = OB.Transpose();
 
 	Mat22 xOrient = OA * OB_T;
@@ -81,9 +80,9 @@ bool SATCollide(Body *body1, Body *body2,
 	f32 taxis[MAX_SEPERATING_AXIS];
 	u32 axisCount = 0;
 
-	for(u32 i=0;i<a.axes.size();++i)
+	for(u32 i=0;i<a.seperatingAxis.size();++i)
 	{
-		xAxis[axisCount] = a.axes[i] * xOrient;
+		xAxis[axisCount] = a.seperatingAxis[i] * xOrient;
 		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
 			xOffset, xOrient, taxis[axisCount], t))
 		{
@@ -91,9 +90,9 @@ bool SATCollide(Body *body1, Body *body2,
 		}
 		++axisCount;
 	};
-	for(u32 i=0;i<b.axes.size();++i)
+	for(u32 i=0;i<b.seperatingAxis.size();++i)
 	{
-		xAxis[axisCount] = b.axes[i];
+		xAxis[axisCount] = b.seperatingAxis[i];
 		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
 			xOffset, xOrient, taxis[axisCount], t))
 		{

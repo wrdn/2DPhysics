@@ -21,7 +21,6 @@ void World::Unload()
 {
 	ResourceManager::get().Cleanup();
 	CleanupVector(objects);
-	CleanupVector(bodies);
 	arbiters.clear();
 }
 
@@ -42,13 +41,13 @@ void World::CreateBoxes()
 
 	SimBody baseBox;
 	baseBox.mesh = boxMesh;
-	baseBox.width.set(box_width/2, box_height/2);
+	baseBox.width.set(box_width, box_height);
 	baseBox.objectMaterial.SetObjectColor(Color::RED);
 	baseBox.objectMaterial.AddTexture(mass_textures[0]);
 	baseBox.mass = 500; baseBox.invMass = 1.0f/500.0f;
 	baseBox.rotation_in_rads = 0; baseBox.CalculateRotationMatrix();
 	{
-		const float2 &extents = baseBox.width;
+		const float2 &extents = baseBox.width/2;
 		baseBox. vertices.push_back(float2(-extents.x, -extents.y));
 		baseBox.vertices.push_back(float2(extents.x, -extents.y));
 		baseBox.vertices.push_back(float2(extents.x, extents.y));
@@ -68,15 +67,15 @@ void World::CreateBoxes()
 			i32 t = 0;
 			while(!massCounts[t=rand(0,2)]);
 
-			b->rotation_in_rads = randflt(-TWOPI, TWOPI);
-			b->CalculateRotationMatrix();
+			//b->rotation_in_rads = randflt(-TWOPI, TWOPI);
+			//b->CalculateRotationMatrix();
 
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
 			b->CalculateInertia();
 
-			b->position.x += randflt(0, 0.8f);
+			//b->position.x += randflt(0, 0.8f);
 
 			b->fillMode = GL_LINE;
 
@@ -89,7 +88,7 @@ void World::CreateTriangles()
 {
 	f32 triangle_len = meters(conf.Read("TriangleLength", 1.0f));
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
-
+	return;
 	SimBody baseTriangle;
 	baseTriangle.mesh = triMesh;
 	baseTriangle.rotation_in_rads = 0; baseTriangle.CalculateRotationMatrix();
@@ -105,15 +104,18 @@ void World::CreateTriangles()
 	}
 	SAT::GenerateSeperatingAxes(baseTriangle.vertices, baseTriangle.seperatingAxis);
 	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
+	baseTriangle.isbox=false;
 
-	for(int i=0;i<10;++i)
+	for(int i=0;i<1;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
 
 		int t = rand(0,2);
-		tri->position.set(1.0f*i,10);
+		tri->position.set(1.0f*i,60);
 
-		tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
+
+		//tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
+		tri->rotation_in_rads=0;
 		tri->CalculateRotationMatrix();
 
 		tri->mass = masses[t];
@@ -140,6 +142,8 @@ void World::CreateWalls()
 	bottomWall->vertices.push_back(float2(30,0));
 	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
 	bottomWall->position.set(0,-30);
+	//bottomWall->width.set(60, 1);
+
 	objects.push_back(bottomWall);
 
 	leftWall->vertices.push_back(float2(0,30));
@@ -164,7 +168,7 @@ void World::CreateWalls()
 #include "Contact.h"
 void World::Load()
 {
-	test_collide_polygons();
+	//test_collide_polygons();
 
 	Unload();
 	srand((u32)time(NULL));
@@ -196,10 +200,33 @@ void World::Load()
 	invMasses[1] = 1.0f/masses[1];
 	invMasses[2] = 1.0f/masses[2];
 
-	CreateWalls();
+	//CreateWalls();
 	CreateBoxes();
+
+	SimBody *bottomBox = new SimBody();
+	bottomBox->mesh = objects.back()->mesh;
+	bottomBox->width.set(200, 5);
+	bottomBox->position.y = -10;
+	bottomBox->objectMaterial.SetObjectColor(Color::RED);
+	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
+	bottomBox->mass = 0; bottomBox->invMass = 0;
+	bottomBox->inertia = 0; bottomBox->invI = 0; bottomBox->invInertia = 0;
+	bottomBox->rotation_in_rads = 0; bottomBox->CalculateRotationMatrix();
+	const float2 &extents = bottomBox->width/2;
+	bottomBox->vertices.push_back(float2(-extents.x, -extents.y));
+	bottomBox->vertices.push_back(float2(extents.x, -extents.y));
+	bottomBox->vertices.push_back(float2(extents.x, extents.y));
+	bottomBox->vertices.push_back(float2(-extents.x, extents.y));
+	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
+	objects.push_back(bottomBox);
+
+	firstTriangleIndex = objects.size();
 	CreateTriangles();
+
 	total_cnt = objects.size();
+
+	return;
+	
 
 	//Body *b = new Body();
 	//b->Set(float2(100.0f, 20.0f), FLT_MAX);

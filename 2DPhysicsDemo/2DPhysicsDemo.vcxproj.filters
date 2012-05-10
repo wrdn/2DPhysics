@@ -52,24 +52,6 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{fbc2fe5d-ba23-4186-9c9f-057dfe379e34}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Physics\Phys2D">
-      <UniqueIdentifier>{0de409fc-f81b-4baf-98ea-1de8cfdeeeec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Physics\Phys2D\collide">
-      <UniqueIdentifier>{7f0fd940-b02e-4c22-b45d-ed52c39152bd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Physics\Phys2D">
-      <UniqueIdentifier>{6e632a64-27fe-45da-a29a-256adc7f7402}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Physics\Phys2D\collide">
-      <UniqueIdentifier>{e0897a9c-7d05-4961-8e8a-6af049cd2bbd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Physics\Other">
-      <UniqueIdentifier>{82c8698e-880e-4b70-8e07-4a0c5d9b753d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Physics\Other">
-      <UniqueIdentifier>{1cee83e3-b1ae-4898-9379-c9005f470be2}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -144,31 +126,28 @@
     <ClCompile Include="Vector.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="SAT.cpp">
-      <Filter>Source Files\Physics\Other</Filter>
-    </ClCompile>
-    <ClCompile Include="Contact.cpp">
-      <Filter>Source Files\Physics\Other</Filter>
-    </ClCompile>
-    <ClCompile Include="Collision.cpp">
-      <Filter>Source Files\Physics\Other</Filter>
-    </ClCompile>
-    <ClCompile Include="BoxCollide.cpp">
-      <Filter>Source Files\Physics\Phys2D\collide</Filter>
-    </ClCompile>
-    <ClCompile Include="SATCollide.cpp">
-      <Filter>Source Files\Physics\Phys2D\collide</Filter>
-    </ClCompile>
-    <ClCompile Include="PolyCollider.cpp">
-      <Filter>Source Files\Physics\Phys2D\collide</Filter>
-    </ClCompile>
     <ClCompile Include="Arbiter.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Body.cpp">
+    <ClCompile Include="SimBody.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="SimBody.cpp">
+    <ClCompile Include="Collision.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Contact.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SAT.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SATCollide.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="PolyCollider.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxCollide.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
@@ -266,29 +245,23 @@
     <ClInclude Include="Vector.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Collision.h">
-      <Filter>Header Files\Physics\Other</Filter>
+    <ClInclude Include="SimBody.h">
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Contact.h">
-      <Filter>Header Files\Physics\Other</Filter>
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="SAT.h">
-      <Filter>Header Files\Physics\Other</Filter>
-    </ClInclude>
-    <ClInclude Include="SimBody.h">
-      <Filter>Header Files\Physics\Other</Filter>
-    </ClInclude>
-    <ClInclude Include="MathUtils.h">
-      <Filter>Header Files\Physics\Phys2D</Filter>
-    </ClInclude>
-    <ClInclude Include="Body.h">
-      <Filter>Header Files\Physics\Phys2D</Filter>
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
     <ClInclude Include="Arbiter.h">
-      <Filter>Header Files\Physics\Phys2D</Filter>
+      <Filter>Header Files\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="EdgeSweep.h">
-      <Filter>Header Files\Physics\Phys2D</Filter>
+    <ClInclude Include="MathUtils.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Collision.h">
+      <Filter>Header Files\Misc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

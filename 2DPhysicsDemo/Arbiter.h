@@ -2,6 +2,7 @@
 
 #include "MathUtils.h"
 #include "float2.h"
+#include "SimBody.h"
 
 struct Body;
 
@@ -35,62 +36,20 @@ struct Contact
 
 struct ArbiterKey
 {
-	ArbiterKey(Body* b1, Body* b2)
+	ArbiterKey(SimBody* b1, SimBody* b2)
 	{
 		body1 = b1;
 		body2 = b2;
 	}
 
-	Body* body1;
-	Body* body2;
+	SimBody* body1;
+	SimBody* body2;
 };
-
-struct ContactFeature
-{
-	enum Type
-	{
-		e_vertex = 0,
-		e_face = 1
-	};
-
-	unsigned char indexA;		///< Feature index on shapeA
-	unsigned char indexB;		///< Feature index on shapeB
-	unsigned char typeA;		///< The feature type on shapeA
-	unsigned char typeB;		///< The feature type on shapeB
-};
-
-union b2ContactID
-{
-	ContactFeature cf;
-	unsigned int key;					///< Used to quickly compare contact ids.
-};
-struct ClipVertex
-{
-	float2 v;
-	b2ContactID id;
-};
-struct ManifoldPoint
-{
-	float2 localPoint;		///< usage depends on manifold type
-	float normalImpulse;	///< the non-penetration impulse
-	float tangentImpulse;	///< the friction impulse
-	b2ContactID id;			///< uniquely identifies a contact point between two shapes
-};
-enum ManifoldType { e_faceA, e_faceB };
-struct Manifold
-{
-public:
-	int pointCount;
-	ManifoldType type;
-	float2 localNormal, localPoint;
-	ManifoldPoint points[2];
-};
-
 struct Arbiter
 {
 	enum {MAX_POINTS = 2};
 
-	Arbiter(Body* b1, Body* b2);
+	Arbiter(SimBody* b1, SimBody* b2);
 
 	void Update(Contact* contacts, int numContacts);
 
@@ -100,12 +59,27 @@ struct Arbiter
 	Contact contacts[MAX_POINTS];
 	int numContacts;
 
-	Body* body1;
-	Body* body2;
+	SimBody* body1;
+	SimBody* body2;
 
 	// Combined friction
 	float friction;
 };
+
+void test_collide_polygons();
+int Collide(Contact* contacts, SimBody* body1, SimBody* body2);
+bool SATCollide(SimBody *body1, SimBody *body2, float2 &N, f32 &t);
+
+
+
+
+
+
+
+
+
+
+
 
 struct b2Rot
 {
@@ -174,6 +148,47 @@ inline float2 MulT(const float2 &p, const b2Rot &q, const float2 &v)
 	return float2(x,y);
 };
 
+
+struct ContactFeature
+{
+	enum Type
+	{
+		e_vertex = 0,
+		e_face = 1
+	};
+
+	unsigned char indexA;		///< Feature index on shapeA
+	unsigned char indexB;		///< Feature index on shapeB
+	unsigned char typeA;		///< The feature type on shapeA
+	unsigned char typeB;		///< The feature type on shapeB
+};
+
+union b2ContactID
+{
+	ContactFeature cf;
+	unsigned int key;					///< Used to quickly compare contact ids.
+};
+struct ClipVertex
+{
+	float2 v;
+	b2ContactID id;
+};
+struct ManifoldPoint
+{
+	float2 localPoint;		///< usage depends on manifold type
+	float normalImpulse;	///< the non-penetration impulse
+	float tangentImpulse;	///< the friction impulse
+	b2ContactID id;			///< uniquely identifies a contact point between two shapes
+};
+enum ManifoldType { e_faceA, e_faceB };
+struct Manifold
+{
+public:
+	int pointCount;
+	ManifoldType type;
+	float2 localNormal, localPoint;
+	ManifoldPoint points[2];
+};
 void CollidePolygons(Manifold &manifold, Body &a, Body &b);
 
 struct b2WorldManifold
@@ -242,9 +257,3 @@ inline bool operator < (const ArbiterKey& a1, const ArbiterKey& a2)
 	return false;
 }
 
-void test_collide_polygons();
-
-int Collide(Contact* contacts, Body* body1, Body* body2);
-
-bool SATCollide(Body *body1, Body *body2,
-	float2 &N, f32 &t);

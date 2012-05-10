@@ -17,14 +17,18 @@ private:
 
 	vector<SimBody*> objects;
 	
-	std::vector<Body*> bodies;
+	vector<SimBody*> boxes;
+	vector<SimBody*> triangles; // split them up as triangle update different to box update (different collision detection etc)
+
+	//std::vector<Body*> bodies;
 	std::map<ArbiterKey, Arbiter> arbiters;
 
 	//vector<Body*> bodies;
 	//std::map<PhysArbiterKey, PhysArbiter> arbiters;
 
 	u32 box_row_cnt, box_col_cnt, box_cnt, tri_cnt, total_cnt;
-	
+	int firstTriangleIndex;
+
 	u32 global_fill_mode;
 
 	u32 updateRate;
@@ -45,6 +49,9 @@ public:
 	~World();
 
 	void Update(f64 dt);
+
+	void OldUpdate(f64 dt);
+
 	void Draw();
 	void Load();
 	void Unload();

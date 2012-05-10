@@ -3,8 +3,9 @@
 #include "util.h"
 #include <math.h>
 
-Body::~Body() {};
+//Body::~Body() {};
 
+/*
 void Body::GetVertices(vector<float2> &out)
 {
 	out.clear();
@@ -25,30 +26,6 @@ void Body::GetVertices(vector<float2> &out)
 
 void Body::Draw()
 {
-	/*glPushMatrix();
-	
-	float2 x = position;
-	glTranslatef(x.x, x.y,0);
-	
-	float RotationInDegrees = RADTODEG(rotation);
-	glRotatef(RotationInDegrees,0,0,1);
-
-	float2 h = 0.5f * width;
-	float2 v1 = float2(-h.x, -h.y);
-	float2 v2 = float2( h.x, -h.y);
-	float2 v3 = float2( h.x,  h.y);
-	float2 v4 = float2(-h.x,  h.y);
-
-	glColor3f(0.8f, 0.8f, 0.9f);
-
-	glBegin(GL_LINE_LOOP);
-	glVertex2f(v1.x, v1.y);
-	glVertex2f(v2.x, v2.y);
-	glVertex2f(v3.x, v3.y);
-	glVertex2f(v4.x, v4.y);
-	glEnd();
-
-	glPopMatrix();*/
 
 	glPushMatrix();
 	
@@ -111,3 +88,4 @@ void Body::Set(const float2& w, float m)
 		invI = 0.0f;
 	}
 }
+*/

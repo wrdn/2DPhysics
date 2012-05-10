@@ -23,6 +23,8 @@ public:
 	float2 velocity;
 	f32 mass, invMass;
 
+	bool isbox;
+
 	// only need rotation about z, every time this is updated, you should also update _cached_rotation_matrix
 	// rotation specified in degrees
 	f32 rotation_in_rads;

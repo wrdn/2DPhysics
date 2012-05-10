@@ -8,7 +8,7 @@ bool ACCUMULATE_IMPULSES = true;
 
 Contact::Contact() : Pn(0.0f), Pt(0.0f), Pnb(0.0f) {};
 
-Arbiter::Arbiter(Body* b1, Body* b2)
+Arbiter::Arbiter(SimBody* b1, SimBody* b2)
 {
 	body1 = b1;
 	body2 = b2;
@@ -120,8 +120,8 @@ void Arbiter::PreStep(float inv_dt)
 
 void Arbiter::ApplyImpulse()
 {
-	Body* b1 = body1;
-	Body* b2 = body2;
+	SimBody* b1 = body1;
+	SimBody* b2 = body2;
 
 	for (int i = 0; i < numContacts; ++i)
 	{

@@ -80,7 +80,6 @@
   <ItemGroup>
     <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="Arbiter.cpp" />
-    <ClCompile Include="Body.cpp" />
     <ClCompile Include="BoxCollide.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
@@ -115,12 +114,10 @@
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
     <ClInclude Include="Arbiter.h" />
-    <ClInclude Include="Body.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="Contact.h" />
     <ClInclude Include="ctypes.h" />
-    <ClInclude Include="EdgeSweep.h" />
     <ClInclude Include="FizzyWindow.h" />
     <ClInclude Include="float2.h" />
     <ClInclude Include="float3.h" />
