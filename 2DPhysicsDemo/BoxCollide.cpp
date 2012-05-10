@@ -20,9 +20,9 @@ enum EdgeNumbers
 	EDGE4
 };
 
-struct ClipVertex
+struct BClipVertex
 {
-	ClipVertex() { fp.value = 0; };
+	BClipVertex() { fp.value = 0; };
 	Vector2f v;
 	FeaturePair fp;
 };
@@ -33,7 +33,7 @@ void Flip(FeaturePair& fp)
 	Swap(fp.e.outEdge1, fp.e.outEdge2);
 }
 
-int ClipSegmentToLine(ClipVertex vOut[2], ClipVertex vIn[2],
+int ClipSegmentToLine(BClipVertex vOut[2], BClipVertex vIn[2],
 					  const Vector2f& normal, float offset, char clipEdge)
 {
 	// Start with no output points
@@ -71,7 +71,7 @@ int ClipSegmentToLine(ClipVertex vOut[2], ClipVertex vIn[2],
 	return numOut;
 }
 
-static void ComputeIncidentEdge(ClipVertex c[2], const Vector2f& h, const Vector2f& pos,
+static void ComputeIncidentEdge(BClipVertex c[2], const Vector2f& h, const Vector2f& pos,
 								const Matrix22& Rot, const Vector2f& normal)
 {
 	// The normal is from the reference box. Convert it
@@ -204,7 +204,7 @@ int Collide(Contact* contacts, Body* bodyA, Body* bodyB)
 
 	// Setup clipping plane data based on the separating axis
 	Vector2f frontNormal, sideNormal;
-	ClipVertex incidentEdge[2];
+	BClipVertex incidentEdge[2];
 	float front, negSide, posSide;
 	char negEdge, posEdge;
 
@@ -270,8 +270,8 @@ int Collide(Contact* contacts, Body* bodyA, Body* bodyB)
 
 	// clip other face with 5 box planes (1 face plane, 4 edge planes)
 
-	ClipVertex clipPoints1[2];
-	ClipVertex clipPoints2[2];
+	BClipVertex clipPoints1[2];
+	BClipVertex clipPoints2[2];
 	int np;
 
 	// Clip to box side 1

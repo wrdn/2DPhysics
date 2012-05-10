@@ -42,13 +42,13 @@ void World::CreateBoxes()
 
 	SimBody baseBox;
 	baseBox.mesh = boxMesh;
-	baseBox.extents.set(box_width/2, box_height/2);
+	baseBox.width.set(box_width/2, box_height/2);
 	baseBox.objectMaterial.SetObjectColor(Color::RED);
 	baseBox.objectMaterial.AddTexture(mass_textures[0]);
 	baseBox.mass = 500; baseBox.invMass = 1.0f/500.0f;
 	baseBox.rotation_in_rads = 0; baseBox.CalculateRotationMatrix();
 	{
-		const float2 &extents = baseBox.extents;
+		const float2 &extents = baseBox.width;
 		baseBox. vertices.push_back(float2(-extents.x, -extents.y));
 		baseBox.vertices.push_back(float2(extents.x, -extents.y));
 		baseBox.vertices.push_back(float2(extents.x, extents.y));
@@ -164,6 +164,8 @@ void World::CreateWalls()
 #include "Contact.h"
 void World::Load()
 {
+	test_collide_polygons();
+
 	Unload();
 	srand((u32)time(NULL));
 
@@ -199,27 +201,53 @@ void World::Load()
 	CreateTriangles();
 	total_cnt = objects.size();
 
-	Body *b = new Body();
-	b->Set(float2(100.0f, 20.0f), FLT_MAX);
-	b->position.set(0.0f, -0.5f * b->width.y);
-	b->mass = b->invMass = b->invI = b->I = 0;
-	b->boundingCircleRadius = 150;;
-	bodies.push_back(new Body(*b));
+	//Body *b = new Body();
+	//b->Set(float2(100.0f, 20.0f), FLT_MAX);
+	//b->position.set(0.0f, -50);
+	//b->mass = b->invMass = b->invI = b->I = 0;
+	//b->boundingCircleRadius = 150;
 
-	float bottomPos = b->position.y + b->width.y/2 + 0.6f;
+	//float2 h = 0.5*b->width;
+	//b->vertices.push_back(float2(-h.x, -h.y));
+	//b->vertices.push_back(float2(h.x , -h.y));
+	//b->vertices.push_back(float2(h.x, h.x));
+	//b->vertices.push_back(float2(-h.x, h.x));
+	//b->m_radius = 0.0099999998;
+	//b->axes.push_back(float2(0,-1));
+	//b->axes.push_back(float2(1,0));
+	//b->axes.push_back(float2(0,1));
+	//b->axes.push_back(float2(-1,0));
+	//bodies.push_back(b);
 
-	for(int i=0;i<20;++i)
-	{
-		for(int j=0;j<20;++j)
-		{
-			b->Set(float2(1.0f, 1.0f), 200.0f);
-			b->position.set(i*b->width.x+(0.1*i), bottomPos+j*b->width.y+(j*0.15f));
-			b->boundingCircleRadius = 1.1;
-			bodies.push_back(new Body(*b));
-		}
-	}
+	//float bottomPos = b->position.y + b->width.y/2 + 0.6f;
 
-	delete b;
+	//for(int i=0;i<1;++i)
+	//{
+	//	for(int j=0;j<2;++j)
+	//	{
+	//		Body *c = new Body();
+	//		c->Set(float2(1.0f, 1.0f), 200.0f);
+	//		
+	//		c->vertices.clear();
+	//		c->axes.clear();
+	//		
+	//		float2 h = 0.5*c->width;
+	//		c->vertices.push_back(float2(-h.x, -h.y));
+	//		c->vertices.push_back(float2(h.x , -h.y));
+	//		c->vertices.push_back(float2(h.x, h.x));
+	//		c->vertices.push_back(float2(-h.x, h.x));
+	//		c->m_radius = 0.0099999998;
+	//		c->axes.push_back(float2(0,-1));
+	//		c->axes.push_back(float2(1,0));
+	//		c->axes.push_back(float2(0,1));
+	//		c->axes.push_back(float2(-1,0));
+	//		
+	//		c->position.set(0, j*1.2);
+
+	//		c->boundingCircleRadius = 1.1;
+	//		bodies.push_back(c);
+	//	}
+	//}
 
 	/*Body *b = new Body();
 	b->Set(float2(100.0f, 20.0f), FLT_MAX);

@@ -8,6 +8,7 @@ World::~World() { Unload(); };
 
 typedef map<ArbiterKey, Arbiter>::iterator ArbIter;
 typedef pair<ArbiterKey, Arbiter> ArbPair;
+
 void World::BroadPhase()
 {
 	// O(n^2) broad-phase
@@ -32,6 +33,19 @@ void World::BroadPhase()
 
 			if (newArb.numContacts > 0)
 			{
+				//Manifold outmanifold; outmanifold.pointCount=0; b2WorldManifold wm;
+				//CollidePolygons(outmanifold, *bi, *bj);
+				//if(outmanifold.pointCount>0)
+				//{
+				//	wm.Initialize(&outmanifold,
+				//		bi->position,
+				//		b2Rot(bi->rotation),
+				//		bi->m_radius,
+				//		bj->position,
+				//		b2Rot(bj->rotation),
+				//		bj->m_radius);
+				//}
+
 				ArbIter iter = arbiters.find(key);
 				if (iter == arbiters.end())
 				{
@@ -57,6 +71,39 @@ void World::Update(f64 dt)
 	dt = 1.0f/320.0f;
 	float inv_dt = dt > 0.0f ? 1.0f / dt : 0.0f;
 
+		for(u32 i=0;i<total_cnt;++i)
+	{
+		SimBody &obj = *objects[i];
+
+		if(obj.Unmovable()) continue;
+
+		obj.AddForce(float2((gravity.x), (gravity.y))*obj.mass);;
+	}
+
+	for(u32 i=0;i<total_cnt;++i)
+	{
+		SimBody &obj = *objects[i];
+
+		for(u32 j=0;j<total_cnt;++j)
+		{
+			if(i==j) continue;
+
+			SimBody &other = *objects[j];
+
+			if(obj.Unmovable() && other.Unmovable()) continue;
+
+			obj.Collide(other, dt);
+		}
+	}
+
+	for(u32 i=0;i<total_cnt;++i)
+	{
+		if(objects[i]->Unmovable()) continue;
+
+		objects[i]->Update(dt);
+	}
+
+	return;
 	BroadPhase();
 
 	for (int i = 0; i < (int)bodies.size(); ++i)
@@ -75,7 +122,7 @@ void World::Update(f64 dt)
 		arb->second.PreStep(inv_dt);
 	}
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 1; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 		{
@@ -123,8 +170,15 @@ void World::Draw()
 
 	//DrawLine(objects[0]->vertices[0], objects[0]->vertices[1], 1,0,0,2.0f);
 
-	for(int i=0;i<bodies.size();++i)
+	for(int i=0;i<objects.size();++i)
+	{
+		objects[i]->Draw();
+	}
+
+	/*for(int i=0;i<bodies.size();++i)
+	{
 		bodies[i]->Draw();
+	}*/
 
 	glPopMatrix();
 };

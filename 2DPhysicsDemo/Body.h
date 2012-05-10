@@ -3,6 +3,9 @@
 #include "MathUtils.h"
 #include "Arbiter.h"
 #include "float2.h"
+#include <vector>
+#include "SAT.h"
+using namespace std;
 
 class Body
 {
@@ -15,6 +18,8 @@ public:
 	{
 		force += f;
 	}
+	
+	float boundingCircleRadius;
 
 	float2 position;
 	float rotation;
@@ -31,7 +36,14 @@ public:
 	float mass, invMass;
 	float I, invI;
 
-	float boundingCircleRadius;
+	float2 centroid;
+
+	float m_radius;
+
+	// original vertices and axes (untransformed). used for sat
+	vector<float2> vertices, axes;
 
 	void Draw();
+
+	void GetVertices(vector<float2> &out);
 };

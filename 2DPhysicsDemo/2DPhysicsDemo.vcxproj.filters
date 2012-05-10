@@ -144,9 +144,6 @@
     <ClCompile Include="Vector.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="SimBody.cpp">
-      <Filter>Source Files\Physics\Other</Filter>
-    </ClCompile>
     <ClCompile Include="SAT.cpp">
       <Filter>Source Files\Physics\Other</Filter>
     </ClCompile>
@@ -156,14 +153,23 @@
     <ClCompile Include="Collision.cpp">
       <Filter>Source Files\Physics\Other</Filter>
     </ClCompile>
-    <ClCompile Include="Body.cpp">
-      <Filter>Source Files\Physics\Phys2D</Filter>
+    <ClCompile Include="BoxCollide.cpp">
+      <Filter>Source Files\Physics\Phys2D\collide</Filter>
+    </ClCompile>
+    <ClCompile Include="SATCollide.cpp">
+      <Filter>Source Files\Physics\Phys2D\collide</Filter>
+    </ClCompile>
+    <ClCompile Include="PolyCollider.cpp">
+      <Filter>Source Files\Physics\Phys2D\collide</Filter>
     </ClCompile>
     <ClCompile Include="Arbiter.cpp">
-      <Filter>Source Files\Physics\Phys2D</Filter>
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="BoxCollide.cpp">
-      <Filter>Header Files\Physics\Phys2D</Filter>
+    <ClCompile Include="Body.cpp">
+      <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="SimBody.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -279,6 +285,9 @@
       <Filter>Header Files\Physics\Phys2D</Filter>
     </ClInclude>
     <ClInclude Include="Arbiter.h">
+      <Filter>Header Files\Physics\Phys2D</Filter>
+    </ClInclude>
+    <ClInclude Include="EdgeSweep.h">
       <Filter>Header Files\Physics\Phys2D</Filter>
     </ClInclude>
   </ItemGroup>

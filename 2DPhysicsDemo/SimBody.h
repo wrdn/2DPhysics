@@ -55,7 +55,7 @@ public:
 	std::vector<float2> vertices;
 	std::vector<float2> seperatingAxis;
 
-	float2 extents; // box info
+	float2 width; // box info
 	float side_len; // triangle info
 
 	void CalculateRotationMatrix()
