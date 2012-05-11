@@ -52,6 +52,12 @@
     <Filter Include="Source Files\Physics">
       <UniqueIdentifier>{fbc2fe5d-ba23-4186-9c9f-057dfe379e34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Threading">
+      <UniqueIdentifier>{aab85ea5-7e76-4969-8120-6dcdd9435e7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Threading">
+      <UniqueIdentifier>{819adea4-580d-4761-b181-a07ff34ea83d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -149,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="BoxCollide.cpp">
       <Filter>Source Files\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>Source Files\Threading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -262,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="Collision.h">
       <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>Header Files\Threading</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

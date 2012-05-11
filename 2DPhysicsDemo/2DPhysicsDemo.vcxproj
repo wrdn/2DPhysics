@@ -106,6 +106,7 @@
     <ClCompile Include="SimBody.cpp" />
     <ClCompile Include="strutils.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="Vector.cpp" />
     <ClCompile Include="World.cpp" />
@@ -145,6 +146,7 @@
     <ClInclude Include="SimBody.h" />
     <ClInclude Include="strutils.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="units.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="Vector.h" />

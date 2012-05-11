@@ -6,10 +6,29 @@
 #include "GameTime.h"
 #include <map>
 #include "Body.h"
+#include "ThreadPool.h"
 
 class World
 {
-private:
+public:
+
+	struct IntegrationData
+	{
+		int firstindex;
+		int lastindex;
+		f64 dt;
+		World *w;
+
+		IntegrationData() {};
+		IntegrationData(int _first, int _last, f64 _dt, World *_w)
+			: firstindex(_first), lastindex(_last), dt(_dt), w(_w) {};
+		~IntegrationData() {};
+	};
+
+	// thread pool should be used by physics code only - we are going to make assumptions about when a set of tasks has finished (when queue is empty)
+	// so don't use this pool for anything else
+	ThreadPool physicsPool;
+
 	AppConfig conf;
 	TextureHandle mass_textures[3];
 
@@ -36,13 +55,15 @@ private:
 	f32 zoom, camSpeed;
 	float2 camPos;
 
+	vector<IntegrationData> integration_data;
+
 	void CreateBoxes();
 	void CreateTriangles();
 	void CreateWalls();
 
 	void BroadPhase();
 
-public:
+	void IntegrateBoxes(f64 dt);
 
 	float zoomSpeed;
 

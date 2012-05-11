@@ -95,12 +95,57 @@ void World::OldUpdate(f64 dt)
 	}
 };
 
+void Integrate(void *integration_data)
+{
+	World::IntegrationData *idata = (World::IntegrationData*)integration_data;
+
+	int firstIndex = idata->firstindex;
+	int lastIndex = idata->lastindex;
+	f64 dt = idata->dt;
+	World *w = idata->w;
+
+	// update all the objects between firstIndex and lastIndex
+	for (int i = firstIndex; i < lastIndex; ++i)
+	{
+		SimBody *b = w->objects[i];
+
+		b->position += dt * b->velocity;
+		b->rotation_in_rads += dt * b->angularVelocity;
+		b->CalculateRotationMatrix();
+
+		b->force.zero();
+		b->torque = 0;
+	}
+};
+
+void World::IntegrateBoxes(f64 dt)
+{
+	// This is thread safe as objects are updated without changing other objects. Therefore we can thread the update to
+	// put it on as many as we want. We can tweak the value to update per thread but it should be fairly large (maybe ~100 a time?)
+	// as the process is very fast
+	integration_data.clear();
+	int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
+	for(int i=0;i<firstTriangleIndex-4;i+=numPerThread) // 0 to 800
+	{
+		IntegrationData idt(i, i+numPerThread, dt, this);
+		integration_data.push_back(idt);
+		physicsPool.AddTask(Task(Integrate, &integration_data.back()));
+	}
+	IntegrationData idt(firstTriangleIndex-4, firstTriangleIndex-1, dt, this);
+	Integrate(&idt);
+	while(physicsPool.TasksAvailable()); // wait for everything to finish for physics for this frame
+};
+
 void World::Update(f64 dt)
 {
-	//dt = min(dt,0.007f);
-	dt = 1.0/120.0; // constant dt makes for a MUCH more stable simulation, with dynamic dt (default) the simulation sometimes explodes :( - maybe an issue with QueryPerformanceCounter???
+	dt=0.016;
 
-	double inv_dt = 1.0/dt;
+	//dt = max(dt, 0.001f);
+
+	//dt = 1.0/80.0; // constant dt makes for a MUCH more stable simulation, with dynamic dt (default) the simulation sometimes explodes :( - maybe an issue with QueryPerformanceCounter???
+	double inv_dt = 1.0f/dt;
+
+	//double inv_dt = dt==0?0:1.0/dt;
 
 	OldUpdate(dt);
 
@@ -122,25 +167,15 @@ void World::Update(f64 dt)
 		arb->second.PreStep(inv_dt);
 	}
 
-	for (int i = 0; i < 50; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 		{
 			arb->second.ApplyImpulse();
 		}
 	}
-
-	for (int i = 0; i < firstTriangleIndex; ++i)
-	{
-		SimBody* b = objects[i];
-
-		b->position += dt * b->velocity;
-		b->rotation_in_rads += dt * b->angularVelocity;
-		b->CalculateRotationMatrix();
-
-		b->force.set(0.0f, 0.0f);
-		b->torque = 0.0f;
-	}
+	
+	IntegrateBoxes(dt);
 };
 
 void World::Draw()
