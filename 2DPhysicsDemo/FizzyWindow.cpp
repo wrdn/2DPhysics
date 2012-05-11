@@ -58,14 +58,15 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 	float2 camPos = scn.get_cam_pos();
 	f32 dt = gameTime.GetDeltaTime();
 	f32 camSpeed = scn.get_cam_speed();
+	f32 zoomSpeed = scn.zoomSpeed;
 
 	switch(tolower(key))
 	{
 	case 'q':
-		scn.set_zoom(scn.get_zoom() + dt * camSpeed);
+		scn.set_zoom(scn.get_zoom() + dt * zoomSpeed);
 		break;
 	case 'e':
-		scn.set_zoom(scn.get_zoom() - dt * camSpeed);
+		scn.set_zoom(scn.get_zoom() - dt * zoomSpeed);
 		break;
 	case 'w':
 		//camPos.y( camPos.y() - dt * camSpeed);

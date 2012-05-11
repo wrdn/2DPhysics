@@ -169,7 +169,7 @@ void World::Draw()
 		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
 	}
 
-	for(int i=0;i<objects.size();++i)
+	for(u32 i=0;i<objects.size();++i)
 	{
 		objects[i]->Draw();
 	}

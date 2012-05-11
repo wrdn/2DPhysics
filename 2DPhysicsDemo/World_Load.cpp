@@ -37,7 +37,7 @@ void World::CreateBoxes()
 	box_cnt = box_row_cnt * box_col_cnt;
 	u32 th = box_cnt / 3;
 	i32 massCounts[] = { th, th, th + box_cnt%3 };
-	assert(massCounts[0]+massCounts[1]+massCounts[2] >= box_cnt);
+	assert(massCounts[0]+massCounts[1]+massCounts[2] >= (i32)box_cnt);
 
 	SimBody baseBox;
 	baseBox.mesh = boxMesh;
@@ -56,13 +56,16 @@ void World::CreateBoxes()
 	SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
 
+	float startX = meters(-40);
+	float startY=meters(0.45);
+
 	// Generate boxes
 	for(u32 i=0;i<box_row_cnt;++i)
 	{
 		for(u32 j=0;j<box_col_cnt;++j)
 		{
 			SimBody *b = new SimBody(baseBox);
-			b->position.set((j*box_width)+(j*xOffset), (i*box_height)+(i*yOffset));
+			b->position.set(startX+(j*box_width)+(j*xOffset), startY+(i*box_height)+(i*yOffset));
 
 			i32 t = 0;
 			while(!massCounts[t=rand(0,2)]);
@@ -90,6 +93,7 @@ void World::CreateTriangles()
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
 	
 	SimBody baseTriangle;
+	baseTriangle.friction = 0.8f;
 	baseTriangle.mesh = triMesh;
 	baseTriangle.rotation_in_rads = 0; baseTriangle.CalculateRotationMatrix();
 	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
@@ -106,25 +110,300 @@ void World::CreateTriangles()
 	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
 	baseTriangle.isbox=false;
 
-	float startX = 5;
+	float startX = meters(0);
+	float startY = 11.5;
 
+	// First row
 	for(int i=0;i<10;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
-
 		int t = rand(0,2);
-		tri->position.set(startX+(1.0f*i), 20);
-
-
-		tri->rotation_in_rads = randflt(-TWOPI, TWOPI);
+		tri->position.set(startX+(2.0f*i), startY);
 		tri->rotation_in_rads=0;
 		tri->CalculateRotationMatrix();
-
 		tri->mass = masses[t];
 		tri->invMass = invMasses[t];
 		tri->CalculateInertia();
 		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(1);
+	for(int i=0;i<9;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
 
+	// Second
+	startX = meters(1.0f);
+	startY += 2;
+	for(int i=0;i<9;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(2.0f);
+	for(int i=0;i<8;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Third row
+	startX = meters(2.0f);
+	startY += 2;
+	for(int i=0;i<8;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(3.0f);
+	for(int i=0;i<7;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Fourth row
+	startX = meters(3.0f);
+	startY += 2;
+	for(int i=0;i<7;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(4.0f);
+	for(int i=0;i<6;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Fifth row
+	startX = meters(4.0f);
+	startY += 2;
+	for(int i=0;i<6;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(5.0f);
+	for(int i=0;i<5;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Fifth row
+	startX = meters(5.0f);
+	startY += 2;
+	for(int i=0;i<5;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(6.0f);
+	for(int i=0;i<4;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Sixth row
+	startX = meters(6.0f);
+	startY += 2;
+	for(int i=0;i<4;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(7.0f);
+	for(int i=0;i<3;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Seventh row
+	startX = meters(7.0f);
+	startY += 2;
+	for(int i=0;i<3;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(8.0f);
+	for(int i=0;i<2;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Eigth row
+	startX = meters(8.0f);
+	startY += 2;
+	for(int i=0;i<2;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+	startX = meters(9.0f);
+	for(int i=0;i<1;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=PI;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
+		objects.push_back(tri);
+	}
+
+	// Ninth row
+	startX = meters(9.0f);
+	startY += 2;
+	for(int i=0;i<1;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		int t = rand(0,2);
+		tri->position.set(startX+(2.0f*i), startY);
+		tri->rotation_in_rads=0;
+		tri->CalculateRotationMatrix();
+		tri->mass = masses[t];
+		tri->invMass = invMasses[t];
+		tri->CalculateInertia();
+		tri->fillMode = GL_LINE;
 		objects.push_back(tri);
 	}
 };
@@ -181,6 +460,8 @@ void World::Load()
 	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
 	camSpeed = conf.Read("CameraSpeed", 5.0f);
 
+	zoomSpeed = conf.Read("ZoomSpeed", 0.03f);
+
 	SimBody::gravity = conf.Read("gravity", default_gravity);
 	//if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
 	//SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
@@ -208,20 +489,51 @@ void World::Load()
 	SimBody *bottomBox = new SimBody();
 	bottomBox->boundingCircleRadius = 500;
 	bottomBox->mesh = objects.back()->mesh;
-	bottomBox->width.set(800, 5);
-	bottomBox->position.y = -10;
+	bottomBox->width.set(meters(200), meters(0.1));
+	bottomBox->position.set(0, -0.05);
+	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
 	bottomBox->mass = 0; bottomBox->invMass = 0;
 	bottomBox->inertia = 0; bottomBox->invI = 0; bottomBox->invInertia = 0;
 	bottomBox->rotation_in_rads = 0; bottomBox->CalculateRotationMatrix();
-	const float2 &extents = bottomBox->width/2;
-	bottomBox->vertices.push_back(float2(-extents.x, -extents.y));
-	bottomBox->vertices.push_back(float2(extents.x, -extents.y));
-	bottomBox->vertices.push_back(float2(extents.x, extents.y));
-	bottomBox->vertices.push_back(float2(-extents.x, extents.y));
+	{
+		const float2 &extents = bottomBox->width/2;
+		bottomBox->vertices.push_back(float2(-extents.x, -extents.y));
+		bottomBox->vertices.push_back(float2(extents.x, -extents.y));
+		bottomBox->vertices.push_back(float2(extents.x, extents.y));
+		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
+	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
 	objects.push_back(bottomBox);
+
+	SimBody *topBox = new SimBody(*bottomBox);
+	topBox->position.set(0, meters(100));
+	objects.push_back(topBox);
+
+	SimBody *leftBox = new SimBody();
+	leftBox->boundingCircleRadius = 500;
+	leftBox->mesh = objects.back()->mesh;
+	leftBox->width.set(meters(0.1), meters(100));
+	leftBox->position.set(-meters(100), meters(50));
+	leftBox->objectMaterial.SetObjectColor(Color::RED);
+	leftBox->objectMaterial.AddTexture(mass_textures[0]);
+	leftBox->mass = 0; leftBox->invMass = 0;
+	leftBox->inertia = 0; leftBox->invI = 0; leftBox->invInertia = 0;
+	leftBox->rotation_in_rads = 0; leftBox->CalculateRotationMatrix();
+	{
+		const float2 &extents = leftBox->width/2;
+		leftBox->vertices.push_back(float2(-extents.x, -extents.y));
+		leftBox->vertices.push_back(float2(extents.x, -extents.y));
+		leftBox->vertices.push_back(float2(extents.x, extents.y));
+		leftBox->vertices.push_back(float2(-extents.x, extents.y));
+	}
+	SAT::GenerateSeperatingAxes(leftBox->vertices, leftBox->seperatingAxis);
+	objects.push_back(leftBox);
+
+	SimBody *rightBox = new SimBody(*leftBox);
+	rightBox->position.set(meters(100), meters(50));
+	objects.push_back(rightBox);
 
 	firstTriangleIndex = objects.size();
 	CreateTriangles();

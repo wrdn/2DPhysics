@@ -61,7 +61,7 @@ void SimBody::Draw()
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
 	glBegin(GL_LINE_LOOP);
-	for(int i=0;i<vertices.size();++i)
+	for(u32 i=0;i<vertices.size();++i)
 	{
 		glVertex2f(vertices[i].x, vertices[i].y);
 	}

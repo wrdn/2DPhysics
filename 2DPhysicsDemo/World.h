@@ -43,6 +43,9 @@ private:
 	void BroadPhase();
 
 public:
+
+	float zoomSpeed;
+
 	GameTime *gt;
 
 	World();
