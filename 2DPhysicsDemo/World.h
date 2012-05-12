@@ -57,12 +57,41 @@ public:
 
 	vector<IntegrationData> integration_data;
 
+
+	struct PotentiallyColliding
+	{
+		SimBody *body1, *body2;
+
+		PotentiallyColliding() {};
+		PotentiallyColliding(SimBody *b1, SimBody *b2)
+			: body1(b1), body2(b2) {};
+		~PotentiallyColliding() {};
+	};
+	struct BroadTask
+	{
+		SimBody *baseBody; // the body we are testing for collision against all the other bodies in 'bodies' vector
+		vector<SimBody*> *bodies;
+		int firstIndex; // first body to process
+		int lastIndex; // last body to process
+		vector<PotentiallyColliding> *output_plist;
+	};
+
+
+	vector<BroadTask> broadTasks;
+	vector<SimBody*> bodies;
+	vector<PotentiallyColliding> potentialCollisions;
+
+
 	void CreateBoxes();
 	void CreateTriangles();
 	void CreateWalls();
 
 	void BroadPhase();
+	void ThreadedBroadPhase();
 
+	void AddForces(f64 dt);
+	
+	void IntegrateBoxForces(f64 dt);
 	void IntegrateBoxes(f64 dt);
 
 	float zoomSpeed;

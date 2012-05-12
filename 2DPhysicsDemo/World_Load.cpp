@@ -57,7 +57,7 @@ void World::CreateBoxes()
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
 
 	float startX = meters(-40);
-	float startY=meters(0.45);
+	float startY=meters(0.45f);
 
 	// Generate boxes
 	for(u32 i=0;i<box_row_cnt;++i)
@@ -89,6 +89,9 @@ void World::CreateBoxes()
 
 void World::CreateTriangles()
 {
+	masses[0] = masses[1] = masses[2] = 5;
+	invMasses[0] = invMasses[1] = invMasses[2] = 1.0f/masses[0];
+
 	f32 triangle_len = meters(conf.Read("TriangleLength", 1.0f));
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
 	
@@ -110,7 +113,7 @@ void World::CreateTriangles()
 	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
 	baseTriangle.isbox=false;
 
-	float startX = meters(0);
+	float startX = meters(-15);
 	float startY = 11.5;
 
 	// First row
@@ -127,7 +130,7 @@ void World::CreateTriangles()
 		tri->fillMode = GL_LINE;
 		objects.push_back(tri);
 	}
-	startX = meters(1);
+	startX = meters(-15);
 	for(int i=0;i<9;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
@@ -144,7 +147,7 @@ void World::CreateTriangles()
 	
 
 	// Second row
-	startX = meters(1) - 0.1f;
+	startX = meters(-15) - 0.1f;
 	startY += 1;
 	for(int i=0;i<9;++i)
 	{
@@ -243,8 +246,8 @@ void World::Load()
 	SimBody *bottomBox = new SimBody();
 	bottomBox->boundingCircleRadius = 500;
 	bottomBox->mesh = objects.back()->mesh;
-	bottomBox->width.set(meters(200), meters(0.1));
-	bottomBox->position.set(0, -0.05);
+	bottomBox->width.set(meters(200), meters(0.1f));
+	bottomBox->position.set(0, -0.05f);
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
@@ -268,7 +271,7 @@ void World::Load()
 	SimBody *leftBox = new SimBody();
 	leftBox->boundingCircleRadius = 500;
 	leftBox->mesh = objects.back()->mesh;
-	leftBox->width.set(meters(0.1), meters(100));
+	leftBox->width.set(meters(0.1f), meters(100));
 	leftBox->position.set(-meters(100), meters(50));
 	leftBox->objectMaterial.SetObjectColor(Color::RED);
 	leftBox->objectMaterial.AddTexture(mass_textures[0]);

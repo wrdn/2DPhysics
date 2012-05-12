@@ -20,14 +20,12 @@ unsigned int __stdcall ThreadPoolSpinner(void *v)
 
 ThreadPool::ThreadPool() : alive(true)
 {
-	InitializeCriticalSection(&taskCS);
 	taskList.reserve(INITIAL_TASK_LIST_SIZE); // initially we can hold up to INITIAL_TASK_LIST_SIZE tasks in the list (avoids having to allocate memory when we create a task)
 };
 
 ThreadPool::~ThreadPool()
 {
 	SigKill(); // make sure all threads have stopped
-	DeleteCriticalSection(&taskCS);
 };
 
 int ThreadPool::GetNumThreads() { return threads.size(); };
@@ -74,6 +72,7 @@ bool ThreadPool::AddTask(Task k)
 
 	Lock();
 	taskList.push_back(k);
+	//taskList.push(k);
 	Unlock();
 	return true;
 };
@@ -87,6 +86,8 @@ Task* ThreadPool::GetTask()
 	{
 		t = &taskList.back();
 		taskList.pop_back();
+		//t = &taskList.front();
+		//taskList.pop();
 	}
 	Unlock();
 
@@ -99,6 +100,11 @@ bool ThreadPool::TasksAvailable()
 	bool f = taskList.size()>0;
 	Unlock();
 	return f;
+};
+
+void ThreadPool::FinishAllTasks()
+{
+	while(TasksAvailable());
 };
 
 void ThreadPool::SigKill()

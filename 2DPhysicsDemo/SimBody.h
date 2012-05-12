@@ -6,6 +6,7 @@
 #include "Material.h"
 #include "util.h"
 #include <vector>
+#include "ThreadPool.h"
 
 const float2 default_gravity(0, meters(-9.81f));
 
@@ -59,6 +60,10 @@ public:
 
 	float2 width; // box info
 	float side_len; // triangle info
+
+
+	//CriticalSection updateCriticalSection;
+
 
 	void CalculateRotationMatrix()
 	{
@@ -128,6 +133,7 @@ public:
 		}
 
 		position += velocity * dt;
+		
 		rotation_in_rads += (angularVelocity) * dt;
 		rotation_in_rads = wrapf(rotation_in_rads, -TWOPI, TWOPI);
 		rotation_matrix = Mat22::RotationMatrix(rotation_in_rads);

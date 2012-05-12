@@ -56,7 +56,7 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 	}
 
 	float2 camPos = scn.get_cam_pos();
-	f32 dt = gameTime.GetDeltaTime();
+	f32 dt = (f32)gameTime.GetDeltaTime();
 	f32 camSpeed = scn.get_cam_speed();
 	f32 zoomSpeed = scn.zoomSpeed;
 

@@ -3,15 +3,45 @@
 #include <Windows.h>
 #include <process.h>
 #include <vector>
+#include <queue>
 
 typedef void (*ThreadFuncPtr)(void*);
 typedef HANDLE ThreadHandle;
-typedef CRITICAL_SECTION CriticalSection;
+
+class CriticalSection
+{
+private:
+	CRITICAL_SECTION cs;
+
+public:
+
+	CriticalSection()
+	{
+		InitializeCriticalSection(&cs);
+	};
+	~CriticalSection()
+	{
+		Unlock(); // auto-unlock critical section in destructor
+		DeleteCriticalSection(&cs);
+	};
+
+	void Lock()
+	{
+		EnterCriticalSection(&cs);
+	};
+	void Unlock()
+	{
+		LeaveCriticalSection(&cs);
+	};
+};
 
 // The main thread for threads in the thread pool. They use this to spin on the task list and pull off tasks as they
 // become available
 unsigned int __stdcall ThreadPoolSpinner(void *v);
+
+#pragma warning (disable : 4100) // disable 'f' not used warning - blank funtion needs prototype for thread function but we dont want it to do anything
 static void blank(void* f){};
+#pragma warning (default : 4100)
 
 struct Task
 {
@@ -40,7 +70,8 @@ class ThreadPool
 {
 private:
 	std::vector<ThreadHandle> threads;
-	CriticalSection taskCS;
+
+	CriticalSection cs;
 
 	// setting this to false will cause all running threads to finish
 	// call SigKill() to set it to false and wait for the threads to finish
@@ -50,11 +81,12 @@ private:
 
 	// Call these rather than entering/leaving critical section directly. This allows us to change the underlying locking functionality
 	// without changing any other code
-	inline void Lock() { EnterCriticalSection(&taskCS); }; // Note: EnterCriticalSection() is a blocking function
-	inline void Unlock() { LeaveCriticalSection(&taskCS); };
+	inline void Lock() { cs.Lock(); }; // Note: EnterCriticalSection() is a blocking function
+	inline void Unlock() { cs.Unlock(); };
 
 public:
 	std::vector<Task> taskList;
+	//std::queue<Task> taskList;
 
 	ThreadPool();
 	~ThreadPool();
@@ -76,6 +108,9 @@ public:
 
 	// Note: this only tells you if there are tasks available when the function was called
 	bool TasksAvailable();
+
+	// Spins until TasksAvailable() returns false, doesnt prevent new tasks being added
+	void FinishAllTasks();
 
 	// Automatically called by destructor. Can call manually if you want to stop all threads
 	// This function will wait for threads to finish then close them
