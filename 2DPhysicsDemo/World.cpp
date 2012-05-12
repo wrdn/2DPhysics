@@ -16,29 +16,124 @@ void BroadPhaseTask(void *bp)
 {
 	World::BroadTask *bt = (World::BroadTask*)bp;
 
-	vector<SimBody*> &bodies = *bt->bodies;
+	vector<SimBody*> *bodies = bt->bodies;
 
 	SimBody *base = bt->baseBody;
 	for(int i=bt->firstIndex;i<bt->lastIndex;++i)
 	{
-		SimBody *other = bodies[i]; //bt->bodies->at(i);
-		//SimBody *other = bodyList[i];
+		SimBody *other = bodies->at(i);;
+		
+		if(base == other) continue;
+		if(base->invMass == 0 && other->invMass == 0) continue;
 
-		if(BoundingCircleHit(base->position, base->boundingCircleRadius, other->position, other->boundingCircleRadius))
+		if(BoundingCircleHit(base->position, base->boundingCircleRadius,
+			other->position, other->boundingCircleRadius))
 		{
-			if(base != other) // dont add object when testing against itself
-			{
-				//c.push_back(World::PotentiallyColliding(base,other));
-				//c->push_back(World::PotentiallyColliding(base, other));
-				//broadPhaseCS.Lock();
-				bt->output_plist->push_back(World::PotentiallyColliding(base, other));
-				//broadPhaseCS.Unlock();
-			}
+			bt->output_plist->push_back(World::PotentiallyColliding(base, other));
 		}
 	}
 };
 
-void World::ThreadedBroadPhase()
+struct Arbiter_ADD
+{
+	Arbiter arb;
+	ArbiterKey arbKey;
+
+	Arbiter_ADD(Arbiter &_arb, ArbiterKey &akey)
+		: arb(_arb), arbKey(akey)
+	{
+	};
+};
+struct Arbiter_ERASE
+{
+	ArbiterKey arbKey;
+
+	Arbiter_ERASE(const ArbiterKey &akey)
+		: arbKey(akey) {};
+};
+
+struct ContactFinder
+{
+	vector<World::PotentiallyColliding> *potentials;
+	int first,last;
+	vector<Arbiter_ADD> *addList;
+	vector<Arbiter_ERASE> *eraseList;
+	map<ArbiterKey, Arbiter> *_arbiters;
+};
+void FindContacts_Threaded(void *fc)
+{
+	static CriticalSection cs;
+
+	ContactFinder *cf = (ContactFinder*)fc;
+
+	map<ArbiterKey, Arbiter> &arbitersf = *cf->_arbiters;
+
+	cf->last = min(cf->last, cf->potentials->size());
+
+	for(int i=cf->first;i<cf->last;++i)
+	{
+		World::PotentiallyColliding pc = cf->potentials->at(i);
+
+		Arbiter arb(pc.body1, pc.body2);
+		ArbiterKey arbKey(pc.body1, pc.body2);
+
+		if(arb.DoCollision())
+		{
+			ArbIter iter = arbitersf.find(arbKey);
+			if(iter != arbitersf.end())
+			{
+				iter->second.Update(arb.contacts, arb.numContacts);
+			}
+			else
+			{
+				cs.Lock();
+				cf->addList->push_back(Arbiter_ADD(arb, arbKey));
+				cs.Unlock();
+			}
+		}
+		else
+		{
+			cs.Lock();
+			cf->eraseList->push_back(Arbiter_ERASE(arbKey));
+			cs.Unlock();
+		}
+	}
+};
+void FindContacts_Single(void *fc)
+{
+	ContactFinder *cf = (ContactFinder*)fc;
+
+	map<ArbiterKey, Arbiter> &arbitersf = *cf->_arbiters;
+
+	cf->last = min(cf->last, cf->potentials->size());
+
+	for(int i=cf->first;i<cf->last;++i)
+	{
+		World::PotentiallyColliding pc = cf->potentials->at(i);
+
+		Arbiter arb(pc.body1, pc.body2);
+		ArbiterKey arbKey(pc.body1, pc.body2);
+
+		if(arb.DoCollision())
+		{
+			ArbIter iter = arbitersf.find(arbKey);
+			if(iter != arbitersf.end())
+			{
+				iter->second.Update(arb.contacts, arb.numContacts);
+			}
+			else
+			{
+				cf->addList->push_back(Arbiter_ADD(arb, arbKey));
+			}
+		}
+		else
+		{
+			cf->eraseList->push_back(Arbiter_ERASE(arbKey));
+		}
+	}
+};
+
+void World::BroadPhase()
 {
 	// Step 1: Generate list of boxes we own
 	bodies.clear();
@@ -51,144 +146,54 @@ void World::ThreadedBroadPhase()
 		}
 	}
 
-	static vector<World::PotentiallyColliding> list1(1000), list2(1000), list3(1000);
+	static vector<PotentiallyColliding> potentials;
+	static vector<Arbiter_ADD> ADD_LIST;
+	static vector<Arbiter_ERASE> ERASE_LIST;
+
+	static ContactFinder finders[10000];
+	int numFinders=0;
 
 	for(u32 i=0;i<bodies.size();++i)
 	{
-		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i]; bt.firstIndex = i+1; bt.lastIndex = 804-(i+1)/2; bt.output_plist = &list1;
-		BroadTask bt2 = bt; bt2.firstIndex = 804-(i+1)/2; bt.lastIndex = 804; bt.output_plist = &list2;
-		//BroadTask bt3 = bt; bt2.firstIndex = 536; bt.lastIndex = 804; bt.output_plist = &list3;
+		// Get potential collisions (bounding circle tests)
+		potentials.clear();
 		
+		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i];
+		bt.output_plist = &potentials;
+		bt.firstIndex = i+1;
+		bt.lastIndex = firstTriangleIndex; // Note: This is currently just processing up to the first triangle (i.e. boxes only). Change this later for triangles also (if we port Chipmunk)
 		BroadPhaseTask(&bt);
-		BroadPhaseTask(&bt2);
-
-		//physicsPool.AddTask(Task(BroadPhaseTask, &bt));
-		//physicsPool.AddTask(Task(BroadPhaseTask, &bt2));
-		//physicsPool.AddTask(Task(BroadPhaseTask, &bt3));
 		
-		physicsPool.FinishAllTasks();
+		if(!potentials.size()) continue;
 
-		list1.clear();
-		list2.clear();
-		//list3.clear();
-	}
-
-	//u32 DESIRED_PER_THREAD_BP = 268; // each thread does broad phase for DESIRED_PER_THREAD_BP objects, tweak for best performance
-	//u32 LEFT_OVER = bodies.size() % DESIRED_PER_THREAD_BP;
-	//if(DESIRED_PER_THREAD_BP > bodies.size())
-	//{
-	//	DESIRED_PER_THREAD_BP = bodies.size();
-	//	LEFT_OVER = 0;
-	//}
-
-	//// Step 2: For each body in the box list (outer loop)
-	//for(u32 i=0;i<bodies.size();++i)
-	//{
-	//	potentialCollisions.clear();
-	//	broadTasks.clear();
-
-	//	int startPos = i+1;
-
-	//	// Step 3: Generate list(s?) of potential collidables. Thread this to create multiple lists, then potentially accumulate
-	//	u32 numTasks = (bodies.size()-i) / (DESIRED_PER_THREAD_BP - LEFT_OVER);
-	//	for(u32 j=0;j<numTasks;++j)
-	//	{
-	//		BroadTask bt;
-	//		bt.baseBody = bodies[i];//bodies.at(i);
-	//		bt.bodies = &bodies;
-	//		bt.output_plist = &potentialCollisions;
-	//		bt.firstIndex = startPos+j*(DESIRED_PER_THREAD_BP-LEFT_OVER);
-	//		bt.lastIndex = min(bt.firstIndex+(DESIRED_PER_THREAD_BP-LEFT_OVER), 804);
-
-	//		broadTasks.push_back(bt);
-
-	//		physicsPool.AddTask(Task(BroadPhaseTask, (void*)&broadTasks.back()));
-	//	}
-	//	physicsPool.FinishAllTasks(); // it seems to break if you put this line BELOW the if(LEFT_OVER) below
-
-	//	// process the leftover ones
-	//	if(LEFT_OVER)
-	//	{
-	//		//BroadTask bt; bt.baseBody = bodies[i]; bt.bodies = &bodies; bt.firstIndex = bodies.size()-LEFT_OVER; bt.lastIndex = bodies.size(); bt.output_plist = &potentialCollisions;
-	//		BroadTask bt;
-	//		bt.baseBody = bodies.at(i);
-	//		bt.bodies = &bodies;
-	//		bt.firstIndex = startPos;
-	//		bt.lastIndex = min(bodies.size(), 804);
-	//		bt.output_plist = &potentialCollisions;
-	//		BroadPhaseTask(&bt);
-	//	}
-		
-		//if(!potentialCollisions.size()) continue;
-		// when we finish we'll have a list of all potentially colliding bodies (from bounding circle test)
-
-		// Step 4: Find actual collisions
-		/* Algorithm:
+		/*
+		* Step 4: Find actual collisions and contact points
+		* Algorithm:
 		*	- For each potential
-				- Find contacts
-				- If 0 contacts, add key to ERASE list
-				- If >0 contacts
-					- If arbiter exists, update its contacts
-					- Else add it to ADD list
-
-		* Notes: This algorithm is inherently threadable. We need locks when we add to ADD or ERASE list, otherwise no locks required
-		* As with previous code, we should split it across threads, with each thread accepting N items. Dont give each thread 1 potential colliding object,
-		* as thats slow. With multiple, the thread could build its own ADD/ERASE list, then when its finished append the entire list to the global list (faster than locking
-		* the global list every time)
+		*		- Find contacts
+		*		- If 0 contacts, add key to ERASE list
+		*		- If >0 contacts
+		*			- If arbiter exists, update its contacts
+		*			- Else add it to ADD list
 		*/
-		//int DESIRED_POTENTIAL_COLLISION_PROCESSES_PER_THREAD = 5; // each thread should process 5 "potentials" at once to figure out if they actually collide. Tweak this for best performance
-		//LEFT_OVER = DESIRED_POTENTIAL_COLLISION_PROCESSES_PER_THREAD % potentialCollisions.size();
+		ADD_LIST.clear(); ERASE_LIST.clear();
 
-	//};
-};
+		ContactFinder *n = &finders[numFinders];
+		++numFinders;
 
-void World::BroadPhase()
-{
-	static vector<PotentiallyColliding> potentialCollisions(250);
-	potentialCollisions.clear();
+		n->addList = &ADD_LIST;
+		n->eraseList = &ERASE_LIST;
+		n->_arbiters = &arbiters;
+		n->potentials = &potentials;
 
-	// O(n^2) broad-phase
-	for (int i = 0; i < firstTriangleIndex; ++i)
-	{
-		SimBody* bi = objects[i];
+		n->first = 0;
+		n->last = potentials.size();
 
-		for (int j = i + 1; j < (int)objects.size(); ++j)
-		{
-			SimBody* bj = objects[j];
-			if(!bj->isbox) continue;
-
-			if(!BoundingCircleHit(bi->position, bi->boundingCircleRadius, bj->position, bj->boundingCircleRadius))
-			{
-				continue;
-			}
-			else if(bi != bj)
-			{
-				potentialCollisions.push_back(PotentiallyColliding(bi, bj));
-			}
-			
-			if (bi->invMass == 0.0f && bj->invMass == 0.0f)
-				continue;
-
-			Arbiter newArb(bi, bj);
-			ArbiterKey key(bi, bj);
-
-			if (newArb.numContacts > 0)
-			{
-				ArbIter iter = arbiters.find(key);
-				if (iter == arbiters.end())
-				{
-					arbiters.insert(ArbPair(key, newArb));
-				}
-				else
-				{
-					iter->second.Update(newArb.contacts, newArb.numContacts);
-				}
-			}
-			else
-			{
-				arbiters.erase(key);
-			}
-		}
+		FindContacts_Single(n);
+		
+		// Add/Remove arbiters from add/remove list
+		for(int i=0;i<ERASE_LIST.size();++i) arbiters.erase(ERASE_LIST[i].arbKey);
+		for(int i=0;i<ADD_LIST.size();++i) arbiters.insert(ArbPair(ADD_LIST[i].arbKey, ADD_LIST[i].arb));
 	}
 };
 
@@ -212,12 +217,8 @@ void World::OldUpdate(f64 dt)
 
 		for(u32 j=0;j<total_cnt;++j)
 		{
+			if(!BoundingCircleHit(obj.position, obj.boundingCircleRadius, objects[i]->position, objects[i]->boundingCircleRadius)) continue;
 			if(i==j) continue;
-
-			if(!BoundingCircleHit(obj.position, obj.boundingCircleRadius, objects[i]->position, objects[i]->boundingCircleRadius))
-			{
-				continue;
-			}
 
 			SimBody &other = *objects[j];
 			if(obj.Unmovable() && other.Unmovable()) continue;
@@ -283,11 +284,11 @@ void World::IntegrateBoxForces(f64 dt)
 	{
 		IntegrationData idt(i, i+numPerThread, dt, this);
 		integration_data.push_back(idt);
-		physicsPool.AddTask(Task(TAddForces, &integration_data.back()));
+		physicsPool->AddTask(Task(TAddForces, &integration_data.back()));
 	}
 	IntegrationData idt(firstTriangleIndex-4, firstTriangleIndex-1, dt, this);
 	Integrate(&idt);
-	physicsPool.FinishAllTasks();
+	physicsPool->FinishAllTasks();
 };
 
 void World::IntegrateBoxes(f64 dt)
@@ -301,13 +302,13 @@ void World::IntegrateBoxes(f64 dt)
 	{
 		IntegrationData idt(i, i+numPerThread, dt, this);
 		integration_data.push_back(idt);
-		physicsPool.AddTask(Task(Integrate, &integration_data.back()));
+		physicsPool->AddTask(Task(Integrate, &integration_data.back()));
 	}
 	IntegrationData idt(firstTriangleIndex-4, firstTriangleIndex-1, dt, this);
 	Integrate(&idt);
 
 	// wait for everything to finish for physics for this frame
-	physicsPool.FinishAllTasks();
+	physicsPool->FinishAllTasks();
 };
 
 void World::Update(f64 dt)
@@ -315,7 +316,7 @@ void World::Update(f64 dt)
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
-	dt=0.02;
+	dt=0.016f;
 
 	//dt = max(dt, 0.001f);
 
@@ -324,18 +325,10 @@ void World::Update(f64 dt)
 
 	//double inv_dt = dt==0?0:1.0/dt;
 
-	//pt.start();
 	OldUpdate(dt);
-	//pt.end();
-	//cout << "Old Update Time: " << pt.time() << endl;
 
 	//pt.start();
 	BroadPhase();
-	//pt.end();
-	//cout << "No Threads: " << pt.time() << endl;
-
-	//pt.start();
-	//ThreadedBroadPhase();
 	//pt.end();
 	//cout << "Threaded: " << pt.time() << endl;
 

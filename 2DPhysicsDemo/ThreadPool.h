@@ -51,7 +51,7 @@ struct Task
 	Task() : funcPointer(blank), data(0) {}; // rather than crashing with a null function pointer, just call a blank function
 	Task(ThreadFuncPtr _thread_func, void *_task_data) : funcPointer(_thread_func), data(_task_data) {};
 	~Task() {};
-	void Run() { funcPointer(data); }
+	void Run() { if(funcPointer) { funcPointer(data); } }
 };
 
 /*
@@ -76,6 +76,10 @@ private:
 	// setting this to false will cause all running threads to finish
 	// call SigKill() to set it to false and wait for the threads to finish
 	bool alive;
+	
+	// incremented when a task starts
+	// decremented when a task ends
+	int runningTasks;
 
 	enum { INITIAL_TASK_LIST_SIZE = 100 };
 
@@ -85,8 +89,19 @@ private:
 	inline void Unlock() { cs.Unlock(); };
 
 public:
+	void IncRunningTasks();
+	void DecRunningTasks();
+
 	std::vector<Task> taskList;
+
 	//std::queue<Task> taskList;
+
+	void ClearTaskList()
+	{
+		Lock();
+		taskList.clear();
+		Unlock();
+	};
 
 	ThreadPool();
 	~ThreadPool();
@@ -99,18 +114,22 @@ public:
 
 	bool Alive();
 
+	int GetNumberOfRunningTasks();
+
 	// Added a task (function pointer and data). Returns true if added to task list
 	// Returns false and doesnt add task if no function
 	bool AddTask(Task k);
 
 	// Gets the next task from the list and returns it. Returns NULL if no tasks
-	Task* GetTask();
+	Task GetTask();
 
 	// Note: this only tells you if there are tasks available when the function was called
 	bool TasksAvailable();
 
 	// Spins until TasksAvailable() returns false, doesnt prevent new tasks being added
 	void FinishAllTasks();
+
+	void Join();
 
 	// Automatically called by destructor. Can call manually if you want to stop all threads
 	// This function will wait for threads to finish then close them

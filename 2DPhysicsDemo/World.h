@@ -27,7 +27,8 @@ public:
 
 	// thread pool should be used by physics code only - we are going to make assumptions about when a set of tasks has finished (when queue is empty)
 	// so don't use this pool for anything else
-	ThreadPool physicsPool;
+	ThreadPool *physicsPool;
+	ThreadPool *primaryTaskPool; // used to manage threads that we're using to run the Render(), Step() etc
 
 	AppConfig conf;
 	TextureHandle mass_textures[3];
@@ -87,7 +88,6 @@ public:
 	void CreateWalls();
 
 	void BroadPhase();
-	void ThreadedBroadPhase();
 
 	void AddForces(f64 dt);
 	

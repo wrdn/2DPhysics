@@ -13,19 +13,19 @@ Arbiter::Arbiter(SimBody* b1, SimBody* b2)
 	body1 = b1;
 	body2 = b2;
 
-	numContacts = Collide(contacts, body1, body2);
+	//numContacts = Collide(contacts, body1, body2);
 
 	friction = sqrtf(body1->friction * body2->friction);
 
-	glPointSize(4.0f);
-	glColor3f(1.0f, 0.0f, 0.0f);
-	glBegin(GL_POINTS);
-	for (int i = 0; i < numContacts; ++i)
-	{
-		glVertex2f(contacts[i].position.x, contacts[i].position.y);
-	}
-	glEnd();
-	glPointSize(1.0f);
+	//glPointSize(4.0f);
+	//glColor3f(1.0f, 0.0f, 0.0f);
+	//glBegin(GL_POINTS);
+	//for (int i = 0; i < numContacts; ++i)
+	//{
+	//	glVertex2f(contacts[i].position.x, contacts[i].position.y);
+	//}
+	//glEnd();
+	//glPointSize(1.0f);
 }
 
 void Arbiter::Update(Contact* newContacts, int numNewContacts)

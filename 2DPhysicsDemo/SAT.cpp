@@ -32,7 +32,7 @@ void SAT::GenerateSeperatingAxes(const std::vector<float2> &vertices,
 
 SATProjection SAT::GetInterval(const std::vector<float2> &vertices, const float2 &axis)
 {
-	if(!vertices.size()) return SATProjection();
+	//if(!vertices.size()) return SATProjection();
 
 	SATProjection proj;
 
@@ -104,22 +104,65 @@ bool SAT::Collide(SimBody &a, SimBody &b, float2 &N, f32 &t)
 	f32 taxis[MAX_SEPERATING_AXIS];
 	u32 axisCount = 0;
 
-	for(u32 i=0;i<a.seperatingAxis.size();++i)
+	// First test the last axis
+	xAxis[axisCount] = a.seperatingAxis[a.lastAxis] * xOrient;
+	if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
+		xOffset, xOrient, taxis[axisCount], t))
+	{
+		return false;
+	}
+	++axisCount;
+
+	// Then test everything before lastAxis and after lastAxis
+	for(u32 i=0;i<a.lastAxis;++i)
 	{
 		xAxis[axisCount] = a.seperatingAxis[i] * xOrient;
 		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
 			xOffset, xOrient, taxis[axisCount], t))
 		{
+			a.lastAxis = i;
 			return false;
 		}
 		++axisCount;
 	}
-	for(u32 i=0;i<b.seperatingAxis.size();++i)
+	for(u32 i=a.lastAxis;i<a.seperatingAxis.size();++i)
+	{
+		xAxis[axisCount] = a.seperatingAxis[i] * xOrient;
+		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
+			xOffset, xOrient, taxis[axisCount], t))
+		{
+			a.lastAxis = i;
+			return false;
+		}
+		++axisCount;
+	}
+
+
+	xAxis[axisCount] = b.seperatingAxis[b.lastAxis];
+	if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
+		xOffset, xOrient, taxis[axisCount], t))
+	{
+		return false;
+	}
+	++axisCount;
+	for(u32 i=0;i<b.lastAxis;++i)
 	{
 		xAxis[axisCount] = b.seperatingAxis[i];
 		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
 			xOffset, xOrient, taxis[axisCount], t))
 		{
+			b.lastAxis = i;
+			return false;
+		}
+		++axisCount;
+	}
+	for(u32 i=b.lastAxis;i<b.seperatingAxis.size();++i)
+	{
+		xAxis[axisCount] = b.seperatingAxis[i];
+		if(!IntervalIntersect(a.vertices, b.vertices, xAxis[axisCount],
+			xOffset, xOrient, taxis[axisCount], t))
+		{
+			b.lastAxis = i;
 			return false;
 		}
 		++axisCount;

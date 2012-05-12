@@ -6,6 +6,11 @@
 
 struct Body;
 
+
+void test_collide_polygons();
+bool SATCollide(SimBody *body1, SimBody *body2, float2 &N, f32 &t);
+
+
 union FeaturePair
 {
 	struct Edges
@@ -34,6 +39,8 @@ struct Contact
 	FeaturePair feature;
 };
 
+int Collide(Contact* contacts, SimBody* body1, SimBody* body2);
+
 struct ArbiterKey
 {
 	ArbiterKey(SimBody* b1, SimBody* b2)
@@ -49,7 +56,14 @@ struct Arbiter
 {
 	enum {MAX_POINTS = 2};
 
+	Arbiter() {};
 	Arbiter(SimBody* b1, SimBody* b2);
+
+	int DoCollision()
+	{
+		numContacts = Collide(contacts, body1, body2);
+		return numContacts;
+	};
 
 	void Update(Contact* contacts, int numContacts);
 
@@ -65,11 +79,6 @@ struct Arbiter
 	// Combined friction
 	float friction;
 };
-
-void test_collide_polygons();
-int Collide(Contact* contacts, SimBody* body1, SimBody* body2);
-bool SATCollide(SimBody *body1, SimBody *body2, float2 &N, f32 &t);
-
 
 
 

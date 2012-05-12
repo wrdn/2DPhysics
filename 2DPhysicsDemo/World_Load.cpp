@@ -304,7 +304,13 @@ void World::Load()
 			physThreadCount = 3;
 	}
 
-	physicsPool.InitPool(physThreadCount);
+	physicsPool = new ThreadPool();
+	physicsPool->InitPool(physThreadCount);
+	physicsPool->ClearTaskList();
+
+	primaryTaskPool = new ThreadPool();
+	primaryTaskPool->InitPool(2);
+	primaryTaskPool->ClearTaskList();
 
 	// make array big enough that it will never need to be made bigger (memory alloc = slow!)
 	integration_data.reserve(1024);

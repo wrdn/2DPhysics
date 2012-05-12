@@ -18,6 +18,8 @@ SimBody::SimBody(void)
 
 	fillMode = GL_FILL;
 	mesh = MeshHandle(0);
+	
+	lastAxis = 0;
 
 	isbox=true;
 
@@ -73,8 +75,8 @@ void SimBody::Draw()
 
 	// cleanup state
 	glColor3fv(Color::WHITE.GetVec());
-	mesh->glUseProgram(0);
-	mesh->glActiveTexture(GL_TEXTURE0);
+	//mesh->glUseProgram(0);
+	//mesh->glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 };
@@ -86,8 +88,8 @@ bool SimBody::Collide(SimBody &other, f32 dt)
 	f32 t = dt;
 	float2 N;
 
-	this->CalculateRotationMatrix();
-	other.CalculateRotationMatrix();
+	//this->CalculateRotationMatrix();
+	//other.CalculateRotationMatrix();
 
 	if(SAT::Collide(*this, other, N, t))
 	{

@@ -61,6 +61,7 @@ public:
 	float2 width; // box info
 	float side_len; // triangle info
 
+	int lastAxis; // cache the last axis we found a seperation on, and we'll use it first next time
 
 	//CriticalSection updateCriticalSection;
 

@@ -4,15 +4,17 @@
 unsigned int __stdcall ThreadPoolSpinner(void *v)
 {
 	ThreadPool *t = (ThreadPool*)v;
-	Task *task = 0;
+	Task task(0,0);
 
 	while(t->Alive())
 	{
-		while(t->Alive() && !(task=t->GetTask())); // this spins till we have a task (hence we must also check the task list is alive)
+		// this spins till we have a task (hence we must also check the task list is alive)
+		task = t->GetTask();
+		if(!task.funcPointer) continue;
 
-		if(!task) break;
-
-		task->Run();
+		t->IncRunningTasks();
+		task.Run();
+		t->DecRunningTasks();
 	}
 
 	return 0;
@@ -20,12 +22,13 @@ unsigned int __stdcall ThreadPoolSpinner(void *v)
 
 ThreadPool::ThreadPool() : alive(true)
 {
-	taskList.reserve(INITIAL_TASK_LIST_SIZE); // initially we can hold up to INITIAL_TASK_LIST_SIZE tasks in the list (avoids having to allocate memory when we create a task)
+	taskList.clear();
 };
 
 ThreadPool::~ThreadPool()
 {
 	SigKill(); // make sure all threads have stopped
+	taskList.clear();
 };
 
 int ThreadPool::GetNumThreads() { return threads.size(); };
@@ -72,25 +75,21 @@ bool ThreadPool::AddTask(Task k)
 
 	Lock();
 	taskList.push_back(k);
-	//taskList.push(k);
 	Unlock();
 	return true;
 };
 
-Task* ThreadPool::GetTask()
+Task ThreadPool::GetTask()
 {
-	Task *t = 0;
+	Task t(0,0);
 
 	Lock();
 	if(taskList.size())
 	{
-		t = &taskList.back();
-		taskList.pop_back();
-		//t = &taskList.front();
-		//taskList.pop();
+		t = taskList[0];
+		taskList.erase(taskList.begin());
 	}
 	Unlock();
-
 	return t;
 };
 
@@ -102,9 +101,30 @@ bool ThreadPool::TasksAvailable()
 	return f;
 };
 
+int ThreadPool::GetNumberOfRunningTasks()
+{
+	Lock();
+	int f = runningTasks;
+	Unlock();
+	return f;
+};
+
+void ThreadPool::IncRunningTasks()
+{
+	Lock();
+	++runningTasks;
+	Unlock();
+};
+void ThreadPool::DecRunningTasks()
+{
+	Lock();
+	--runningTasks;
+	Unlock();
+};
+
 void ThreadPool::FinishAllTasks()
 {
-	while(TasksAvailable());
+	while(TasksAvailable() || GetNumberOfRunningTasks());
 };
 
 void ThreadPool::SigKill()
@@ -119,5 +139,20 @@ void ThreadPool::SigKill()
 		threads.clear();
 	}
 
+	runningTasks = 0;
 	//taskList.clear(); //<- dont clear the task list, this way we can reinitialise the pool with new threads which will complete any previous tasks :)
+};
+
+void ThreadPool::Join()
+{
+	bool tasksAvailable = true;
+	int runningCount = 1;
+
+	while(tasksAvailable || runningCount) // while still tasks available OR still tasks running, wait
+	{
+		Lock();
+		tasksAvailable = taskList.size()>0;
+		runningCount = runningTasks;
+		Unlock();
+	};
 };

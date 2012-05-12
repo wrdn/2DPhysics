@@ -97,6 +97,15 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 	scn.set_cam_pos(camPos);
 };
 
+void physthread(void *d)
+{
+	World *w = (World*)d;
+	while(true)
+	{
+		w->Update(0.016f);
+	}
+};
+
 void FizzyWindow::OnCreate()
 {
 	GLWindowEx::OnCreate();
@@ -127,6 +136,8 @@ void FizzyWindow::OnCreate()
 
 	gameTime.Update();
 	gameTime.Update();
+
+	scn.primaryTaskPool->AddTask(Task(physthread, &scn));
 };
 
 void FizzyWindow::OnDestroy()
@@ -135,6 +146,6 @@ void FizzyWindow::OnDestroy()
 
 void FizzyWindow::OnIdle()
 {
-	scn.Update(gameTime.Update());
+	//scn.Update(gameTime.Update());
 	Redraw();
 };
