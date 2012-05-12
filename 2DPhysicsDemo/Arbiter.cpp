@@ -1,12 +1,20 @@
 #include "Arbiter.h"
 #include "Body.h"
 #include "World.h"
+#include "chipCollide.h"
 
 bool WARM_STARTING = true;
 bool POSITION_CORRECTION = true;
 bool ACCUMULATE_IMPULSES = true;
 
 Contact::Contact() : Pn(0.0f), Pt(0.0f), Pnb(0.0f) {};
+
+int Arbiter::DoCollision()
+{
+	//numContacts = Collide(contacts, body1, body2);
+	*this = Collide::CollidePoly2Poly(body1, body2);
+	return numContacts;
+};
 
 Arbiter::Arbiter(SimBody* b1, SimBody* b2)
 {
@@ -39,7 +47,8 @@ void Arbiter::Update(Contact* newContacts, int numNewContacts)
 		for (int j = 0; j < numContacts; ++j)
 		{
 			Contact* cOld = contacts + j;
-			if (cNew->feature.value == cOld->feature.value)
+			//if (cNew->feature.value == cOld->feature.value)
+			if(cNew->hash == cOld->hash)
 			{
 				k = j;
 				break;

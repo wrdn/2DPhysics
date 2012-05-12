@@ -152,6 +152,7 @@ void FizzyWindow::OnDestroy()
 
 void FizzyWindow::OnIdle()
 {
+	//return;
 	//scn.Update(gameTime.Update());
 	Redraw();
 };

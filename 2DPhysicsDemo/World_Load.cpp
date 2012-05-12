@@ -49,14 +49,16 @@ void World::CreateBoxes()
 	baseBox.objectMaterial.AddTexture(mass_textures[0]);
 	baseBox.mass = 500; baseBox.invMass = 1.0f/500.0f;
 	baseBox.rotation_in_rads = 0; baseBox.CalculateRotationMatrix();
-	{
-		const float2 &extents = baseBox.width/2;
-		baseBox. vertices.push_back(float2(-extents.x, -extents.y));
-		baseBox.vertices.push_back(float2(extents.x, -extents.y));
-		baseBox.vertices.push_back(float2(extents.x, extents.y));
-		baseBox.vertices.push_back(float2(-extents.x, extents.y));
-	}
-	SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
+	baseBox.MakeBox(box_width, box_height);
+	baseBox.UpdateWorldSpaceProperties();
+	//{
+	//	const float2 &extents = baseBox.width/2;
+	//	baseBox. vertices.push_back(float2(-extents.x, -extents.y));
+	//	baseBox.vertices.push_back(float2(extents.x, -extents.y));
+	//	baseBox.vertices.push_back(float2(extents.x, extents.y));
+	//	baseBox.vertices.push_back(float2(-extents.x, extents.y));
+	//}
+	//SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
 
 	float startX = meters(-40);
@@ -207,10 +209,10 @@ void World::CreateWalls()
 };
 
 #include "Contact.h"
+#include "chipCollide.h"
+#include "Arbiter.h"
 void World::Load()
 {
-	//test_collide_polygons();
-
 	Unload();
 	srand((u32)time(NULL));
 
@@ -249,8 +251,8 @@ void World::Load()
 	SimBody *bottomBox = new SimBody();
 	bottomBox->boundingCircleRadius = 500;
 	bottomBox->mesh = objects.back()->mesh;
-	bottomBox->width.set(meters(200), meters(0.1f));
-	bottomBox->position.set(0, -0.05f);
+	bottomBox->width.set(meters(200), 2);
+	bottomBox->position.set(0, -11.5);
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
@@ -265,6 +267,8 @@ void World::Load()
 		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
+	bottomBox->MakeBox(meters(200), 20);
+	bottomBox->UpdateWorldSpaceProperties();
 	objects.push_back(bottomBox);
 
 	SimBody *topBox = new SimBody(*bottomBox);
@@ -289,6 +293,8 @@ void World::Load()
 		leftBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(leftBox->vertices, leftBox->seperatingAxis);
+	leftBox->MakeBox(meters(0.1f), meters(100));
+	leftBox->UpdateWorldSpaceProperties();
 	objects.push_back(leftBox);
 
 	SimBody *rightBox = new SimBody(*leftBox);
@@ -307,12 +313,13 @@ void World::Load()
 			physThreadCount = 3;
 	}
 
-	physicsPool = new ThreadPool();
-	physicsPool->InitPool(physThreadCount);
-	physicsPool->ClearTaskList();
+	//physicsPool = new ThreadPool();
+	//physicsPool->InitPool(0);
+	//physicsPool->ClearTaskList();
 
+	// the only other thread is the 'physics' thread
 	primaryTaskPool = new ThreadPool();
-	primaryTaskPool->InitPool(2);
+	primaryTaskPool->InitPool(1);
 	primaryTaskPool->ClearTaskList();
 
 	// make array big enough that it will never need to be made bigger (memory alloc = slow!)

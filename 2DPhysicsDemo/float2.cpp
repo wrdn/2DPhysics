@@ -131,6 +131,18 @@ float2 float2::negate() const
 	return float2(-x, -y);
 };
 
+float2 float2::rotate(float angle_in_rads)
+{
+	float c = cos(angle_in_rads), s = sin(angle_in_rads);
+	//return float2(x*c - y*s, x*s + y*c);
+	return rotate(c, s);
+};
+
+float2 float2::rotate(float cos_angle, float sin_angle)
+{
+	return float2(x*cos_angle - y*sin_angle, x*sin_angle + y*cos_angle);
+};
+
 float2 float2::vec_lerp(const float2 &target, f32 lerpFactor)
 {
 	return float2(

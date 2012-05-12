@@ -81,6 +81,7 @@
     <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="Arbiter.cpp" />
     <ClCompile Include="BoxCollide.cpp" />
+    <ClCompile Include="chipCollide.cpp" />
     <ClCompile Include="Collision.cpp" />
     <ClCompile Include="color.cpp" />
     <ClCompile Include="Contact.cpp" />
@@ -115,6 +116,7 @@
   <ItemGroup>
     <ClInclude Include="AppConfig.h" />
     <ClInclude Include="Arbiter.h" />
+    <ClInclude Include="chipCollide.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="Contact.h" />

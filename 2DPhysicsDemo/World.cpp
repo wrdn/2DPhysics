@@ -2,6 +2,7 @@
 #include "GraphicsUtils.h"
 #include "util.h"
 #include "Collision.h"
+#include "chipCollide.h"
 
 World::World() : zoom(-3.45f), objects(0), alive(true) {};
 World::~World()
@@ -71,7 +72,7 @@ void FindContacts_Threaded(void *fc)
 
 	map<ArbiterKey, Arbiter> &arbitersf = *cf->_arbiters;
 
-	cf->last = min(cf->last, cf->potentials->size());
+	cf->last = min(cf->last, (i32)cf->potentials->size());
 
 	for(int i=cf->first;i<cf->last;++i)
 	{
@@ -108,12 +109,13 @@ void FindContacts_Single(void *fc)
 
 	map<ArbiterKey, Arbiter> &arbitersf = *cf->_arbiters;
 
-	cf->last = min(cf->last, cf->potentials->size());
+	cf->last = min(cf->last, (i32)cf->potentials->size());
 
 	for(int i=cf->first;i<cf->last;++i)
 	{
 		World::PotentiallyColliding pc = cf->potentials->at(i);
 
+		//Arbiter arb(pc.body1, pc.body2);
 		Arbiter arb(pc.body1, pc.body2);
 		ArbiterKey arbKey(pc.body1, pc.body2);
 
@@ -188,8 +190,8 @@ void World::BroadPhase()
 		FindContacts_Single(n);
 		
 		// Add/Remove arbiters from add/remove list
-		for(int i=0;i<ERASE_LIST.size();++i) arbiters.erase(ERASE_LIST[i].arbKey);
-		for(int i=0;i<ADD_LIST.size();++i) arbiters.insert(ArbPair(ADD_LIST[i].arbKey, ADD_LIST[i].arb));
+		for(u32 i=0;i<ERASE_LIST.size();++i) arbiters.erase(ERASE_LIST[i].arbKey);
+		for(u32 i=0;i<ADD_LIST.size();++i) arbiters.insert(ArbPair(ADD_LIST[i].arbKey, ADD_LIST[i].arb));
 	}
 };
 
@@ -274,17 +276,17 @@ void TAddForces(void *integration_data)
 
 void World::IntegrateBoxForces(f64 dt)
 {
-	integration_data.clear();
+	/*integration_data.clear();
 	int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
 	for(int i=0;i<firstTriangleIndex-4;i+=numPerThread) // 0 to 800
 	{
 		IntegrationData idt(i, i+numPerThread, dt, this);
 		integration_data.push_back(idt);
 		physicsPool->AddTask(Task(TAddForces, &integration_data.back()));
-	}
-	IntegrationData idt(firstTriangleIndex-4, firstTriangleIndex-1, dt, this);
+	}*/
+	IntegrationData idt(0, firstTriangleIndex, dt, this);
 	Integrate(&idt);
-	physicsPool->FinishAllTasks();
+	//physicsPool->FinishAllTasks();
 };
 
 void World::IntegrateBoxes(f64 dt)
@@ -292,19 +294,19 @@ void World::IntegrateBoxes(f64 dt)
 	// This is thread safe as objects are updated without changing other objects. Therefore we can thread the update to
 	// put it on as many as we want. We can tweak the value to update per thread but it should be fairly large (maybe ~100 a time?)
 	// as the process is very fast
-	integration_data.clear();
-	int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
+	//integration_data.clear();
+	/*int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
 	for(int i=0;i<firstTriangleIndex-4;i+=numPerThread) // 0 to 800
 	{
 		IntegrationData idt(i, i+numPerThread, dt, this);
 		integration_data.push_back(idt);
 		physicsPool->AddTask(Task(Integrate, &integration_data.back()));
-	}
-	IntegrationData idt(firstTriangleIndex-4, firstTriangleIndex-1, dt, this);
+	}*/
+	IntegrationData idt(0, firstTriangleIndex, dt, this);
 	Integrate(&idt);
 
 	// wait for everything to finish for physics for this frame
-	physicsPool->FinishAllTasks();
+	//physicsPool->FinishAllTasks();
 };
 
 void World::Update(f64 dt)
@@ -316,6 +318,12 @@ void World::Update(f64 dt)
 
 	dt=0.016f;
 
+	// transform vertices into new positions (for every object we own)
+	for(int i=0;i<firstTriangleIndex;++i)
+	{
+		objects[i]->UpdateWorldSpaceProperties();
+	}
+
 	//dt = max(dt, 0.001f);
 
 	//dt = 1.0/80.0; // constant dt makes for a MUCH more stable simulation, with dynamic dt (default) the simulation sometimes explodes :( - maybe an issue with QueryPerformanceCounter???
@@ -323,14 +331,24 @@ void World::Update(f64 dt)
 
 	//double inv_dt = dt==0?0:1.0/dt;
 
-	OldUpdate(dt);
+	//OldUpdate(dt);
 
-	//pt.start();
+	pt.start();
 	BroadPhase();
-	//pt.end();
-	//cout << "Threaded: " << pt.time() << endl;
+	pt.end();
+	cout << "Threaded: " << pt.time() << endl;
 
-	IntegrateBoxForces(dt);
+	//IntegrateBoxForces(dt);
+	for (u32 i = 0; i < objects.size(); ++i)
+	{
+		SimBody *b = objects[i];
+		if(b->isbox && b->invMass != 0)
+		{
+			b->velocity += (f32)dt * (gravity + b->invMass * b->force);
+			b->angularVelocity += (f32)dt * b->invI * b->torque;
+		}
+	}
+
 
 	//pt.start();
 	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
@@ -351,7 +369,20 @@ void World::Update(f64 dt)
 	//pt.end();
 	//cout << "Impulse Time: " << pt.time() << endl;
 
-	IntegrateBoxes(dt);
+	for (u32 i = 0; i < objects.size(); ++i)
+	{
+		SimBody *b = objects[i];
+		if(!b->isbox) continue;
+
+		b->position += (f32)dt * b->velocity;
+		b->rotation_in_rads += (f32)dt * b->angularVelocity;
+		b->CalculateRotationMatrix();
+
+		b->force.zero();
+		b->torque = 0;
+	}
+
+	//IntegrateBoxes(dt);
 
 	ot.end();
 	cout << "Frame time: " << ot.time() << endl;

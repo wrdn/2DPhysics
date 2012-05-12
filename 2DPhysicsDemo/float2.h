@@ -81,6 +81,9 @@ public:
 	float2 absolute() const;
 	float2 negate() const;
 
+	float2 rotate(float angle_in_rads);
+	float2 rotate(float cos_angle, float sin_angle);
+
 	float2 vec_lerp(const float2 &target, f32 lerpFactor);
 
 	// New operators (implementing + etc in terms of +=)

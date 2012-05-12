@@ -7,8 +7,22 @@
 #include "util.h"
 #include <vector>
 #include "ThreadPool.h"
+#include "SAT.h"
 
 const float2 default_gravity(0, meters(-9.81f));
+
+struct SplittingPlane
+{
+	float2 N;
+	float d;
+
+	SplittingPlane() : d(0) {};
+	SplittingPlane(float2 &_N, float _d)
+		: N(_N), d(_d) {};
+	~SplittingPlane() {};
+};
+
+static int GUID_GEN = 0;
 
 // Base for physics objects
 class SimBody
@@ -25,6 +39,7 @@ public:
 	f32 mass, invMass;
 
 	bool isbox;
+	int hashid;
 
 	// only need rotation about z, every time this is updated, you should also update _cached_rotation_matrix
 	// rotation specified in degrees
@@ -56,15 +71,40 @@ public:
 
 	// Data used during SAT collision phase. You should ONLY use CalculateVerticesAndSeperatingAxis() to set this data
 	std::vector<float2> vertices;
+	std::vector<SplittingPlane> splittingPlanes;
+
 	std::vector<float2> seperatingAxis;
+
+	// world space positions of vertices and splitting planes (once transformations have been applied)
+	std::vector<float2> transformedVertices;
+	std::vector<SplittingPlane> transformedSplittingPlanes;
 
 	float2 width; // box info
 	float side_len; // triangle info
 
-	int lastAxis; // cache the last axis we found a seperation on, and we'll use it first next time
+	u32 lastAxis; // cache the last axis we found a seperation on, and we'll use it first next time
 
-	//CriticalSection updateCriticalSection;
+	void UpdateWorldSpaceProperties()
+	{
+		CalculateRotationMatrix();
+		
+		float cos_angle = cos(rotation_in_rads);
+		float sin_angle = sin(rotation_in_rads);
 
+		// assumes transformedVertices size == vertices size
+		for(u32 i=0;i<vertices.size();++i)
+		{
+			transformedVertices[i] = position + (vertices[i].rotate(cos_angle, sin_angle));
+		}
+
+		// assumes splittingPlanes size == vertices size
+		for(u32 i=0;i<splittingPlanes.size();++i)
+		{
+			float2 n = splittingPlanes[i].N.rotate(cos_angle, sin_angle);
+			transformedSplittingPlanes[i].N = n;
+			transformedSplittingPlanes[i].d = position.dot(n) + splittingPlanes[i].d;
+		}
+	};
 
 	void CalculateRotationMatrix()
 	{
@@ -124,6 +164,41 @@ public:
 		force += F;
 	};
 
+	SplittingPlane GenSplittingPlane(float2 a, float2 b)
+	{
+		float2 n = (b-a).perp().normalize();
+		return SplittingPlane(n, n.dot(a));
+	};
+
+	void MakeBox(float boxwidth, float boxheight)
+	{
+		width.set(boxwidth, boxheight);
+
+		vertices.clear();
+		transformedVertices.clear();
+		splittingPlanes.clear();
+		transformedSplittingPlanes.clear();
+		seperatingAxis.clear();
+
+		float2 h = width/2; // half width and height
+		vertices.push_back(float2(-h.x, -h.y));
+		vertices.push_back(float2(-h.x, h.y));
+		vertices.push_back(float2(h.x, h.y));
+		vertices.push_back(float2(h.x, -h.y));
+
+		transformedVertices.resize(vertices.size());
+
+		SAT::GenerateSeperatingAxes(vertices, seperatingAxis);
+
+		for(u32 i=0;i<vertices.size();++i)
+		{
+			SplittingPlane sp = GenSplittingPlane(vertices[i], vertices[(i+1)%vertices.size()]);
+			splittingPlanes.push_back(sp);
+		}
+
+		transformedSplittingPlanes.resize(splittingPlanes.size());
+	};
+
 	void Update(f32 dt)
 	{
 		if(Unmovable())
@@ -144,7 +219,7 @@ public:
 
 		force.zero();
 		torque = 0;
-	}
+	};
 };
 
 bool BoundingCircleIntersects(const SimBody &a, const SimBody &b);

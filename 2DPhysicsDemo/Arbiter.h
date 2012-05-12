@@ -37,6 +37,7 @@ struct Contact
 	float massNormal, massTangent;
 	float bias;
 	FeaturePair feature;
+	uintptr_t hash;
 };
 
 int Collide(Contact* contacts, SimBody* body1, SimBody* body2);
@@ -56,13 +57,24 @@ struct Arbiter
 {
 	enum {MAX_POINTS = 2};
 
-	Arbiter() {};
+	Arbiter()
+	{
+		numContacts=0;
+	};
 	Arbiter(SimBody* b1, SimBody* b2);
 
-	int DoCollision()
+	int DoCollision();
+
+	void AddContact(const Contact &c)
 	{
-		numContacts = Collide(contacts, body1, body2);
-		return numContacts;
+		if(numContacts < MAX_POINTS)
+		{
+			contacts[numContacts++] = c;
+		}
+		else
+		{
+			contacts[MAX_POINTS-1] = c;
+		}
 	};
 
 	void Update(Contact* contacts, int numContacts);

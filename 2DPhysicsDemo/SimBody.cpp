@@ -23,6 +23,8 @@ SimBody::SimBody(void)
 
 	isbox=true;
 
+	hashid = GUID_GEN++;
+
 	use_textures = use_shaders = draw = update = true;
 };
 
@@ -46,16 +48,16 @@ void SimBody::Draw()
 	glPushMatrix();
 
 	// translate and rotate
-	glTranslatef(position.x, position.y, 0);
+	//glTranslatef(position.x, position.y, 0);
 
-	if(isbox)
-	{
-		glRotatef(RADTODEG(rotation_in_rads), 0,0, 1);
-	}
-	else
-	{
-		glRotatef(RADTODEG(rotation_in_rads), 0,0, -1);
-	}
+	//if(isbox)
+	//{
+	//	glRotatef(RADTODEG(rotation_in_rads), 0,0, 1);
+	//}
+	//else
+	//{
+	//	glRotatef(RADTODEG(rotation_in_rads), 0,0, -1);
+	//}
 
 	// draw
 	glDisable(GL_CULL_FACE);
@@ -63,9 +65,9 @@ void SimBody::Draw()
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
 	glBegin(GL_LINE_LOOP);
-	for(u32 i=0;i<vertices.size();++i)
+	for(u32 i=0;i<transformedVertices.size();++i)
 	{
-		glVertex2f(vertices[i].x, vertices[i].y);
+		glVertex2f(transformedVertices[i].x, transformedVertices[i].y);
 	}
 	glEnd();
 

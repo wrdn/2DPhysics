@@ -4,7 +4,8 @@
 #include "ctypes.h"
 #include "Mat22.h"
 #include "float2.h"
-#include "SimBody.h"
+
+class SimBody;
 
 class SATProjection { public: f32 min, max; };
 
