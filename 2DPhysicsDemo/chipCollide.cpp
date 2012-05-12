@@ -77,6 +77,50 @@ Contact InitContactPoint(float2 pos, float2 n, float dist, HashValue hash)
 	return c;
 };
 
+static inline bool PolyShapeContainsVertPartial(SimBody *poly, const float2 v, const float2 n)
+{
+	SplittingPlane *planes = &poly->transformedSplittingPlanes[0];
+	
+	for(int i=0; i<poly->vertices.size(); i++)
+	{
+		if(planes[i].N.dot(n) < 0.0f) continue;
+
+		float dist = SplittingPlaneCompare(planes[i], v);
+
+		if(dist > 0.0f) return false;
+	}
+	
+	return true;
+};
+
+static int FindVertsFallback(Arbiter &output_arb, SimBody *poly1, SimBody *poly2, const float2 n, const float dist)
+{
+	int num = 0;
+	Arbiter &arb = output_arb;
+
+	for(int i=0; i<poly1->vertices.size(); i++)
+	{
+		float2 v = poly1->transformedVertices[i];
+		if(PolyShapeContainsVertPartial(poly2, v, n.negate()))
+		{
+			arb.AddContact(InitContactPoint(v, n, dist, HASH_PAIR(poly1->hashid, i)));
+		}
+	}
+
+	for(int i=0; i<poly2->vertices.size(); i++)
+	{
+		float2 v = poly2->transformedVertices[i];
+		if(PolyShapeContainsVertPartial(poly1, v, n))
+		{
+			arb.AddContact(InitContactPoint(v, n, dist, HASH_PAIR(poly2->hashid, i)));
+		}
+	}
+
+	num = arb.numContacts;
+	
+	return num;
+}
+
 static inline int FindVerts(Arbiter &output_arb, SimBody *poly1, SimBody *poly2, const float2 n, const float dist)
 {
 	int num=0;
@@ -105,8 +149,8 @@ static inline int FindVerts(Arbiter &output_arb, SimBody *poly1, SimBody *poly2,
 		}
 	}
 
-	return num;
-	//return (num ? num : findVertsFallback(arr, poly1, poly2, n, dist));
+	num = arb.numContacts;
+	return (num ? num : FindVertsFallback(arb, poly1, poly2, n, dist));
 };
 
 Arbiter Collide::CollidePoly2Poly(SimBody *poly1, SimBody *poly2)

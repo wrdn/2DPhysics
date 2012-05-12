@@ -170,21 +170,10 @@ public:
 		return SplittingPlane(n, n.dot(a));
 	};
 
-	void MakeBox(float boxwidth, float boxheight)
+	// untested, assumes convex
+	void MakePolygon(const std::vector<float2> &verts)
 	{
-		width.set(boxwidth, boxheight);
-
-		vertices.clear();
-		transformedVertices.clear();
-		splittingPlanes.clear();
-		transformedSplittingPlanes.clear();
-		seperatingAxis.clear();
-
-		float2 h = width/2; // half width and height
-		vertices.push_back(float2(-h.x, -h.y));
-		vertices.push_back(float2(-h.x, h.y));
-		vertices.push_back(float2(h.x, h.y));
-		vertices.push_back(float2(h.x, -h.y));
+		vertices = verts; // copy all the verts
 
 		transformedVertices.resize(vertices.size());
 
@@ -197,6 +186,32 @@ public:
 		}
 
 		transformedSplittingPlanes.resize(splittingPlanes.size());
+
+		UpdateWorldSpaceProperties();
+	};
+
+	void MakeTriangle(float sideLen)
+	{
+		float h = sideLen/2;
+		std::vector<float2> verts;
+		verts.push_back(float2(-h, -h));
+		verts.push_back(float2(0, h));
+		verts.push_back(float2(h, -h));
+
+		MakePolygon(verts);
+	};
+
+	void MakeBox(float boxwidth, float boxheight)
+	{
+		width.set(boxwidth, boxheight);
+		float2 h = width/2; // half width and height
+		std::vector<float2> verts;
+		verts.push_back(float2(-h.x, -h.y));
+		verts.push_back(float2(-h.x, h.y));
+		verts.push_back(float2(h.x, h.y));
+		verts.push_back(float2(h.x, -h.y));
+
+		MakePolygon(verts);
 	};
 
 	void Update(f32 dt)

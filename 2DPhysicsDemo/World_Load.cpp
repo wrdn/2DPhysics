@@ -106,7 +106,7 @@ void World::CreateTriangles()
 	baseTriangle.rotation_in_rads = 0; baseTriangle.CalculateRotationMatrix();
 	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
 	baseTriangle.objectMaterial.AddTexture(mass_textures[0]);
-	baseTriangle.mass = 0; baseTriangle.invMass = 0;
+	baseTriangle.mass = 20; baseTriangle.invMass = 20;
 	baseTriangle.side_len = triangle_len/2;
 	{
 		float SL = baseTriangle.side_len;
@@ -115,8 +115,9 @@ void World::CreateTriangles()
 		baseTriangle.vertices.push_back(float2(-SL, -SL));
 	}
 	SAT::GenerateSeperatingAxes(baseTriangle.vertices, baseTriangle.seperatingAxis);
-	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
-	baseTriangle.isbox=false;
+	baseTriangle.boundingCircleRadius = 10;//CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
+	baseTriangle.isbox=true;
+	baseTriangle.MakeTriangle(triangle_len);
 
 	float startX = meters(-15);
 	float startY = 11.5;
@@ -135,6 +136,10 @@ void World::CreateTriangles()
 		tri->fillMode = GL_LINE;
 		objects.push_back(tri);
 	}
+
+
+	return;
+
 	startX = meters(-15);
 	for(int i=0;i<9;++i)
 	{
@@ -150,7 +155,7 @@ void World::CreateTriangles()
 		objects.push_back(tri);
 	}
 	
-
+	
 	// Second row
 	startX = meters(-15) - 0.1f;
 	startY += 1;
@@ -251,8 +256,8 @@ void World::Load()
 	SimBody *bottomBox = new SimBody();
 	bottomBox->boundingCircleRadius = 500;
 	bottomBox->mesh = objects.back()->mesh;
-	bottomBox->width.set(meters(200), 2);
-	bottomBox->position.set(0, -11.5);
+	bottomBox->width.set(meters(200), 0.00001);
+	bottomBox->position.set(0, -0.000005);
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
@@ -267,7 +272,7 @@ void World::Load()
 		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
-	bottomBox->MakeBox(meters(200), 20);
+	bottomBox->MakeBox(meters(200), 0.2);
 	bottomBox->UpdateWorldSpaceProperties();
 	objects.push_back(bottomBox);
 

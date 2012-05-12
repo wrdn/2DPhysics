@@ -143,12 +143,12 @@ void World::BroadPhase()
 	// Step 1: Generate list of boxes we own
 	bodies.clear();
 
-	for(int i=0;i<firstTriangleIndex;++i)
+	for(int i=0;i<objects.size();++i)
 	{
-		if(objects[i]->isbox /* && we own it */)
-		{
+		//if(objects[i]->isbox /* && we own it */)
+		//{
 			bodies.push_back(objects[i]);
-		}
+		//}
 	}
 
 	static vector<PotentiallyColliding> potentials;
@@ -170,7 +170,7 @@ void World::BroadPhase()
 		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i];
 		bt.output_plist = &potentials;
 		bt.firstIndex = i+1;
-		bt.lastIndex = firstTriangleIndex;
+		bt.lastIndex = objects.size();
 		BroadPhaseTask(&bt);
 
 		if(!potentials.size()) continue;
@@ -319,7 +319,7 @@ void World::Update(f64 dt)
 	dt=0.016f;
 
 	// transform vertices into new positions (for every object we own)
-	for(int i=0;i<firstTriangleIndex;++i)
+	for(int i=0;i<objects.size();++i)
 	{
 		objects[i]->UpdateWorldSpaceProperties();
 	}
@@ -342,13 +342,12 @@ void World::Update(f64 dt)
 	for (u32 i = 0; i < objects.size(); ++i)
 	{
 		SimBody *b = objects[i];
-		if(b->isbox && b->invMass != 0)
+		if(b->invMass != 0)
 		{
 			b->velocity += (f32)dt * (gravity + b->invMass * b->force);
 			b->angularVelocity += (f32)dt * b->invI * b->torque;
 		}
 	}
-
 
 	//pt.start();
 	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
@@ -372,7 +371,7 @@ void World::Update(f64 dt)
 	for (u32 i = 0; i < objects.size(); ++i)
 	{
 		SimBody *b = objects[i];
-		if(!b->isbox) continue;
+		//if(!b->isbox) continue;
 
 		b->position += (f32)dt * b->velocity;
 		b->rotation_in_rads += (f32)dt * b->angularVelocity;
