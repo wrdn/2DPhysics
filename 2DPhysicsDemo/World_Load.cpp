@@ -19,6 +19,9 @@ f32 CalculateBoundingCircle(const float2 &center, const float2 *verts, const u32
 
 void World::Unload()
 {
+	if(physicsPool)
+		physicsPool->SigKill();
+
 	ResourceManager::get().Cleanup();
 	CleanupVector(objects);
 	arbiters.clear();

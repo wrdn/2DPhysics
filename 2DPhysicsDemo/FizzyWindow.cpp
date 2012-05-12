@@ -57,6 +57,7 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	float2 camPos = scn.get_cam_pos();
 	f32 dt = (f32)gameTime.GetDeltaTime();
+	dt = 0.016f;
 	f32 camSpeed = scn.get_cam_speed();
 	f32 zoomSpeed = scn.zoomSpeed;
 
@@ -100,7 +101,7 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 void physthread(void *d)
 {
 	World *w = (World*)d;
-	while(true)
+	while(w->alive)
 	{
 		w->Update(0.016f);
 	}
@@ -142,6 +143,11 @@ void FizzyWindow::OnCreate()
 
 void FizzyWindow::OnDestroy()
 {
+	// Do not change the order of destruction
+	// Kill in reverse order so things are shut down properly
+	scn.alive = false;
+	scn.primaryTaskPool->SigKill();
+	scn.Unload();
 };
 
 void FizzyWindow::OnIdle()

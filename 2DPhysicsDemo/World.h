@@ -11,6 +11,7 @@
 class World
 {
 public:
+	bool alive;
 
 	struct IntegrationData
 	{

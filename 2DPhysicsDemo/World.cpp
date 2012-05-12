@@ -3,8 +3,11 @@
 #include "util.h"
 #include "Collision.h"
 
-World::World() : zoom(-3.45f), objects(0) {};
-World::~World() { Unload(); };
+World::World() : zoom(-3.45f), objects(0), alive(true) {};
+World::~World()
+{
+	Unload();
+};
 
 typedef map<ArbiterKey, Arbiter>::iterator ArbIter;
 typedef pair<ArbiterKey, Arbiter> ArbPair;
@@ -153,31 +156,24 @@ void World::BroadPhase()
 	static ContactFinder finders[10000];
 	int numFinders=0;
 
+	// Note: This is currently just processing up to the first triangle (i.e. boxes only). Change this later for triangles also (if we port Chipmunk)
 	for(u32 i=0;i<bodies.size();++i)
 	{
 		// Get potential collisions (bounding circle tests)
 		potentials.clear();
 		
+		// This code runs extremely quickly. Dont bother to thread it as you wont see any benefits (and may get a performance hit!)
+		// A possible improvement to the codebase would be to move positions and bounding circle radius' into their own arrays so we
+		// get good cache performance
 		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i];
 		bt.output_plist = &potentials;
 		bt.firstIndex = i+1;
-		bt.lastIndex = firstTriangleIndex; // Note: This is currently just processing up to the first triangle (i.e. boxes only). Change this later for triangles also (if we port Chipmunk)
+		bt.lastIndex = firstTriangleIndex;
 		BroadPhaseTask(&bt);
-		
+
 		if(!potentials.size()) continue;
 
-		/*
-		* Step 4: Find actual collisions and contact points
-		* Algorithm:
-		*	- For each potential
-		*		- Find contacts
-		*		- If 0 contacts, add key to ERASE list
-		*		- If >0 contacts
-		*			- If arbiter exists, update its contacts
-		*			- Else add it to ADD list
-		*/
 		ADD_LIST.clear(); ERASE_LIST.clear();
-
 		ContactFinder *n = &finders[numFinders];
 		++numFinders;
 
@@ -313,6 +309,8 @@ void World::IntegrateBoxes(f64 dt)
 
 void World::Update(f64 dt)
 {
+	if(!alive) return;
+
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
