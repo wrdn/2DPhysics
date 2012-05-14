@@ -140,16 +140,17 @@ void FindContacts_Single(void *fc)
 
 void World::BroadPhase()
 {
-	// Step 1: Generate list of boxes we own
+	// Step 1: Generate list of boxes we own, currently no point as no networking
 	bodies.clear();
+	bodies = objects;
 
-	for(int i=0;i<objects.size();++i)
-	{
-		//if(objects[i]->isbox /* && we own it */)
-		//{
-			bodies.push_back(objects[i]);
-		//}
-	}
+	//for(int i=0;i<objects.size();++i)
+	//{
+	//	if(objects[i]->isbox)
+	//	{
+	//		bodies.push_back(objects[i]);
+	//	}
+	//}
 
 	static vector<PotentiallyColliding> potentials;
 	static vector<Arbiter_ADD> ADD_LIST;
@@ -316,7 +317,11 @@ void World::Update(f64 dt)
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
-	dt=0.016f;
+	dt = gt->Update();
+	//dt = min(dt, 0.016); // keep dt in check, too big and bad stuff happens :(
+	dt = 0.016f;
+
+	//dt=0.016f;
 
 	// transform vertices into new positions (for every object we own)
 	for(int i=0;i<objects.size();++i)
@@ -333,10 +338,10 @@ void World::Update(f64 dt)
 
 	//OldUpdate(dt);
 
-	pt.start();
+	//pt.start();
 	BroadPhase();
-	pt.end();
-	cout << "Threaded: " << pt.time() << endl;
+	//pt.end();
+	//cout << "Threaded: " << pt.time() << endl;
 
 	//IntegrateBoxForces(dt);
 	for (u32 i = 0; i < objects.size(); ++i)
@@ -358,7 +363,7 @@ void World::Update(f64 dt)
 	//cout << "Prestep time: " << pt.time() << endl;
 	
 	//pt.start();
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 15; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 		{
@@ -384,7 +389,14 @@ void World::Update(f64 dt)
 	//IntegrateBoxes(dt);
 
 	ot.end();
-	cout << "Frame time: " << ot.time() << endl;
+	frameTime = ot.time();
+
+	for(int i=0;i<objects.size();++i)
+	{
+		objects[i]->UpdateWorldSpaceProperties();
+	}
+
+	//cout << "Frame time: " << ot.time() << endl;
 };
 
 void World::Draw()
@@ -395,23 +407,6 @@ void World::Draw()
 	glScalef(zoom,zoom,1);
 	glTranslatef(camPos.x, camPos.y, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-	{ // bottom wall
-		const SimBody &wall = *objects[0];
-		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
-	}
-	{ // left wall
-		const SimBody &wall = *objects[1];
-		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
-	}
-	{ // right wall
-		const SimBody &wall = *objects[2];
-		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
-	}
-	{ // top wall
-		const SimBody &wall = *objects[3];
-		DrawLine(wall.position+wall.vertices[0], wall.position+wall.vertices[1], 1,0,0,2.0f);
-	}
 
 	for(u32 i=0;i<objects.size();++i)
 	{

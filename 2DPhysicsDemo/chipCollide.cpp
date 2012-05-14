@@ -51,7 +51,7 @@ static inline bool PolyShapeContainsVert(SimBody *poly, const float2 v)
 {
 	vector<SplittingPlane> &planes = poly->transformedSplittingPlanes;
 
-	for(u32 i=0; i<planes.size(); i++)
+	for(u32 i=0; i<poly->vertices.size(); i++)
 	{
 		float dist = SplittingPlaneCompare(planes[i], v);
 		if(dist > 0.0f) return false;

@@ -2,6 +2,8 @@
 
 float2 SimBody::gravity = float2(0, meters(-9.81f));
 
+int SimBody::GUID_GEN = 0;
+
 SimBody::SimBody(void)
 {
 	position.zero();

@@ -22,12 +22,12 @@ struct SplittingPlane
 	~SplittingPlane() {};
 };
 
-static int GUID_GEN = 0;
-
 // Base for physics objects
 class SimBody
 {
 public:
+	static int GUID_GEN;
+
 	SimBody();
 	~SimBody(void) {};
 

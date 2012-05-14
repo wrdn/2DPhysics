@@ -27,7 +27,7 @@ void FizzyWindow::OnDisplay()
 	//scn.Update(DT);
 	scn.Draw();
 
-	/*glDisable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
@@ -35,13 +35,12 @@ void FizzyWindow::OnDisplay()
 	glPushMatrix();
 	glLoadIdentity();
 	glRasterPos2f(0.5f, 0.9f);
-	Printf("Delta Time: %f", gameTime.GetDeltaTime());
-
+	Printf("Frame Time: %f", scn.frameTime);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);*/
+	glEnable(GL_DEPTH_TEST);
 
 	SwapBuffers();
 };
@@ -86,6 +85,8 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		camPos.x -= dt * camSpeed;
 		break;
 	case 'r':
+		scn.alive = false;
+		scn.primaryTaskPool->Join();
 		scn.Load();
 		return;
 		break;
@@ -96,15 +97,6 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 	}
 
 	scn.set_cam_pos(camPos);
-};
-
-void physthread(void *d)
-{
-	World *w = (World*)d;
-	while(w->alive)
-	{
-		w->Update(0.016f);
-	}
 };
 
 void FizzyWindow::OnCreate()
@@ -129,6 +121,7 @@ void FizzyWindow::OnCreate()
 	Printf("Loading . . .");
 	SwapBuffers();
 
+	scn.gt = &gameTime;
 	scn.Load();
 
 	glMatrixMode(GL_PROJECTION); glPopMatrix();   
@@ -137,8 +130,6 @@ void FizzyWindow::OnCreate()
 
 	gameTime.Update();
 	gameTime.Update();
-
-	scn.primaryTaskPool->AddTask(Task(physthread, &scn));
 };
 
 void FizzyWindow::OnDestroy()

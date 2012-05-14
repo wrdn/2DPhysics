@@ -59,6 +59,7 @@ public:
 
 	vector<IntegrationData> integration_data;
 
+	double frameTime;
 
 	struct PotentiallyColliding
 	{
@@ -87,6 +88,8 @@ public:
 	void CreateBoxes();
 	void CreateTriangles();
 	void CreateWalls();
+
+	void GeneratePyramid(int levels, const float2 & startPos); // startPos is the pos of the bottom left triangle
 
 	void BroadPhase();
 
