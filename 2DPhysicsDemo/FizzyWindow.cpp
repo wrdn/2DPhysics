@@ -14,6 +14,22 @@ FizzyWindow::~FizzyWindow(void)
 {
 }
 
+#define MAXSAMPLES 100
+int tickindex=0;
+float ticksum=0;
+float ticklist[MAXSAMPLES];
+double CalcAverageTick(float newtick)
+{
+    ticksum-=ticklist[tickindex];  /* subtract value falling off */
+    ticksum+=newtick;              /* add new value */
+    ticklist[tickindex]=newtick;   /* save new value so it can be subtracted later */
+    if(++tickindex==MAXSAMPLES)    /* inc buffer index */
+        tickindex=0;
+
+    /* return average */
+    return((double)ticksum/MAXSAMPLES);
+}
+
 void FizzyWindow::OnDisplay()
 {
 	//double DT = gameTime.Update();
@@ -34,8 +50,15 @@ void FizzyWindow::OnDisplay()
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
-	glRasterPos2f(0.5f, 0.9f);
-	Printf("Frame Time: %f", scn.frameTime);
+	glRasterPos2f(0.4f, 0.9f);
+
+	//prevTime = currentTime;
+	//currentTime = 1.0f/scn.frameTime;
+	//float avgTime = currentTime * 0.9 + prevTime*0.1f;
+
+	float avgTime = 1.0f/CalcAverageTick(scn.frameTime);
+
+	Printf("Frame Rate: %d", (int)avgTime);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);

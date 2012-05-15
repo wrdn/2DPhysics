@@ -16,6 +16,11 @@ private:
 
 	World scn;
 
+	float frameTimeBuffer[25];
+	int currentFrameTimeBufferPos;
+
+	float currentTime, prevTime;
+
 public:
 	FizzyWindow(void);
 	~FizzyWindow(void);
