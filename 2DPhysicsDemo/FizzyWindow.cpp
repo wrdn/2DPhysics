@@ -62,6 +62,42 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	switch(tolower(key))
 	{
+	case 'c':
+		{
+			if(!down)
+			{
+				scn.netController->cs.Lock();
+				scn.netController->netAlive = false;
+				scn.netController->cs.Unlock();
+
+				scn.netController->Close();
+
+				scn.primaryTaskPool_netThread->SigKill();
+				scn.primaryTaskPool_netThread->InitPool(1);
+
+				scn.netController->writeOffset = 0;
+				memset(scn.netController->buff, 0, sizeof(scn.netController->buff));
+				
+				scn.netController->Close();
+				scn.netController->Connect("127.0.0.1", 80);
+
+				scn.netController->connectionType = NetworkController::ClientConnection;
+
+				scn.netController->cs.Lock();
+				scn.netController->netAlive = true;
+				scn.netController->cs.Unlock();
+				
+				scn.primaryTaskPool_netThread->AddTask(Task(netthread, scn.netController));
+
+				//scn.netController->netAlive = false;
+				//scn.primaryTaskPool_netThread->Join();
+				//scn.netController->netAlive = true;
+				//scn.netController->Close();
+				//scn.netController->connectionType = NetworkController::ClientConnection;
+				//scn.netController->Connect("127.0.0.1", 80);
+				//scn.primaryTaskPool_netThread->AddTask(Task(netthread, scn.netController));
+			}
+		} break;
 	case 'q':
 		scn.set_zoom(scn.get_zoom() + dt * zoomSpeed);
 		break;

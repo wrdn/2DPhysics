@@ -136,4 +136,6 @@ public:
 	// Call InitPool(threadCount) to reset the pool
 	// This shouldn't be called often, only when required (e.g. at end of app)
 	void SigKill();
+
+	void KillThreads();
 };

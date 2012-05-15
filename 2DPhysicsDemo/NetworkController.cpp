@@ -65,6 +65,7 @@ NetworkController::NetworkController(void)
 	sock = INVALID_SOCKET;
 	writeOffset = 0;
 	connectionType = ServerConnection;
+	netAlive = true;
 }
 
 NetworkController::~NetworkController(void)
@@ -213,7 +214,8 @@ void NetworkController::Close()
 
 void NetworkController::Run()
 {
-	if(sock == INVALID_SOCKET) return;
+	if(sock == INVALID_SOCKET)
+		return;
 
 	FD_ZERO(&masterSet);
 	FD_ZERO(&readSet);
@@ -226,8 +228,15 @@ void NetworkController::Run()
 		mode = Listening;
 	}
 
-	while(true)
+	
+	bool f = true;
+
+	while(f)
 	{
+		cs.Lock();
+		f = netAlive;
+		cs.Unlock();
+
 		readSet = masterSet;
 		timeval to; to.tv_sec = to.tv_sec = 0;
 
@@ -245,6 +254,8 @@ void NetworkController::Run()
 
 				// If we accept a connection, it is now the "parent" of the connection.
 				mode = Connected | Authorisation;
+
+				connectionType = ClientConnection;
 
 				// Send ConnectAuth packets to tell the other machine what it is
 				// On connection send a packet describing "who" each machine is (specifically the ID they will put in objects to identify them as personally owned)
@@ -313,11 +324,11 @@ void NetworkController::Run()
 					closesocket(i); // bye!
 					FD_CLR(i, &masterSet);
 					
-					/*Close();
+					Close();
 					this->StartListening(this->port);
 					connectionType = ServerConnection;
 					mode = Listening;
-					peers.clear();*/
+					peers.clear();
 
 					break;
 				}
@@ -409,7 +420,8 @@ void NetworkController::Run()
 								StartInitData initData = startInitPacket.Unprepare();
 
 								init.gotStartInit = true;
-								
+								init.gotEndInit = false;
+
 								world->alive = false;
 								world->primaryTaskPool_physThread->Join();
 

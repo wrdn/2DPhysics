@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
+#include "ThreadPool.h"
 using namespace std;
 
 bool wsa_init();
@@ -39,6 +40,10 @@ class World;
 class NetworkController
 {
 public:
+
+	CriticalSection cs;
+	bool netAlive;
+
 	// Binary OR modes together to get functionality. E.g. once connected Connected bit will always be set
 	enum ExecutionMode
 	{

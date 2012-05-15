@@ -378,7 +378,7 @@ void World::Load()
 
 	netController = new NetworkController();
 	netController->SetWorldPointer(this);
-	//netController->StartListening(_port);
+	netController->StartListening(_port);
 
 	// the only other thread is the 'physics' thread
 	//primaryTaskPool = new ThreadPool();
@@ -401,8 +401,7 @@ void World::Load()
 	for(unsigned int i=0;i<objects.size();++i)
 		objects[i]->UpdateWorldSpaceProperties();
 
-	//netController->Close();
-	netController->Connect("127.0.0.1", 80);
+	//netController->Connect("127.0.0.1", 80);
 
 	primaryTaskPool_physThread->AddTask(Task(physthread, this));
 	primaryTaskPool_netThread->AddTask(Task(netthread, netController));
