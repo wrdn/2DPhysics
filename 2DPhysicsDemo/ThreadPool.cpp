@@ -134,7 +134,7 @@ void ThreadPool::SigKill()
 	// wait for all threads to end (if quick tasks they made have ended already, but we'll wait for them anyway)
 	if(threads.size())
 	{
-		WaitForMultipleObjects(threads.size(), &threads[0], TRUE, INFINITE);
+		WaitForMultipleObjects(threads.size(), &threads[0], TRUE, 100); // threads have 100ms to terminate before forced to terminate
 		for(unsigned int i=0;i<threads.size();++i) CloseHandle(threads[i]);
 		threads.clear();
 	}

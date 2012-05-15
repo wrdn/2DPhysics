@@ -9,10 +9,14 @@
 #include "Body.h"
 #include "ThreadPool.h"
 
+void physthread(void *d);
+void netthread(void *d);
+
 class World
 {
 public:
 	bool alive;
+	bool physicsPaused;
 
 	struct IntegrationData
 	{
@@ -30,7 +34,11 @@ public:
 	// thread pool should be used by physics code only - we are going to make assumptions about when a set of tasks has finished (when queue is empty)
 	// so don't use this pool for anything else
 	ThreadPool *physicsPool;
-	ThreadPool *primaryTaskPool; // used to manage threads that we're using to run the Render(), Step() etc
+	//ThreadPool *primaryTaskPool; // used to manage threads that we're using to run the Render(), Step() etc
+
+	ThreadPool *primaryTaskPool_physThread;
+	ThreadPool *primaryTaskPool_netThread;
+
 
 	NetworkController *netController;
 
@@ -123,4 +131,10 @@ public:
 	f32 get_cam_speed() { return camSpeed; };
 	float2 get_cam_pos() { return camPos; };
 	void set_cam_pos(const float2 &p) { camPos = p; };
+
+	// The Load() function will create the walls for us (first 4 objects). When we connect to another peer,
+	// this function will be called to allocate the objects for the rest of the scene. Then, the initialisation
+	// process will take place in the NetworkController to setup the physical properties of the objects
+	void CreateBaseObjects(float boxWidth, float boxHeight, float triangleSideLength,
+		int boxCount, int triangleCount);
 };

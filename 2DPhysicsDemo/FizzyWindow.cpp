@@ -35,7 +35,7 @@ void FizzyWindow::OnDisplay()
 	glPushMatrix();
 	glLoadIdentity();
 	glRasterPos2f(0.5f, 0.9f);
-	Printf("Frame Time: %f", scn.frameTime);
+	//Printf("Frame Time: %f", scn.frameTime);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);
@@ -84,12 +84,12 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		//camPos.x( camPos.x() - dt * camSpeed);
 		camPos.x -= dt * camSpeed;
 		break;
-	case 'r':
+	/*case 'r':
 		scn.alive = false;
 		scn.primaryTaskPool->Join();
 		scn.Load();
 		return;
-		break;
+		break;*/
 	case 'f':
 		if(!down) break;
 		scn.set_global_fill_mode(scn.get_global_fill_mode() == GL_LINE ? GL_FILL : GL_LINE);
@@ -137,7 +137,11 @@ void FizzyWindow::OnDestroy()
 	// Do not change the order of destruction
 	// Kill in reverse order so things are shut down properly
 	scn.alive = false;
-	scn.primaryTaskPool->SigKill();
+	//scn.primaryTaskPool->SigKill();
+
+	scn.primaryTaskPool_physThread->SigKill();
+	scn.primaryTaskPool_netThread->SigKill();
+
 	scn.Unload();
 };
 

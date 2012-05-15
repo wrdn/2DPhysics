@@ -101,6 +101,13 @@ public:
 	void Run();
 
 	void SendData(char *data, int size);
+
+	// Close the socket and set it to INVALID_SOCKET.
+	// Use this when you need to refresh it, either to start listening,
+	// or to connect to another machine.
+	// If you try and use a socket already in use for listening/connected,
+	// the functions will fail
+	void Close();
 };
 
 void NetThread(void *networkController);

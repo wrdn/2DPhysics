@@ -4,7 +4,11 @@
 #include "Collision.h"
 #include "chipCollide.h"
 
-World::World() : zoom(-3.45f), objects(0), alive(true) {};
+World::World() : zoom(-3.45f), objects(0), alive(true)
+{
+	physicsPaused = false;
+};
+
 World::~World()
 {
 	Unload();
@@ -313,15 +317,15 @@ void World::IntegrateBoxes(f64 dt)
 void World::Update(f64 dt)
 {
 	if(!alive) return;
-
+	//return;
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
-	dt = gt->Update();
+	//dt = gt->Update();
 	//dt = min(dt, 0.016); // keep dt in check, too big and bad stuff happens :(
-	dt = 0.016f;
+	//dt = 0.0005f;
 
-	//dt=0.016f;
+	dt=0.016f;
 
 	// transform vertices into new positions (for every object we own)
 	for(unsigned int i=0;i<objects.size();++i)

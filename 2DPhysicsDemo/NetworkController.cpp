@@ -205,6 +205,12 @@ void NetworkController::SendData(char *data, int size)
 	}
 };
 
+void NetworkController::Close()
+{
+	closesocket(sock);
+	sock = INVALID_SOCKET;
+};
+
 void NetworkController::Run()
 {
 	if(sock == INVALID_SOCKET) return;
@@ -220,7 +226,7 @@ void NetworkController::Run()
 		mode = Listening;
 	}
 
-	while(true)
+	while(world->alive)
 	{
 		readSet = masterSet;
 		timeval to; to.tv_sec = to.tv_sec = 0;
@@ -396,14 +402,14 @@ void NetworkController::Run()
 							{
 								StartInitData initData = startInitPacket.Unprepare();
 
-								// Process this data:
-								initData.boxCount;
-								initData.triangleCount;
-
 								init.gotStartInit = true;
+								
+								world->alive = false;
+								world->primaryTaskPool_physThread->Join();
 
-								// TODO: ALLOCATE ENOUGH MEMORY FOR BOXES AND TRIANGLES AND CREATE THE
-								// BASE OBJECTS (i.e. Call MakeBox(...) and MakeTriangle(...)
+								// Allocate all the memory we need for objects, so we can later just index into them
+								world->CreateBaseObjects(initData.boxWidth, initData.boxHeight, initData.triangleSideLength,
+									initData.boxCount, initData.triangleCount);
 							}
 						}
 						else
@@ -441,6 +447,18 @@ void NetworkController::Run()
 									InitObjectData iod = initObjectPacket.Unprepare();
 
 									// TODO: SETUP OBJECT BASED ON DATA IN iod
+									// SETUP OBJECT BASED ON DATA IN iod
+									vector<SimBody*> &objects = world->objects;
+									objects[iod.objectIndex]->position = iod.pos;
+									objects[iod.objectIndex]->velocity = iod.velocity;
+									objects[iod.objectIndex]->angularVelocity = iod.angularVelocity;
+									objects[iod.objectIndex]->mass = iod.mass;
+									objects[iod.objectIndex]->invMass = 1.0f/iod.mass;
+									objects[iod.objectIndex]->inertia = iod.inertia;
+									objects[iod.objectIndex]->invInertia = 1.0f/iod.inertia;
+									objects[iod.objectIndex]->rotation_in_rads = iod.orientation;
+									objects[iod.objectIndex]->UpdateWorldSpaceProperties();
+
 								}
 							}
 						}
@@ -473,7 +491,14 @@ void NetworkController::Run()
 
 								mode = Connected | Simulating; // once we've got the EndInit, we can flip into simulation mode.
 
-								// TODO: START SIMULATION HERE
+								world->physicsPaused=false;
+
+								// restart the physics thread
+								world->alive=true;
+								world->arbiters.clear();
+
+								world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
+
 							}
 						}
 						

@@ -210,7 +210,7 @@ void World::CreateWalls()
 	bottomBox->mesh = meshHandle;
 	//bottomBox->mesh = objects.back()->mesh;
 	bottomBox->width.set(meters(200), -5);
-	bottomBox->position.set(0, -2);
+	bottomBox->position.set(0, 0);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
@@ -381,9 +381,17 @@ void World::Load()
 	netController->StartListening(_port);
 
 	// the only other thread is the 'physics' thread
-	primaryTaskPool = new ThreadPool();
-	primaryTaskPool->InitPool(2);
-	primaryTaskPool->ClearTaskList();
+	//primaryTaskPool = new ThreadPool();
+	//primaryTaskPool->InitPool(2);
+	//primaryTaskPool->ClearTaskList();
+
+	primaryTaskPool_physThread = new ThreadPool();
+	primaryTaskPool_physThread->InitPool(1);
+	primaryTaskPool_physThread->ClearTaskList();
+
+	primaryTaskPool_netThread = new ThreadPool();
+	primaryTaskPool_netThread->InitPool(1);
+	primaryTaskPool_netThread->ClearTaskList();
 
 	alive = true;
 
@@ -393,127 +401,69 @@ void World::Load()
 	for(unsigned int i=0;i<objects.size();++i)
 		objects[i]->UpdateWorldSpaceProperties();
 
-	primaryTaskPool->AddTask(Task(physthread, this));
+	primaryTaskPool_physThread->AddTask(Task(physthread, this));
+	primaryTaskPool_netThread->AddTask(Task(netthread, netController));
 
-	primaryTaskPool->AddTask(Task(netthread, netController));
+	//primaryTaskPool->AddTask(Task(physthread, this));
+	//primaryTaskPool->AddTask(Task(netthread, netController));
 
 };
 
+void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSideLength,
+		int boxCount, int triangleCount)
+{
+	physicsPaused = true;
 
-//Body *b = new Body();
-	//b->Set(float2(100.0f, 20.0f), FLT_MAX);
-	//b->position.set(0.0f, -50);
-	//b->mass = b->invMass = b->invI = b->I = 0;
-	//b->boundingCircleRadius = 150;
+	vector<SimBody*> oldObjects = objects;
 
-	//float2 h = 0.5*b->width;
-	//b->vertices.push_back(float2(-h.x, -h.y));
-	//b->vertices.push_back(float2(h.x , -h.y));
-	//b->vertices.push_back(float2(h.x, h.x));
-	//b->vertices.push_back(float2(-h.x, h.x));
-	//b->m_radius = 0.0099999998;
-	//b->axes.push_back(float2(0,-1));
-	//b->axes.push_back(float2(1,0));
-	//b->axes.push_back(float2(0,1));
-	//b->axes.push_back(float2(-1,0));
-	//bodies.push_back(b);
-
-	//float bottomPos = b->position.y + b->width.y/2 + 0.6f;
-
-	//for(int i=0;i<1;++i)
-	//{
-	//	for(int j=0;j<2;++j)
-	//	{
-	//		Body *c = new Body();
-	//		c->Set(float2(1.0f, 1.0f), 200.0f);
-	//		
-	//		c->vertices.clear();
-	//		c->axes.clear();
-	//		
-	//		float2 h = 0.5*c->width;
-	//		c->vertices.push_back(float2(-h.x, -h.y));
-	//		c->vertices.push_back(float2(h.x , -h.y));
-	//		c->vertices.push_back(float2(h.x, h.x));
-	//		c->vertices.push_back(float2(-h.x, h.x));
-	//		c->m_radius = 0.0099999998;
-	//		c->axes.push_back(float2(0,-1));
-	//		c->axes.push_back(float2(1,0));
-	//		c->axes.push_back(float2(0,1));
-	//		c->axes.push_back(float2(-1,0));
-	//		
-	//		c->position.set(0, j*1.2);
-
-	//		c->boundingCircleRadius = 1.1;
-	//		bodies.push_back(c);
-	//	}
-	//}
-
-	/*Body *b = new Body();
-	b->Set(float2(100.0f, 20.0f), FLT_MAX);
-	b->position.set(0.0f, -0.5f * b->width.y);
-	b->mass = b->invMass = b->invI = b->I = 0;
-	bodies.push_back(new Body(*b));
-
-	b->Set(float2(1.0f, 1.0f), 200.0f);
-	b->position.set(0.0f, 4.0f);
-	bodies.push_back(new Body(*b));
-
-	b->Set(float2(1.0f, 1.0f), 200.0f);
-	b->position.set(0.4,8);
-	bodies.push_back(new Body(*b));
-
-	delete b;*/
-
-
-
-
-	/*float boxWidth = 100, boxHeight = 20;
-	Body *testBox = new Body();
-	testBox->mass = FLT_MAX; testBox->invMass = 0;
-	testBox->pos.set(0,-10);
-	testBox->dimensions.set(boxWidth, boxHeight);
-	testBox->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
-	testBox->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
-	testBox->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
-	testBox->vertices.push_back(float2(boxWidth/2, boxHeight/2));
-	testBox->restitution=0;
-	testBox->inertia = FLT_MAX; testBox->invInertia=0;
-	bodies.push_back(testBox);
-
+	vector<SimBody*> newBodies;
+	for(int i=0;i<4;++i)
 	{
-		Box *n = new Body();
-		n->friction = 0.2;
-		n->restitution = 0;
-		n->inertia = n->invInertia = 0;
-		n->dimensions.set(1,1);
-		n->pos.set(0,4);
-		boxWidth=n->dimensions.x; boxHeight=n->dimensions.y;
-		n->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
-		n->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
-		n->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
-		n->vertices.push_back(float2(boxWidth/2, boxHeight/2));
-		n->mass = 200; n->invMass = 1.0f/n->mass;
-		n->inertia = n->mass*(n->dimensions.x*n->dimensions.x + 
-			n->dimensions.y*n->dimensions.y)/12.0f;
-		n->invInertia=1.0f/n->inertia;
-		bodies.push_back(n);
+		newBodies.push_back(objects[i]);
 	}
 
+	// Generate the base objects for the boxes:
+	SimBody baseBox;
+	baseBox.MakeBox(boxWidth, boxHeight);
+	baseBox.objectMaterial.SetObjectColor(Color::RED);
+	baseBox.objectMaterial.AddTexture(mass_textures[0]);
+	baseBox.rotation_in_rads = 0;
+	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
+	baseBox.UpdateWorldSpaceProperties();
+
+	for(int i=0;i<boxCount;++i)
 	{
-		Box *n = new Body();
-		n->friction = 0.2;
-		n->restitution = 0;
-		n->inertia = n->invInertia = 0;
-		n->dimensions.set(1,1);
-		n->pos.set(0.4,8);
-		boxWidth=n->dimensions.x; boxHeight=n->dimensions.y;
-		n->vertices.push_back(float2(-boxWidth/2, boxHeight/2));
-		n->vertices.push_back(float2(-boxWidth/2, -boxHeight/2));
-		n->vertices.push_back(float2(boxWidth/2, -boxHeight/2));
-		n->vertices.push_back(float2(boxWidth/2, boxHeight/2));
-		n->mass = 200; n->invMass = 1.0f/n->mass;
-		n->inertia = n->mass*(n->dimensions.x*n->dimensions.x + 
-			n->dimensions.y*n->dimensions.y)/12.0f;
-		n->invInertia=1.0f/n->inertia;
-		bodies.push_back(n);
-	}*/
+		SimBody *box = new SimBody(baseBox);
+		box->hashid = ++SimBody::GUID_GEN;
+		newBodies.push_back(box);
+	}
+
+
+	// Now the triangles:
+	SimBody baseTriangle;
+	baseTriangle.MakeTriangle(triangleSideLength);
+	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
+	baseTriangle.objectMaterial.AddTexture(mass_textures[0]);
+	baseTriangle.rotation_in_rads = 0;
+	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
+	baseTriangle.UpdateWorldSpaceProperties();
+
+	firstTriangleIndex = newBodies.size();
+
+	for(int i=0;i<triangleCount;++i)
+	{
+		SimBody *tri = new SimBody(baseTriangle);
+		tri->hashid = ++SimBody::GUID_GEN;
+		newBodies.push_back(tri);
+	}
+
+
+	objects = newBodies;
+
+	for(int i=4;i<oldObjects.size();++i)
+	{
+		delete oldObjects[i];
+	}
+
+	physicsPaused = false;
+};
