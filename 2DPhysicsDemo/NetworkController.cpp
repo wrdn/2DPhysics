@@ -255,8 +255,6 @@ void NetworkController::Run()
 				// If we accept a connection, it is now the "parent" of the connection.
 				mode = Connected | Authorisation;
 
-				connectionType = ClientConnection;
-
 				// Send ConnectAuth packets to tell the other machine what it is
 				// On connection send a packet describing "who" each machine is (specifically the ID they will put in objects to identify them as personally owned)
 				// Note: the numbers 1 and 2 have been chosen specifically. These numbers will allow us to differentiate between 2 different owners using binary logic
@@ -306,6 +304,8 @@ void NetworkController::Run()
 				}
 
 				delete [] initialisationBuffer;
+
+				connectionType = ClientConnection;
 			}
 			else
 			{
@@ -324,10 +324,17 @@ void NetworkController::Run()
 					closesocket(i); // bye!
 					FD_CLR(i, &masterSet);
 					
+					FD_ZERO(&readSet);
+
+					FD_SET(sock, &masterSet);
+					fdmax = sock;
+
+					cout << "Started listening " << endl;
 					Close();
-					this->StartListening(this->port);
 					connectionType = ServerConnection;
-					mode = Listening;
+					this->StartListening(this->port);
+					writeOffset = 0;
+					memset(buff,0,sizeof(buff));
 					peers.clear();
 
 					break;
