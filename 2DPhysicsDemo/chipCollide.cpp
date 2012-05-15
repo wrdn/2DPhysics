@@ -81,7 +81,7 @@ static inline bool PolyShapeContainsVertPartial(SimBody *poly, const float2 v, c
 {
 	SplittingPlane *planes = &poly->transformedSplittingPlanes[0];
 	
-	for(int i=0; i<poly->vertices.size(); i++)
+	for(unsigned int i=0; i<poly->vertices.size(); i++)
 	{
 		if(planes[i].N.dot(n) < 0.0f) continue;
 
@@ -98,7 +98,7 @@ static int FindVertsFallback(Arbiter &output_arb, SimBody *poly1, SimBody *poly2
 	int num = 0;
 	Arbiter &arb = output_arb;
 
-	for(int i=0; i<poly1->vertices.size(); i++)
+	for(unsigned int i=0; i<poly1->vertices.size(); i++)
 	{
 		float2 v = poly1->transformedVertices[i];
 		if(PolyShapeContainsVertPartial(poly2, v, n.negate()))
@@ -107,7 +107,7 @@ static int FindVertsFallback(Arbiter &output_arb, SimBody *poly1, SimBody *poly2
 		}
 	}
 
-	for(int i=0; i<poly2->vertices.size(); i++)
+	for(unsigned int i=0; i<poly2->vertices.size(); i++)
 	{
 		float2 v = poly2->transformedVertices[i];
 		if(PolyShapeContainsVertPartial(poly1, v, n))

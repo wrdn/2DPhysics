@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NetworkController.h"
 #include "ctypes.h"
 #include <GXBase.h>
 #include "float2.h"

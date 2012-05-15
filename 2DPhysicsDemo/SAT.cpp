@@ -270,8 +270,8 @@ bool ConvertSupportPointsToContacts(const float2& N, float2* S0, u32 S0num,
 		max0 = S0[1].dot(xPerp);
 		if(max0 < min0)
 		{
-			swap(min0, max0);
-			swap(S0[0], S0[1]);
+			std::swap(min0, max0);
+			std::swap(S0[0], S0[1]);
 		}
 	}
 	if(S1num == 2)
@@ -279,8 +279,8 @@ bool ConvertSupportPointsToContacts(const float2& N, float2* S0, u32 S0num,
 		max1 = S1[1].dot(xPerp);
 		if(max1 < min1)
 		{
-			swap(min1,max1);
-			swap(S1[0], S1[1]);
+			std::swap(min1,max1);
+			std::swap(S1[0], S1[1]);
 		}
 	}
 

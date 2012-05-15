@@ -40,7 +40,7 @@ bool ThreadPool::Alive()
 
 int ThreadPool::InitPool(int threadCount)
 {
-	if(threads.size() == threadCount) return -1; // already initialised, dont reinit
+	if(threads.size() == (unsigned int)threadCount) return -1; // already initialised, dont reinit
 
 	// otherwise there is < or > the thread count we want, so kill all the current threads (if any) and reset
 	SigKill();

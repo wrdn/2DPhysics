@@ -52,7 +52,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>.\..\Libraries\GXBase\lib\Debug;.\..\Libraries\VisualLeakDetector\lib\Win32;.\Libraries\AntTweakBar\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gxbasemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gxbasemd.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -73,7 +73,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>.\..\Libraries\GXBase\lib\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gxbasem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gxbasem.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -96,6 +96,7 @@
     <ClCompile Include="Mat44.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MyApp.cpp" />
+    <ClCompile Include="NetworkController.cpp" />
     <ClCompile Include="PerfTimer.cpp" />
     <ClCompile Include="PolyCollider.cpp" />
     <ClCompile Include="Quaternion.cpp" />
@@ -130,6 +131,7 @@
     <ClInclude Include="GameTime.h" />
     <ClInclude Include="GraphicsUtils.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="Marshall.h" />
     <ClInclude Include="Mat22.h" />
     <ClInclude Include="Mat44.h" />
     <ClInclude Include="Material.h" />
@@ -138,6 +140,8 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MyApp.h" />
     <ClInclude Include="Namable.h" />
+    <ClInclude Include="NetworkController.h" />
+    <ClInclude Include="NetworkPacket.h" />
     <ClInclude Include="PerfTimer.h" />
     <ClInclude Include="Quaternion.h" />
     <ClInclude Include="RenderTarget.h" />

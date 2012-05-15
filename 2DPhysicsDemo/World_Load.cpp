@@ -149,7 +149,7 @@ void World::CreateTriangles()
 	float startY = 11.5;
 
 	// First row
-	for(int i=0;i<10;++i)
+	for(int i=0;i<2;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
 		tri->hashid = ++SimBody::GUID_GEN;
@@ -166,10 +166,7 @@ void World::CreateTriangles()
 		objects.push_back(tri);
 	}
 
-
-	return;
-
-	startX = meters(-15);
+	/*startX = meters(-15);
 	for(int i=0;i<9;++i)
 	{
 		SimBody *tri = new SimBody(baseTriangle);
@@ -201,97 +198,11 @@ void World::CreateTriangles()
 		tri->fillMode = GL_LINE;
 		objects.push_back(tri);
 	}
-
+	*/
 };
 
 void World::CreateWalls()
 {
-	SimBody *bottomWall = new SimBody();
-	SimBody *leftWall, *rightWall, *topWall;
-
-	bottomWall->objectMaterial.SetObjectColor(Color::RED);
-	bottomWall->mass = bottomWall->invMass = 0;
-	bottomWall->rotation_in_rads = 0;
-	bottomWall->CalculateRotationMatrix();
-	bottomWall->fillMode = GL_LINE;
-	leftWall = new SimBody(*bottomWall); rightWall = new SimBody(*bottomWall); topWall = new SimBody(*bottomWall);
-	bottomWall->vertices.push_back(float2(-30,0));
-	bottomWall->vertices.push_back(float2(30,0));
-	SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
-	bottomWall->position.set(0,-30);
-	//bottomWall->width.set(60, 1);
-
-	objects.push_back(bottomWall);
-
-	leftWall->vertices.push_back(float2(0,30));
-	leftWall->vertices.push_back(float2(0,-30));
-	SAT::GenerateSeperatingAxes(leftWall->vertices, leftWall->seperatingAxis);
-	leftWall->position.set(-30,0);
-	objects.push_back(leftWall);
-
-	rightWall->vertices.push_back(float2(0,30));
-	rightWall->vertices.push_back(float2(0,-30));
-	SAT::GenerateSeperatingAxes(rightWall->vertices, rightWall->seperatingAxis);
-	rightWall->position.set(30,0);
-	objects.push_back(rightWall);
-
-	topWall->vertices.push_back(float2(-30,0));
-	topWall->vertices.push_back(float2(30,0));
-	SAT::GenerateSeperatingAxes(topWall->vertices, topWall->seperatingAxis);
-	topWall->position.set(0,30);
-	objects.push_back(topWall);
-};
-
-#include "Contact.h"
-#include "chipCollide.h"
-#include "Arbiter.h"
-
-void physthread(void *d)
-{
-	World *w = (World*)d;
-	while(w->alive)
-	{
-		w->Update(0.016f);
-	}
-};
-
-void World::Load()
-{
-	Unload();
-	srand((u32)time(NULL));
-
-	conf.ParseConfigFile("Data/ConfigFile.txt");
-	
-	zoom = conf.Read("ZoomLevel", -3.45f);
-	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
-	camSpeed = conf.Read("CameraSpeed", 5.0f);
-
-	zoomSpeed = conf.Read("ZoomSpeed", 0.03f);
-
-	SimBody::gravity = conf.Read("gravity", default_gravity);
-	//if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
-	//SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
-	
-	updateRate = conf.Read("UpdateRate", 100U);
-
-	DContact::cmat.coFriction = conf.Read("Friction", DContact::cmat.coFriction);
-	DContact::cmat.coRestitution = conf.Read("Restitution", DContact::cmat.coRestitution);
-	DContact::cmat.coStaticFriction = conf.Read("StaticFriction", DContact::cmat.coStaticFriction);
-
-	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
-	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));
-	mass_textures[2] = LoadTexture("Data/" + conf.Read("HeavyTexture", "Heavy.bmp"));
-
-	masses[0] = conf.Read("MassLight", 100.0f);
-	masses[1] = conf.Read("MassMedium", 200.0f);
-	masses[2] = conf.Read("MassHeavy", 300.0f);
-	invMasses[0] = 1.0f/masses[0];
-	invMasses[1] = 1.0f/masses[1];
-	invMasses[2] = 1.0f/masses[2];
-
-	//CreateWalls();
-	CreateBoxes();
-
 	MeshHandle meshHandle = Create2DBox(1,1);
 
 	SimBody *bottomBox = new SimBody();
@@ -315,7 +226,7 @@ void World::Load()
 		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
-	bottomBox->MakeBox(meters(200), 0.01);
+	bottomBox->MakeBox(meters(200), 0.01f);
 	bottomBox->UpdateWorldSpaceProperties();
 	objects.push_back(bottomBox);
 
@@ -352,6 +263,99 @@ void World::Load()
 	rightBox->hashid = ++SimBody::GUID_GEN;
 	rightBox->position.set(meters(100), meters(50));
 	objects.push_back(rightBox);
+	
+	//SimBody *bottomWall = new SimBody();
+	//SimBody *leftWall, *rightWall, *topWall;
+
+	//bottomWall->objectMaterial.SetObjectColor(Color::RED);
+	//bottomWall->mass = bottomWall->invMass = 0;
+	//bottomWall->rotation_in_rads = 0;
+	//bottomWall->CalculateRotationMatrix();
+	//bottomWall->fillMode = GL_LINE;
+	//leftWall = new SimBody(*bottomWall); rightWall = new SimBody(*bottomWall); topWall = new SimBody(*bottomWall);
+	//bottomWall->vertices.push_back(float2(-30,0));
+	//bottomWall->vertices.push_back(float2(30,0));
+	//SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
+	//bottomWall->position.set(0,-30);
+	////bottomWall->width.set(60, 1);
+
+	//objects.push_back(bottomWall);
+
+	//leftWall->vertices.push_back(float2(0,30));
+	//leftWall->vertices.push_back(float2(0,-30));
+	//SAT::GenerateSeperatingAxes(leftWall->vertices, leftWall->seperatingAxis);
+	//leftWall->position.set(-30,0);
+	//objects.push_back(leftWall);
+
+	//rightWall->vertices.push_back(float2(0,30));
+	//rightWall->vertices.push_back(float2(0,-30));
+	//SAT::GenerateSeperatingAxes(rightWall->vertices, rightWall->seperatingAxis);
+	//rightWall->position.set(30,0);
+	//objects.push_back(rightWall);
+
+	//topWall->vertices.push_back(float2(-30,0));
+	//topWall->vertices.push_back(float2(30,0));
+	//SAT::GenerateSeperatingAxes(topWall->vertices, topWall->seperatingAxis);
+	//topWall->position.set(0,30);
+	//objects.push_back(topWall);
+};
+
+#include "Contact.h"
+#include "chipCollide.h"
+#include "Arbiter.h"
+
+void physthread(void *d)
+{
+	World *w = (World*)d;
+	while(w->alive)
+	{
+		w->Update(0.016f);
+	}
+};
+
+void netthread(void *d)
+{
+	NetworkController *nc = (NetworkController*)d;
+	nc->Run();
+};
+
+void World::Load()
+{
+	Unload();
+	srand((u32)time(NULL));
+
+	conf.ParseConfigFile("Data/ConfigFile.txt");
+	
+	zoom = conf.Read("ZoomLevel", -3.45f);
+	camPos = conf.Read("CameraPosition", float2(-1.9f, -2.4f));
+	camSpeed = conf.Read("CameraSpeed", 5.0f);
+
+	zoomSpeed = conf.Read("ZoomSpeed", 0.03f);
+
+	SimBody::gravity = conf.Read("gravity", default_gravity);
+	//if(conf.TryRead("gravity", SimBody::gravity, default_gravity))
+	//SimBody::gravity.set(meters(SimBody::gravity.x), meters(SimBody::gravity.y));
+	
+	updateRate = conf.Read("UpdateRate", 100U);
+
+	DContact::cmat.coFriction = conf.Read("Friction", DContact::cmat.coFriction);
+	DContact::cmat.coRestitution = conf.Read("Restitution", DContact::cmat.coRestitution);
+	DContact::cmat.coStaticFriction = conf.Read("StaticFriction", DContact::cmat.coStaticFriction);
+
+	mass_textures[0] = LoadTexture("Data/" + conf.Read("LightTexture", "Light.bmp"));
+	mass_textures[1] = LoadTexture("Data/" + conf.Read("MediumTexture", "Medium.bmp"));
+	mass_textures[2] = LoadTexture("Data/" + conf.Read("HeavyTexture", "Heavy.bmp"));
+
+	masses[0] = conf.Read("MassLight", 100.0f);
+	masses[1] = conf.Read("MassMedium", 200.0f);
+	masses[2] = conf.Read("MassHeavy", 300.0f);
+	invMasses[0] = 1.0f/masses[0];
+	invMasses[1] = 1.0f/masses[1];
+	invMasses[2] = 1.0f/masses[2];
+
+	CreateWalls();
+	
+	CreateBoxes();
 
 	firstTriangleIndex = objects.size();
 	
@@ -370,9 +374,15 @@ void World::Load()
 	//physicsPool->InitPool(0);
 	//physicsPool->ClearTaskList();
 
+	unsigned short _port = conf.Read("Port", (unsigned short)80U);
+
+	netController = new NetworkController();
+	netController->SetWorldPointer(this);
+	netController->StartListening(_port);
+
 	// the only other thread is the 'physics' thread
 	primaryTaskPool = new ThreadPool();
-	primaryTaskPool->InitPool(1);
+	primaryTaskPool->InitPool(2);
 	primaryTaskPool->ClearTaskList();
 
 	alive = true;
@@ -380,10 +390,13 @@ void World::Load()
 	// make array big enough that it will never need to be made bigger (memory alloc = slow!)
 	integration_data.reserve(1024);
 
-	for(int i=0;i<objects.size();++i)
+	for(unsigned int i=0;i<objects.size();++i)
 		objects[i]->UpdateWorldSpaceProperties();
 
 	primaryTaskPool->AddTask(Task(physthread, this));
+
+	primaryTaskPool->AddTask(Task(netthread, netController));
+
 };
 
 

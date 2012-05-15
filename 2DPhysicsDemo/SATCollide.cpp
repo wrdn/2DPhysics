@@ -68,8 +68,8 @@ bool SATCollide(SimBody *body1, SimBody *body2, float2 &N, f32 &t)
 
 	if(a.vertices.size() < 2 && b.vertices.size() < 2) return false;
 
-	Mat22 &OA = Mat22::RotationMatrix(a.rotation_in_rads);
-	Mat22 &OB = Mat22::RotationMatrix(b.rotation_in_rads);
+	Mat22 OA = Mat22::RotationMatrix(a.rotation_in_rads);
+	Mat22 OB = Mat22::RotationMatrix(b.rotation_in_rads);
 	Mat22 OB_T = OB.Transpose();
 
 	Mat22 xOrient = OA * OB_T;

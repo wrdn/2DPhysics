@@ -324,7 +324,7 @@ void World::Update(f64 dt)
 	//dt=0.016f;
 
 	// transform vertices into new positions (for every object we own)
-	for(int i=0;i<objects.size();++i)
+	for(unsigned int i=0;i<objects.size();++i)
 	{
 		objects[i]->UpdateWorldSpaceProperties();
 	}
@@ -391,7 +391,7 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
-	for(int i=0;i<objects.size();++i)
+	for(unsigned int i=0;i<objects.size();++i)
 	{
 		objects[i]->UpdateWorldSpaceProperties();
 	}

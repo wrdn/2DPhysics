@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NetworkController.h"
 #include "Mat22.h"
 #include "float2.h"
 #include "Mesh.h"

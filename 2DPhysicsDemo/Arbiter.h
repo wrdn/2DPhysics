@@ -1,8 +1,8 @@
 #pragma once
 
+#include "SimBody.h"
 #include "MathUtils.h"
 #include "float2.h"
-#include "SimBody.h"
 
 struct Body;
 

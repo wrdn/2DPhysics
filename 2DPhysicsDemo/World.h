@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NetworkController.h"
 #include "ResourceManager.h"
 #include "AppConfig.h"
 #include "SimBody.h"
@@ -30,6 +31,8 @@ public:
 	// so don't use this pool for anything else
 	ThreadPool *physicsPool;
 	ThreadPool *primaryTaskPool; // used to manage threads that we're using to run the Render(), Step() etc
+
+	NetworkController *netController;
 
 	AppConfig conf;
 	TextureHandle mass_textures[3];

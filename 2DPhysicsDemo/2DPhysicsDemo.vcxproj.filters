@@ -64,6 +64,12 @@
     <Filter Include="Source Files\Physics\chipmunk">
       <UniqueIdentifier>{2c15f5db-f94b-4c87-9766-71d89ab581cf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Network">
+      <UniqueIdentifier>{9b1d5457-ceb6-42dd-aefe-bb64360ae958}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Network">
+      <UniqueIdentifier>{a8696ea9-0b31-4675-bfd9-50fc8c9c6225}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -167,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="chipCollide.cpp">
       <Filter>Source Files\Physics\chipmunk</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkController.cpp">
+      <Filter>Source Files\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -286,6 +295,15 @@
     </ClInclude>
     <ClInclude Include="chipCollide.h">
       <Filter>Header Files\Physics\chipmunk</Filter>
+    </ClInclude>
+    <ClInclude Include="Marshall.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkPacket.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkController.h">
+      <Filter>Header Files\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
