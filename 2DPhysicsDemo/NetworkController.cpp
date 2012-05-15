@@ -226,7 +226,7 @@ void NetworkController::Run()
 		mode = Listening;
 	}
 
-	while(world->alive)
+	while(true)
 	{
 		readSet = masterSet;
 		timeval to; to.tv_sec = to.tv_sec = 0;
@@ -246,12 +246,12 @@ void NetworkController::Run()
 				// If we accept a connection, it is now the "parent" of the connection.
 				mode = Connected | Authorisation;
 
-				connectionType = ServerConnection;
-
 				// Send ConnectAuth packets to tell the other machine what it is
 				// On connection send a packet describing "who" each machine is (specifically the ID they will put in objects to identify them as personally owned)
 				// Note: the numbers 1 and 2 have been chosen specifically. These numbers will allow us to differentiate between 2 different owners using binary logic
 				// e.g. owner & 0x01. If we set the number to 3 however, the object will have 2 owners (a combination of 1 and 2 in binary). Thus, if (owner && 3) it has 2 owners
+
+
 				ConnectAuthPacket cup;
 				cup.Prepare(1,2);
 				send(out.socket, (const char*)&cup, sizeof(ConnectAuthPacket), 0);
@@ -312,6 +312,12 @@ void NetworkController::Run()
 
 					closesocket(i); // bye!
 					FD_CLR(i, &masterSet);
+					
+					/*Close();
+					this->StartListening(this->port);
+					connectionType = ServerConnection;
+					mode = Listening;
+					peers.clear();*/
 
 					break;
 				}
@@ -428,13 +434,8 @@ void NetworkController::Run()
 
 						if(tmp <= lastByte)
 						{
-							cout << "Got an InitObject packet!" << endl;
-
 							memcpy(&initObjectPacket, f, sizeof(InitObjectPacket));
 							f += sizeof(InitObjectPacket);
-
-							InitObjectData k = initObjectPacket.Unprepare();
-							cout << "Mass: " << k.mass << endl;
 
 							if(mode & Initialisation)
 							{

@@ -316,8 +316,9 @@ void World::IntegrateBoxes(f64 dt)
 
 void World::Update(f64 dt)
 {
-	if(!alive) return;
-	//return;
+	if(!alive)
+		return;
+	
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 

@@ -35,7 +35,7 @@ void FizzyWindow::OnDisplay()
 	glPushMatrix();
 	glLoadIdentity();
 	glRasterPos2f(0.5f, 0.9f);
-	//Printf("Frame Time: %f", scn.frameTime);
+	Printf("Frame Time: %f", scn.frameTime);
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);

@@ -66,9 +66,6 @@ void SimBody::Draw()
 	glColor3fv(objectMaterial.GetObjectColor().GetVec());
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glColor3f(1,1,1);
-
 	glBegin(GL_LINE_LOOP);
 	for(u32 i=0;i<transformedVertices.size();++i)
 	{

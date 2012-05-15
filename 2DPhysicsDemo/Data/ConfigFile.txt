@@ -27,3 +27,4 @@ MassLight = 50
 MassMedium = 50
 MassHeavy = 50
 Port = 80
+ConnectionAddress = "127.0.0.1"
