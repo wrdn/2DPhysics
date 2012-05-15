@@ -79,9 +79,18 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 				memset(scn.netController->buff, 0, sizeof(scn.netController->buff));
 				
 				scn.netController->Close();
-				scn.netController->Connect("127.0.0.1", 80);
-
-				scn.netController->connectionType = NetworkController::ClientConnection;
+				if(scn.netController->Connect("127.0.0.1", 80))
+				{
+					scn.netController->connectionType = NetworkController::ClientConnection;
+				}
+				else
+				{
+					scn.netController->Close();
+					if(scn.netController->StartListening(80))
+					{
+						cout << "started listening again" << endl;
+					}
+				}
 
 				scn.netController->cs.Lock();
 				scn.netController->netAlive = true;
