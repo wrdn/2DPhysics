@@ -315,11 +315,25 @@ void World::IntegrateBoxes(f64 dt)
 	//physicsPool->FinishAllTasks();
 };
 
+bool close(float2 &a, float2 &b)
+{
+	//Near: return val >= target-EPSILON && val <= target+EPSILON;
+
+	const f32 CLOSE = 0.001f;
+	if(a.x >= b.x - CLOSE && a.x <= b.x + CLOSE)
+		if(a.y >= b.y - CLOSE && a.y <= b.y + CLOSE)
+			return true;
+
+	return false;
+};
+
 void World::Update(f64 dt)
 {
 	if(!alive)
 		return;
 	
+	static float t_time = 0;
+
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
@@ -423,13 +437,49 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
-	if(netController->mode & NetworkController::Connected)
+	t_time += frameTime;
+
+	if(t_time > 0.0f && alive && (netController->mode&NetworkController::Simulating))
 	{
-		for(int i=0;i<=netController->fdmax;++i)
+		t_time = 0;
+		// send data every 300ms approx
+
+		static vector<PositionOrientationUpdatePacket> updatePacks;
+		updatePacks.clear();
+		if(netController->mode & NetworkController::Connected)
 		{
-			PositionOrientationUpdatePacket pop;
-			pop.Prepare(1, float2(0,80), 0);
-			send(i, (char*)&pop, sizeof(pop), 0);
+			for(int i=0;i<=netController->fdmax;++i)
+			{
+				// send all the objects I own
+
+				for(int j=4;j<objects.size();++j)
+				{
+					if(objects[j]->owner == SimBody::whoami)
+					{
+						if(!close(objects[j]->position, objects[j]->last_pos_sent))
+						{
+							PositionOrientationUpdatePacket pop;
+							pop.Prepare(j, objects[j]->position, objects[j]->rotation_in_rads);
+
+							updatePacks.push_back(pop);
+							objects[j]->last_pos_sent = objects[j]->position;
+						}
+					}
+				}
+			}
+		}
+
+		int amountSent=0;
+		if(netController->mode & NetworkController::Connected)
+		{
+			for(int i=0;i<=netController->fdmax;++i)
+			{
+				amountSent = 0;
+				while(amountSent < sizeof(PositionOrientationUpdatePacket)*updatePacks.size())
+				{
+					amountSent += send(i, (char*)(&updatePacks[0]), sizeof(PositionOrientationUpdatePacket)*updatePacks.size(), 0);
+				}
+			}
 		}
 	}
 };

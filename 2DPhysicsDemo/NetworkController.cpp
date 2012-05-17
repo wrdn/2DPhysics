@@ -245,7 +245,7 @@ void NetworkController::Run()
 		mode = Listening;
 	}
 
-	
+
 	bool f = true;
 
 	while(f)
@@ -261,8 +261,8 @@ void NetworkController::Run()
 
 		// can we read?
 		if(select(fdmax+1, &readSet, 0,0,&to) == -1)
-			return;
-		
+			continue;
+
 		for(int i=0;i<=fdmax;++i)
 		{
 			if(!FD_ISSET(i, &readSet)) continue;
@@ -275,11 +275,13 @@ void NetworkController::Run()
 				// If we accept a connection, it is now the "parent" of the connection.
 				mode = Connected | Authorisation;
 
+				world->alive = false;
+				world->primaryTaskPool_physThread->Join();
+
 				// Send ConnectAuth packets to tell the other machine what it is
 				// On connection send a packet describing "who" each machine is (specifically the ID they will put in objects to identify them as personally owned)
 				// Note: the numbers 1 and 2 have been chosen specifically. These numbers will allow us to differentiate between 2 different owners using binary logic
 				// e.g. owner & 0x01. If we set the number to 3 however, the object will have 2 owners (a combination of 1 and 2 in binary). Thus, if (owner && 3) it has 2 owners
-
 
 				ConnectAuthPacket cup;
 				cup.Prepare(2,1); // we give the machine connecting to us ID 2, we keep ID 1
@@ -291,8 +293,8 @@ void NetworkController::Run()
 				mode = Connected | Initialisation;
 
 				int initBuffSz = sizeof(StartInitPacket) + 
-						(sizeof(InitObjectPacket) * (world->objects.size()-4)) +
-						sizeof(EndInitPacket);
+					(sizeof(InitObjectPacket) * (world->objects.size()-4)) +
+					sizeof(EndInitPacket);
 				char *initialisationBuffer = new char[initBuffSz];
 				memset(initialisationBuffer, 0, initBuffSz);
 
@@ -323,11 +325,10 @@ void NetworkController::Run()
 				for(unsigned int i=4;i<world->objects.size();++i)
 				{
 					SimBody* s = world->objects[i];
-					
+
 					InitObjectPacket iop;
 
 					int index=1;
-					//if(i>world->objects.size()/2)
 					if(s->position.x >= midX)
 					{
 						index=2;
@@ -350,6 +351,9 @@ void NetworkController::Run()
 				delete [] initialisationBuffer;
 
 				connectionType = ClientConnection;
+
+				world->alive = true;
+				world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
 			}
 			else
 			{
@@ -367,7 +371,7 @@ void NetworkController::Run()
 
 					closesocket(i); // bye!
 					FD_CLR(i, &masterSet);
-					
+
 					FD_ZERO(&readSet);
 					FD_ZERO(&writeSet);
 
@@ -399,10 +403,56 @@ void NetworkController::Run()
 				// note: regardless of the application mode, we should ALWAYS process the packet enough to get the data out of the buffer
 				// otherwise it will be stuck there and we will be in trouble as 'f' will never be moved :(
 
-				
+				PositionOrientationUpdatePacket posOrientationPacket;
+				char *tmp=0;
+
 				while(f < lastByte)
 				{
 					char type = *f; // get the type (assumed at start), process the packet and move f as far forward as required
+
+					if(mode & Simulating)
+					{
+						switch(type)
+						{
+						case PositionOrientationUpdate:
+
+							tmp = f + sizeof(PositionOrientationUpdatePacket);
+
+							if(tmp <= lastByte)
+							{
+								//cout << "gotpou" << endl;
+
+								memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
+								f += sizeof(PositionOrientationUpdatePacket);
+								PositionOrientationData pod = posOrientationPacket.Unprepare();
+
+								if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
+								{
+									vector<SimBody*> &objects = world->objects;
+									objects[pod.objectIndex]->position = pod.pos;
+									objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
+									objects[pod.objectIndex]->UpdateWorldSpaceProperties();
+								}
+
+							}
+							else
+							{
+								char *dataPosition = f;
+								int amountOfDataToMoveBack = lastByte - dataPosition;
+								writeOffset = amountOfDataToMoveBack;
+								memcpy(buff, dataPosition, amountOfDataToMoveBack);
+								f = lastByte;
+							}
+
+							break;
+
+						default:
+							++f;
+							break;
+						}
+
+						continue;
+					}
 
 					ConnectAuthPacket authPacket;
 					StartInitPacket startInitPacket;
@@ -414,10 +464,11 @@ void NetworkController::Run()
 					// Process all the packets from the buffer
 					switch(type)
 					{
-					//case KeepAlive:
-					//	cout << "Got a KeepAlive packet!" << endl;
+					case KeepAlive:
+						cout << "Got a KeepAlive packet!" << endl;
+						f += sizeof(KeepAlivePacket);
 						//++f; // keep alive is a single byte packet, so just increment 'f'
-						//break;
+						break;
 					case ConnectAuth:
 
 						tmp = f + sizeof(ConnectAuthPacket);
@@ -450,7 +501,7 @@ void NetworkController::Run()
 						break;
 
 					case StartInit:
-						
+
 						tmp = f + sizeof(StartInitPacket);
 
 						if( tmp <= lastByte )
@@ -459,7 +510,7 @@ void NetworkController::Run()
 
 							memcpy(&startInitPacket, f, sizeof(StartInitPacket));
 							f += sizeof(StartInitPacket);
-							
+
 							StartInitData initData2 = startInitPacket.Unprepare();
 							cout << "Box Count: " << initData2.boxCount << " , Triangle Count: " << initData2.triangleCount << endl;
 
@@ -534,7 +585,7 @@ void NetworkController::Run()
 							memcpy(buff, dataPosition, amountOfDataToMoveBack);
 							f = lastByte;
 						}
-						
+
 						break;
 					case EndInit:
 
@@ -563,7 +614,7 @@ void NetworkController::Run()
 
 							}
 						}
-						
+
 						break;
 
 					case PositionOrientationUpdate:
@@ -576,7 +627,7 @@ void NetworkController::Run()
 
 							memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
 							f += sizeof(PositionOrientationUpdatePacket);
-							
+
 							PositionOrientationData pod = posOrientationPacket.Unprepare();
 							//cout << "Position: " << pod.pos.x << "," << pod.pos.y << " ; "
 							//	<< "Orientation: " << pod.orientation << endl;

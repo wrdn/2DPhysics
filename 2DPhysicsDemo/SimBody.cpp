@@ -67,7 +67,17 @@ void SimBody::Draw()
 
 	// draw
 	glDisable(GL_CULL_FACE);
-	glColor3fv(objectMaterial.GetObjectColor().GetVec());
+
+	if(owner == SimBody::whoami)
+	{
+		//glColor3fv(objectMaterial.GetObjectColor().GetVec());
+		glColor3f(1,0,0);
+	}
+	else
+	{
+		glColor3f(0,1,0);
+	}
+	
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
 	glBegin(GL_LINE_LOOP);
