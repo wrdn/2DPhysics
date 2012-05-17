@@ -30,7 +30,7 @@ void BroadPhaseTask(void *bp)
 	for(int i=bt->firstIndex;i<bt->lastIndex;++i)
 	{
 		SimBody *other = bodies->at(i);;
-		
+
 		if(base == other) continue;
 		if(base->invMass == 0 && other->invMass == 0) continue;
 
@@ -168,7 +168,7 @@ void World::BroadPhase()
 	{
 		// Get potential collisions (bounding circle tests)
 		potentials.clear();
-		
+
 		// This code runs extremely quickly. Dont bother to thread it as you wont see any benefits (and may get a performance hit!)
 		// A possible improvement to the codebase would be to move positions and bounding circle radius' into their own arrays so we
 		// get good cache performance
@@ -194,7 +194,7 @@ void World::BroadPhase()
 		n->last = potentials.size();
 
 		FindContacts_Single(n);
-		
+
 		// Add/Remove arbiters from add/remove list
 		for(u32 i=0;i<ERASE_LIST.size();++i) arbiters.erase(ERASE_LIST[i].arbKey);
 		for(u32 i=0;i<ADD_LIST.size();++i) arbiters.insert(ArbPair(ADD_LIST[i].arbKey, ADD_LIST[i].arb));
@@ -286,9 +286,9 @@ void World::IntegrateBoxForces(f64 dt)
 	int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
 	for(int i=0;i<firstTriangleIndex-4;i+=numPerThread) // 0 to 800
 	{
-		IntegrationData idt(i, i+numPerThread, dt, this);
-		integration_data.push_back(idt);
-		physicsPool->AddTask(Task(TAddForces, &integration_data.back()));
+	IntegrationData idt(i, i+numPerThread, dt, this);
+	integration_data.push_back(idt);
+	physicsPool->AddTask(Task(TAddForces, &integration_data.back()));
 	}*/
 	IntegrationData idt(0, firstTriangleIndex, dt, this);
 	Integrate(&idt);
@@ -304,9 +304,9 @@ void World::IntegrateBoxes(f64 dt)
 	/*int numPerThread = 100; // should be a multiple of 1,2,5,10,20,25,50,100,200 or 400
 	for(int i=0;i<firstTriangleIndex-4;i+=numPerThread) // 0 to 800
 	{
-		IntegrationData idt(i, i+numPerThread, dt, this);
-		integration_data.push_back(idt);
-		physicsPool->AddTask(Task(Integrate, &integration_data.back()));
+	IntegrationData idt(i, i+numPerThread, dt, this);
+	integration_data.push_back(idt);
+	physicsPool->AddTask(Task(Integrate, &integration_data.back()));
 	}*/
 	IntegrationData idt(0, firstTriangleIndex, dt, this);
 	Integrate(&idt);
@@ -327,12 +327,78 @@ bool close(float2 &a, float2 &b)
 	return false;
 };
 
+void World::object_ownership_updates(vector<unsigned short> &indices)
+{
+	static vector<OwnershipUpdatePacket> ownerUpdates;
+	ownerUpdates.clear();
+
+	float minx=objects[4]->position.x;
+	float maxx = minx;
+
+	for(int i=5;i<objects.size();++i)
+	{
+		if(objects[i]->position.x < minx)
+			minx = objects[i]->position.x;
+		else if(objects[i]->position.x > maxx)
+			maxx = objects[i]->position.x;
+	}
+
+	float midX = (minx+maxx)*0.5f; //min+max/2
+
+	// Find if most of our objects lie on the left or right of this mid point
+	int left=0, right=0;
+	for(int i=0;i<bodies.size();++i)
+	{
+		if(bodies[i]->position.x < midX) ++left;
+		else ++right;
+	}
+
+	// If most of our objects are on the left, give ownership of the objects on the right of the split
+	// If most of our objects are on the right, give ownership of objects on the left of the split
+
+	if(left > right) // most on left of split
+	{
+		for(int i=0;i<bodies.size();++i)
+		{
+			if(bodies[i]->position.x < midX)
+			{
+				OwnershipUpdatePacket oup;
+				oup.Prepare(indices[i]);
+				ownerUpdates.push_back(oup);
+			}
+		}
+	}
+	else // most on right of split
+	{
+		for(int i=0;i<bodies.size();++i)
+		{
+			if(bodies[i]->position.x > midX)
+			{
+				OwnershipUpdatePacket oup;
+				oup.Prepare(indices[i]);
+				ownerUpdates.push_back(oup);
+			}
+		}
+	}
+
+
+	// Send the ownership update data
+	if(ownerUpdates.size())
+	{
+		for(int i=0;i<=netController->fdmax;++i)
+		{
+			send(i, (char*)(&ownerUpdates[0]), sizeof(OwnershipUpdatePacket)*ownerUpdates.size(), 0);
+		}
+	}
+};
+
 void World::Update(f64 dt)
 {
 	if(!alive)
 		return;
-	
-	static float t_time = 0;
+
+	static float t_time = 0, f_time=0;
+	static float owner_update_time = 0;
 
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
@@ -344,7 +410,7 @@ void World::Update(f64 dt)
 	dt=0.016f;
 
 	bodies.clear();
-	
+
 	vector<unsigned short> indices; // has an element for each body in bodies, used so we can send the correct data over the network (updating the right index on the other side)
 
 	indices.push_back(0);
@@ -407,7 +473,7 @@ void World::Update(f64 dt)
 	}
 	//pt.end();
 	//cout << "Prestep time: " << pt.time() << endl;
-	
+
 	//pt.start();
 	for (int i = 0; i < 15; ++i)
 	{
@@ -438,8 +504,12 @@ void World::Update(f64 dt)
 	frameTime = ot.time();
 
 	t_time += frameTime;
+	f_time += frameTime;
 
-	if(t_time > 0.0f && alive && (netController->mode&NetworkController::Simulating))
+	static vector<OwnershipUpdatePacket> ownerUpdates;
+	ownerUpdates.clear();
+
+	if(t_time > 0.0f && alive && (netController->mode & NetworkController::Simulating))
 	{
 		t_time = 0;
 		// send data every 300ms approx
@@ -468,6 +538,7 @@ void World::Update(f64 dt)
 				}
 			}
 		}
+
 
 		int amountSent=0;
 		if(netController->mode & NetworkController::Connected)

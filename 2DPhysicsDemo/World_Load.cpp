@@ -210,7 +210,7 @@ void World::CreateWalls()
 	bottomBox->mesh = meshHandle;
 	//bottomBox->mesh = objects.back()->mesh;
 	bottomBox->width.set(meters(200), -5);
-	bottomBox->position.set(0, -10);
+	bottomBox->position.set(0, -5);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);

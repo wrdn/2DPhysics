@@ -378,9 +378,14 @@ void NetworkController::Run()
 					FD_SET(sock, &masterSet);
 					fdmax = sock;
 
-					cout << "Started listening " << endl;
 					Close();
+
+					for(int i=0;i<world->objects.size();++i)
+						world->objects[i]->owner = SimBody::whoami;
+
+					cout << "Started listening " << endl;
 					connectionType = ServerConnection;
+					mode = Listening;
 					this->StartListening(this->port);
 					writeOffset = 0;
 					memset(buff,0,sizeof(buff));
@@ -404,47 +409,86 @@ void NetworkController::Run()
 				// otherwise it will be stuck there and we will be in trouble as 'f' will never be moved :(
 
 				PositionOrientationUpdatePacket posOrientationPacket;
+				OwnershipUpdatePacket ownerUpdatePacket;
 				char *tmp=0;
 
 				while(f < lastByte)
 				{
 					char type = *f; // get the type (assumed at start), process the packet and move f as far forward as required
 
+					if(type == 0)
+					{
+						printf("");
+					}
+
 					if(mode & Simulating)
 					{
 						switch(type)
 						{
 						case PositionOrientationUpdate:
-
-							tmp = f + sizeof(PositionOrientationUpdatePacket);
-
-							if(tmp <= lastByte)
 							{
-								//cout << "gotpou" << endl;
+								tmp = f + sizeof(PositionOrientationUpdatePacket);
 
-								memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
-								f += sizeof(PositionOrientationUpdatePacket);
-								PositionOrientationData pod = posOrientationPacket.Unprepare();
-
-								if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
+								if(tmp <= lastByte)
 								{
-									vector<SimBody*> &objects = world->objects;
-									objects[pod.objectIndex]->position = pod.pos;
-									objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
-									objects[pod.objectIndex]->UpdateWorldSpaceProperties();
+									//cout << "gotpou" << endl;
+
+									memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
+									f += sizeof(PositionOrientationUpdatePacket);
+									PositionOrientationData pod = posOrientationPacket.Unprepare();
+
+									if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
+									{
+										vector<SimBody*> &objects = world->objects;
+										objects[pod.objectIndex]->position = pod.pos;
+										objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
+										objects[pod.objectIndex]->UpdateWorldSpaceProperties();
+									}
+
+								}
+								else
+								{
+									char *dataPosition = f;
+									int amountOfDataToMoveBack = lastByte - dataPosition;
+									writeOffset = amountOfDataToMoveBack;
+									memcpy(buff, dataPosition, amountOfDataToMoveBack);
+									f = lastByte;
 								}
 
-							}
-							else
-							{
-								char *dataPosition = f;
-								int amountOfDataToMoveBack = lastByte - dataPosition;
-								writeOffset = amountOfDataToMoveBack;
-								memcpy(buff, dataPosition, amountOfDataToMoveBack);
-								f = lastByte;
-							}
-
+							} // end of case PositionOrientationUpdate
 							break;
+
+
+						//case OwnershipUpdate:
+						//	{
+						//		tmp = f + sizeof(OwnershipUpdatePacket);
+
+						//		if(tmp <= lastByte)
+						//		{
+						//			memcpy(&ownerUpdatePacket, f, sizeof(OwnershipUpdatePacket));
+						//			f += sizeof(OwnershipUpdatePacket);
+						//			OwnershipUpdateData oud = ownerUpdatePacket.Unprepare();
+
+						//			if(oud.objectIndex < world->objects.size() && oud.objectIndex >= 0)
+						//			{
+						//				vector<SimBody*> &objects = world->objects;
+						//				objects[oud.objectIndex]->owner = SimBody::whoami;
+						//			}
+						//		}
+						//		else
+						//		{
+						//			char *dataPosition = f;
+						//			int amountOfDataToMoveBack = lastByte - dataPosition;
+						//			writeOffset = amountOfDataToMoveBack;
+						//			memcpy(buff, dataPosition, amountOfDataToMoveBack);
+						//			f = lastByte;
+						//		}
+
+						//	} break; // end of ownership update
+
+
+
+
 
 						default:
 							++f;

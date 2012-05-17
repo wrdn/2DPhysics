@@ -77,7 +77,7 @@ public:
 	int sock;
 	unsigned short port;
 	
-	static const int NETWORK_READ_BUFFER_SIZE = 8096;
+	static const int NETWORK_READ_BUFFER_SIZE = 8096*4; //32k buffer
 	char buff[NETWORK_READ_BUFFER_SIZE];
 	int writeOffset; // what offset into buff do we start reading?
 

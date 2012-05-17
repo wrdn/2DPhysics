@@ -49,6 +49,10 @@ struct PositionOrientationData
 	float2 pos;
 	float orientation;
 };
+struct OwnershipUpdateData
+{
+	short objectIndex;
+};
 
 class NetworkPacket
 {
@@ -216,7 +220,7 @@ public:
 class PositionOrientationUpdatePacket : public NetworkPacket
 {
 public:
-	short objectIndex;
+	short objectIndex; short owner;
 	ivec pos;
 	int orientation;
 
@@ -264,3 +268,27 @@ public:
 };
 
 // Other packets to do: OwnershipUpdate, OwnershipUpdateComplete(?)
+
+// Used to "give" an object to another machine. Stick the object array index in objectIndex and send this packet
+class OwnershipUpdatePacket : public NetworkPacket
+{
+public:
+	OwnershipUpdatePacket()
+	{
+		type = OwnershipUpdate;
+	};
+
+	short objectIndex;
+
+	void Prepare(short _objectIndex)
+	{
+		objectIndex = htons(_objectIndex);
+	};
+
+	OwnershipUpdateData Unprepare()
+	{
+		OwnershipUpdateData data;
+		data.objectIndex = ntohs(objectIndex);
+		return data;
+	};
+};

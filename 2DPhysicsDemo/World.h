@@ -109,6 +109,8 @@ public:
 	void IntegrateBoxForces(f64 dt);
 	void IntegrateBoxes(f64 dt);
 
+	void object_ownership_updates(std::vector<unsigned short> &indices);
+
 	float zoomSpeed;
 
 	GameTime *gt;
