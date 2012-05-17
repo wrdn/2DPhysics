@@ -263,74 +263,6 @@ void NetworkController::Run()
 		if(select(fdmax+1, &readSet, 0,0,&to) == -1)
 			return;
 		
-		// can we write?
-		//if(select(fdmax+1, &writeSet, 0,0,&to) == -1)
-		//	return;
-
-		//for(int i=0;i<peers.size();++i)
-		//{
-		//	vector<pos_orientation_send_buffer_cache> sendBuffer;
-
-		//	// First write the data to the stream, then read others data
-		//	//int acache = activeUpdateCache % 2;
-		//	//vector<SimBody*> &r = position_orientation_update_cache[acache];
-		//	//++activeUpdateCache;
-		//	vector<SimBody*> &r = world->objects;
-
-		//	if(r.size())
-		//	{
-		//		for(unsigned int j=4;j<r.size();++j)
-		//		{
-		//			SimBody *toSend = r[j];
-		//			if(toSend->owner != SimBody::whoami) continue;
-		//			
-		//			pos_orientation_send_buffer_cache c;
-		//			c.body = toSend;
-		//			c.index = j;
-		//			sendBuffer.push_back(c);
-		//			
-		//			//sendBuffer.push_back(toSend);
-		//			// only send data if its we should
-		//			/*if(
-		//				!Near(toSend->position.x, toSend->last_pos_sent.x) &&
-		//				!Near(toSend->position.y, toSend->last_pos_sent.y) &&
-		//				!Near(toSend->rotation_in_rads, toSend->last_rotation_sent))
-		//			{
-		//				sendBuffer.push_back(toSend);
-		//			}*/
-		//			//position_orientation_update_cache[acache].clear();
-		//		}
-
-		//		int sendBuffSz = sendBuffer.size() * sizeof(PositionOrientationUpdatePacket);
-		//		char *posOrientationUpdateDataToSend = new char[sendBuffSz];
-		//		char *p = posOrientationUpdateDataToSend;
-		//		for(unsigned int j=0;j<sendBuffer.size();++j)
-		//		{
-		//			PositionOrientationUpdatePacket pop;
-		//			pos_orientation_send_buffer_cache c = sendBuffer[j];
-
-		//			pop.Prepare(c.index, c.body->position, c.body->rotation_in_rads);
-
-		//			//pop.Prepare(, sendBuffer[j]->position, sendBuffer[j]->rotation_in_rads);
-		//			memcpy(p, &pop, sizeof(pop));
-		//			p += sizeof(PositionOrientationUpdatePacket);
-
-		//			c.body->last_pos_sent = c.body->position;
-		//			c.body->last_rotation_sent = c.body->rotation_in_rads;
-
-		//			//sendBuffer[j]->last_pos_sent = sendBuffer[j]->position;
-		//			//sendBuffer[j]->last_rotation_sent = sendBuffer[j]->rotation_in_rads;
-		//		}
-
-		//		int j=0;
-		//		while(j<sendBuffSz)
-		//		{
-		//			j += send(peers[i].socket, posOrientationUpdateDataToSend, sendBuffSz, 0);
-		//		}
-		//		delete [] posOrientationUpdateDataToSend;
-		//	}
-		//}
-
 		for(int i=0;i<=fdmax;++i)
 		{
 			if(!FD_ISSET(i, &readSet)) continue;
@@ -649,7 +581,7 @@ void NetworkController::Run()
 							//cout << "Position: " << pod.pos.x << "," << pod.pos.y << " ; "
 							//	<< "Orientation: " << pod.orientation << endl;
 
-							cout << "got pos update packet" << endl;
+							//cout << "got pos update packet" << endl;
 
 							mode = Connected | Simulating;
 

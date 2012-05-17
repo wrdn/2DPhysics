@@ -423,74 +423,15 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
-	/*for(unsigned int i=0;i<objects.size();++i)
+	if(netController->mode & NetworkController::Connected)
 	{
-		objects[i]->UpdateWorldSpaceProperties();
-	}*/
-
-
-	netController->ClearActiveCache();
-
-	// For now, just add all the bodies to the buffer and let the network system figure the rest out
-	//for(int i=0;i<bodies.size();++i)
-	//{
-	//	netController->AddToActiveUpdateCache(bodies[i]);
-	//}
-
-	int updatebuffsz = sizeof(PositionOrientationUpdatePacket) * (bodies.size()-4);
-	char *updatebuffer = new char[updatebuffsz];
-	char *f = updatebuffer;
-
-	for(int i=4;i<bodies.size();++i)
-	{
-		PositionOrientationUpdatePacket pop;
-		pop.Prepare(indices[i], bodies[i]->position, bodies[i]->rotation_in_rads);
-		memcpy(updatebuffer, &pop, sizeof(pop));
-		f += sizeof(PositionOrientationUpdatePacket);
-	}
-
-	//for(int i=0;i<netController->peers.size();++i)
-	//{
-	//	Peer p = netController->peers[i];
-
-	//	int sent=0;
-	//	while(sent<sizeof(PositionOrientationUpdatePacket) * (bodies.size()-4))
-	//	{
-	//		sent += send(p.socket, updatebuffer, updatebuffsz, 0);
-	//	}
-	//}
-	//delete [] updatebuffer;
-
-
-	for(int i=0;i<=netController->fdmax;++i)
-	{
-		//if(i == netController->sock) continue;
-		//if(!FD_ISSET(i, &netController->writeSet)) continue;
-		//send(i, updatebuffer, updatebuffsz, 0);
-
-		PositionOrientationUpdatePacket pop;
-		pop.Prepare(0, float2(0,-2), 0);
-		
-		send(i, (char*)&pop, sizeof(pop), 0);
-	}
-	delete [] updatebuffer;
-
-	// CANT JUST USE INDEX I, BECAUSE INDEX I IN BODIDES DOES NOT CORRESPOND TO THE SAME INDEX IN OBJECTS!!!
-	// THE BODY NEEDS TO KNOW WHAT INDEX IT HAS IN THE ARRAY
-	/*for(int i=0;i<netController->peers.size();++i)
-	{
-		Peer p = netController->peers[i];
-
-		for(int j=0;j<4;++j)
+		for(int i=0;i<=netController->fdmax;++i)
 		{
-			PositionOrientationUpdatePacket pop(4, bodies[j]->position, bodies[j]->rotation_in_rads);
-			int sent=0;
-			while(sent<sizeof(PositionOrientationUpdatePacket))
-				sent += send(p.socket, ((char*)&pop), sizeof(pop), 0);
+			PositionOrientationUpdatePacket pop;
+			pop.Prepare(1, float2(0,80), 0);
+			send(i, (char*)&pop, sizeof(pop), 0);
 		}
-	}*/
-
-	//cout << "Frame time: " << ot.time() << endl;
+	}
 };
 
 void World::Draw()
