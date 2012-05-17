@@ -262,7 +262,10 @@ void NetworkController::Run()
 
 
 				ConnectAuthPacket cup;
-				cup.Prepare(1,2);
+				cup.Prepare(2,1); // we give the machine connecting to us ID 2, we keep ID 1
+
+				SimBody::whoami = 1;
+
 				send(out.socket, (const char*)&cup, sizeof(ConnectAuthPacket), 0);
 
 				mode = Connected | Initialisation;
@@ -285,12 +288,33 @@ void NetworkController::Run()
 				EndInitPacket eip; memcpy(&initialisationBuffer[initBuffSz-sizeof(EndInitPacket)], &eip, sizeof(EndInitPacket));
 
 				char *st = &initialisationBuffer[sizeof(StartInitPacket)];
+
+				float min_x = world->objects[4]->position.x;
+				float max_x = min_x;
+
+				for(int i=5;i<world->objects.size();++i)
+				{
+					SimBody *s = world->objects[i];
+					if(s->position.x < min_x) min_x = s->position.x;
+					else if(s->position.x >= max_x) max_x = s->position.x;
+				}
+				float midX = (min_x + max_x) * 0.5f;
+
 				for(int i=4;i<world->objects.size();++i)
 				{
 					SimBody* s = world->objects[i];
 					
 					InitObjectPacket iop;
-					iop.Prepare(1, i, s->position, s->velocity, s->rotation_in_rads, s->mass, s->angularVelocity, s->inertia);
+
+					int index=1;
+					//if(i>world->objects.size()/2)
+					if(s->position.x >= midX)
+					{
+						index=2;
+					}
+					s->owner = index; // set index for ourselves so we no longer update the side the other is going to update
+
+					iop.Prepare(index, i, s->position, s->velocity, s->rotation_in_rads, s->mass, s->angularVelocity, s->inertia);
 
 					memcpy(st, ((char*)&iop), sizeof(iop));
 					st += sizeof(InitObjectPacket);
@@ -389,13 +413,10 @@ void NetworkController::Run()
 
 							if(mode & Authorisation)
 							{
-								// Process this data:
-								authPacket.assignedOwnerIdentifier;
-								authPacket.otherMachineIdentifier;
-								authPacket.type;
-
 								// once we know who we are, switch into initialisation mode
 								mode = Connected | Initialisation;
+
+								SimBody::whoami = authPacket.assignedOwnerIdentifier;
 							}
 						}
 						else
@@ -469,6 +490,7 @@ void NetworkController::Run()
 									// TODO: SETUP OBJECT BASED ON DATA IN iod
 									// SETUP OBJECT BASED ON DATA IN iod
 									vector<SimBody*> &objects = world->objects;
+									objects[iod.objectIndex]->owner = iod.originalOwner;
 									objects[iod.objectIndex]->position = iod.pos;
 									objects[iod.objectIndex]->velocity = iod.velocity;
 									objects[iod.objectIndex]->angularVelocity = iod.angularVelocity;

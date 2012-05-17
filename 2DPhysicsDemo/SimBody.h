@@ -32,6 +32,9 @@ public:
 	SimBody();
 	~SimBody(void) {};
 
+	static int whoami; // set from ConnectAuth network packet. used to ensure we only update our half of data
+	int owner;
+
 	static float2 gravity;
 
 	// PHYSICS VARIABLES

@@ -145,8 +145,8 @@ void FindContacts_Single(void *fc)
 void World::BroadPhase()
 {
 	// Step 1: Generate list of boxes we own, currently no point as no networking
-	bodies.clear();
-	bodies = objects;
+	//bodies.clear();
+	//bodies = objects;
 
 	//for(int i=0;i<objects.size();++i)
 	//{
@@ -175,7 +175,8 @@ void World::BroadPhase()
 		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i];
 		bt.output_plist = &potentials;
 		bt.firstIndex = i+1;
-		bt.lastIndex = objects.size();
+		bt.lastIndex = bodies.size();
+		//bt.lastIndex = objects.size();
 		BroadPhaseTask(&bt);
 
 		if(!potentials.size()) continue;
@@ -328,6 +329,22 @@ void World::Update(f64 dt)
 
 	dt=0.016f;
 
+	bodies.clear();
+	
+	// everyone owns the walls
+	bodies.push_back(objects[0]);
+	bodies.push_back(objects[1]);
+	bodies.push_back(objects[2]);
+	bodies.push_back(objects[3]);
+
+	for(int i=4;i<objects.size();++i)
+	{
+		if(objects[i]->owner == SimBody::whoami)
+		{
+			bodies.push_back(objects[i]);
+		}
+	}
+
 	// transform vertices into new positions (for every object we own)
 	for(unsigned int i=0;i<objects.size();++i)
 	{
@@ -349,9 +366,9 @@ void World::Update(f64 dt)
 	//cout << "Threaded: " << pt.time() << endl;
 
 	//IntegrateBoxForces(dt);
-	for (u32 i = 0; i < objects.size(); ++i)
+	for (u32 i = 0; i < bodies.size(); ++i)
 	{
-		SimBody *b = objects[i];
+		SimBody *b = bodies[i];
 		if(b->invMass != 0)
 		{
 			b->velocity += (f32)dt * (gravity + b->invMass * b->force);
@@ -378,9 +395,9 @@ void World::Update(f64 dt)
 	//pt.end();
 	//cout << "Impulse Time: " << pt.time() << endl;
 
-	for (u32 i = 0; i < objects.size(); ++i)
+	for (u32 i = 0; i < bodies.size(); ++i)
 	{
-		SimBody *b = objects[i];
+		SimBody *b = bodies[i];
 		//if(!b->isbox) continue;
 
 		b->position += (f32)dt * b->velocity;

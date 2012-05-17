@@ -4,6 +4,8 @@ float2 SimBody::gravity = float2(0, meters(-9.81f));
 
 int SimBody::GUID_GEN = 0;
 
+int SimBody::whoami = 1;
+
 SimBody::SimBody(void)
 {
 	position.zero();
@@ -28,6 +30,8 @@ SimBody::SimBody(void)
 	hashid = GUID_GEN++;
 
 	use_textures = use_shaders = draw = update = true;
+
+	owner=1;
 };
 
 void SimBody::Draw()

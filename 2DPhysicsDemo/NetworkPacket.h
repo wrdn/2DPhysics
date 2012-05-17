@@ -62,11 +62,9 @@ typedef NetworkPacket KeepAlivePacket; // type defaults to KeepAlive so typedef
 class ConnectAuthPacket : public NetworkPacket
 {
 public:
-	char assignedOwnerIdentifier; // what ID does this machine have for objects?
+	char assignedOwnerIdentifier; // what ID will the machine that got this packet use for objects?
 
-	// what ID is the other machine going to use for objects? When the connected
-	// machine gets this packet and its in initialisation mode, it sets its owner id to
-	// otherMachineIdentifier
+	// what ID is the other machine using? (not really required)
 	char otherMachineIdentifier;
 
 	ConnectAuthPacket()
