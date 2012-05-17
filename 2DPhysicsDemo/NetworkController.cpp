@@ -245,10 +245,10 @@ char * BuildInitBuffer(World *w, int &out_bufferSize)
 	const float midX = (minx + maxx) * 0.5f;
 	for(int i=4;i<objects.size();++i)
 	{
-		if(objects[i]->position.x > midX)
-			objects[i]->owner = SimBody::whoami;
+		if(objects[i]->position.x >= midX)
+			objects[i]->owner = 2;
 		else
-			objects[i]->owner = 2; // other person owns objects
+			objects[i]->owner = 1; // other person owns objects
 	}
 
 	// Now start building the buffer for the objects
@@ -312,7 +312,8 @@ void NetworkController::Run()
 	FD_SET(sock, &masterSet);
 	fdmax = sock;
 
-	if(connectionType == ServerConnection) mode = Listening;
+	if(connectionType == ServerConnection)
+		mode = Listening;
 
 	memset(buff, 0, sizeof(buff));
 
@@ -322,7 +323,7 @@ void NetworkController::Run()
 		writeSet = masterSet;
 
 		timeval to; to.tv_usec = to.tv_sec = 0;
-		if(select(fdmax+1, &readSet, &writeSet, 0, &to) == -1)
+		if(select(fdmax+1, &readSet, 0, 0, &to) == -1)
 		{
 			printf("select() failed\n");
 			return;
@@ -368,9 +369,11 @@ void NetworkController::Run()
 
 				connectionType = ClientConnection;
 
+				mode = Connected | Simulating;
+
 				// we will bring physics back to life when we get EndInit
-				//world->alive = true;
-				//world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
+				world->alive = true;
+				world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
 			}
 			else
 			{
@@ -493,7 +496,7 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
-								printf("Got InitObject packet!\n");
+								//printf("Got InitObject packet!\n");
 
 								InitObjectPacket iop;
 								memcpy(&iop, buffPos, sizeof(iop));
@@ -576,7 +579,7 @@ void NetworkController::Run()
 						/*************************************/
 						if(_type == PositionOrientationUpdate)
 						{
-							printf("Got position/orientation update packet\n");
+							//printf("Got position/orientation update packet\n");
 							
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)

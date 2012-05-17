@@ -319,7 +319,7 @@ bool close(float2 &a, float2 &b)
 {
 	//Near: return val >= target-EPSILON && val <= target+EPSILON;
 
-	const f32 CLOSE = 0.001f;
+	const f32 CLOSE = 0.01f;
 	if(a.x >= b.x - CLOSE && a.x <= b.x + CLOSE)
 		if(a.y >= b.y - CLOSE && a.y <= b.y + CLOSE)
 			return true;
@@ -429,37 +429,36 @@ void World::Update(f64 dt)
 		
 		static vector<PositionOrientationUpdatePacket> updatePacks;
 		updatePacks.clear();
-		for(int i=0;i<=netController->fdmax;++i)
+		
+		for(int j=4;j<objects.size();++j)
 		{
-			for(int j=4;j<objects.size();++j)
+			if(objects[j]->owner == SimBody::whoami)
 			{
-				if(objects[j]->owner == SimBody::whoami)
+				if(!close(objects[j]->position, objects[j]->last_pos_sent))
 				{
-					if(!close(objects[j]->position, objects[j]->last_pos_sent))
-					{
-						PositionOrientationUpdatePacket pop;
-						pop.Prepare(j,0, objects[j]->position, objects[j]->rotation_in_rads);
+					PositionOrientationUpdatePacket pop;
+					pop.Prepare(j,0, objects[j]->position, objects[j]->rotation_in_rads);
 
-						updatePacks.push_back(pop);
-						objects[j]->last_pos_sent = objects[j]->position;
-					}
+					updatePacks.push_back(pop);
+					objects[j]->last_pos_sent = objects[j]->position;
 				}
 			}
-		} // end of position/orientation update packet generation
-
+		}// end of position/orientation update packet generation
 
 		// send the data
 		int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
 		int amountSent = 0;
-		for(int i=0;i<=netController->fdmax;++i)
+		
+		if(updatePacks.size())
 		{
-			if(!FD_ISSET(i, &netController->writeSet)) continue;
-
-			amountSent = 0;
-			//while(amountSent < dataSize)
-			//{
-			//	amountSent += send(i, (char*)(&updatePacks[0]), dataSize, 0);
-			//}
+			for(int i=0;i<netController->peers.size();++i)
+			{
+				//cout << "Update pack size: " << updatePacks.size() << endl;
+				while(amountSent < dataSize)
+				{
+					amountSent += send(netController->peers[i].socket, (char*)(&updatePacks[0]), dataSize, 0);
+				}
+			}
 		}
 	}
 };
