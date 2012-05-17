@@ -34,6 +34,7 @@ struct InitDetails
 };
 
 class World;
+class SimBody;
 
 // You should only ever need one of these. NetworkController manages sending and receiving data between peers for
 // the physics application
@@ -67,6 +68,9 @@ public:
 		ServerConnection, // used when the other machine connects to us
 	};
 
+	int activeUpdateCache;
+	vector<SimBody*> position_orientation_update_cache[2];
+
 	vector<Peer> peers;
 	fd_set masterSet, readSet, writeSet;
 	int fdmax;
@@ -90,6 +94,9 @@ public:
 public:
 	NetworkController(void);
 	~NetworkController(void);
+
+	void ClearActiveCache();
+	void AddToActiveUpdateCache(SimBody *s);
 
 	void SetWorldPointer(World *w) { world = w; };
 

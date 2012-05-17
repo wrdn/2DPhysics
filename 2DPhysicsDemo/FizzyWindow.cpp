@@ -56,7 +56,7 @@ void FizzyWindow::OnDisplay()
 	//currentTime = 1.0f/scn.frameTime;
 	//float avgTime = currentTime * 0.9 + prevTime*0.1f;
 
-	float avgTime = 1.0f/CalcAverageTick(scn.frameTime);
+	float avgTime = 1.0f/(float)CalcAverageTick((float)scn.frameTime);
 
 	Printf("Frame Rate: %d", (int)avgTime);
 	glMatrixMode(GL_PROJECTION);
@@ -118,6 +118,11 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 				if(scn.netController->Connect(c, _port))
 				{
 					scn.netController->connectionType = NetworkController::ClientConnection;
+
+					scn.netController->peers.clear();
+
+					Peer p; p.socket = scn.netController->sock;
+					scn.netController->peers.push_back(p);
 				}
 				else
 				{

@@ -331,19 +331,29 @@ void World::Update(f64 dt)
 
 	bodies.clear();
 	
+	vector<unsigned short> indices; // has an element for each body in bodies, used so we can send the correct data over the network (updating the right index on the other side)
+
+	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(2);
+	indices.push_back(3);
+
 	// everyone owns the walls
 	bodies.push_back(objects[0]);
 	bodies.push_back(objects[1]);
 	bodies.push_back(objects[2]);
 	bodies.push_back(objects[3]);
 
-	for(int i=4;i<objects.size();++i)
+	for(unsigned int i=4;i<objects.size();++i)
 	{
 		if(objects[i]->owner == SimBody::whoami)
 		{
 			bodies.push_back(objects[i]);
+			indices.push_back(i);
 		}
 	}
+
+	//cout << bodies.size() << endl;
 
 	// transform vertices into new positions (for every object we own)
 	for(unsigned int i=0;i<objects.size();++i)
@@ -413,10 +423,72 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
-	for(unsigned int i=0;i<objects.size();++i)
+	/*for(unsigned int i=0;i<objects.size();++i)
 	{
 		objects[i]->UpdateWorldSpaceProperties();
+	}*/
+
+
+	netController->ClearActiveCache();
+
+	// For now, just add all the bodies to the buffer and let the network system figure the rest out
+	//for(int i=0;i<bodies.size();++i)
+	//{
+	//	netController->AddToActiveUpdateCache(bodies[i]);
+	//}
+
+	int updatebuffsz = sizeof(PositionOrientationUpdatePacket) * (bodies.size()-4);
+	char *updatebuffer = new char[updatebuffsz];
+	char *f = updatebuffer;
+
+	for(int i=4;i<bodies.size();++i)
+	{
+		PositionOrientationUpdatePacket pop;
+		pop.Prepare(indices[i], bodies[i]->position, bodies[i]->rotation_in_rads);
+		memcpy(updatebuffer, &pop, sizeof(pop));
+		f += sizeof(PositionOrientationUpdatePacket);
 	}
+
+	//for(int i=0;i<netController->peers.size();++i)
+	//{
+	//	Peer p = netController->peers[i];
+
+	//	int sent=0;
+	//	while(sent<sizeof(PositionOrientationUpdatePacket) * (bodies.size()-4))
+	//	{
+	//		sent += send(p.socket, updatebuffer, updatebuffsz, 0);
+	//	}
+	//}
+	//delete [] updatebuffer;
+
+
+	for(int i=0;i<=netController->fdmax;++i)
+	{
+		//if(i == netController->sock) continue;
+		//if(!FD_ISSET(i, &netController->writeSet)) continue;
+		//send(i, updatebuffer, updatebuffsz, 0);
+
+		PositionOrientationUpdatePacket pop;
+		pop.Prepare(0, float2(0,-2), 0);
+		
+		send(i, (char*)&pop, sizeof(pop), 0);
+	}
+	delete [] updatebuffer;
+
+	// CANT JUST USE INDEX I, BECAUSE INDEX I IN BODIDES DOES NOT CORRESPOND TO THE SAME INDEX IN OBJECTS!!!
+	// THE BODY NEEDS TO KNOW WHAT INDEX IT HAS IN THE ARRAY
+	/*for(int i=0;i<netController->peers.size();++i)
+	{
+		Peer p = netController->peers[i];
+
+		for(int j=0;j<4;++j)
+		{
+			PositionOrientationUpdatePacket pop(4, bodies[j]->position, bodies[j]->rotation_in_rads);
+			int sent=0;
+			while(sent<sizeof(PositionOrientationUpdatePacket))
+				sent += send(p.socket, ((char*)&pop), sizeof(pop), 0);
+		}
+	}*/
 
 	//cout << "Frame time: " << ot.time() << endl;
 };

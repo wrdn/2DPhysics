@@ -42,6 +42,9 @@ public:
 	float2 velocity;
 	f32 mass, invMass;
 
+	float2 last_pos_sent;
+	float last_rotation_sent;
+
 	bool isbox;
 	int hashid;
 

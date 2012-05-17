@@ -464,7 +464,7 @@ void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSid
 
 	objects = newBodies;
 
-	for(int i=4;i<oldObjects.size();++i)
+	for(unsigned int i=4;i<oldObjects.size();++i)
 	{
 		delete oldObjects[i];
 	}

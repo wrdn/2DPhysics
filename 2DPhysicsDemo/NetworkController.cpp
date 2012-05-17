@@ -66,6 +66,7 @@ NetworkController::NetworkController(void)
 	writeOffset = 0;
 	connectionType = ServerConnection;
 	netAlive = true;
+	activeUpdateCache = 0;
 }
 
 NetworkController::~NetworkController(void)
@@ -120,15 +121,11 @@ bool NetworkController::StartListening(unsigned short _port, int backlog)
 	return true;
 };
 
-struct test
-{
-	char *c;
-};
-
 bool NetworkController::Connect(const char *ipAddr, unsigned short _port)
 {
 	FD_ZERO(&masterSet);
 	FD_ZERO(&readSet);
+	FD_ZERO(&writeSet);
 
 	if(sock == INVALID_SOCKET)
 	{
@@ -160,6 +157,8 @@ bool NetworkController::Connect(const char *ipAddr, unsigned short _port)
 	port = _port;
 
 	mode = Connected | Authorisation;
+
+	fdmax = sock;
 
 	return true; // we've made a connection on socket "sock"
 };
@@ -212,6 +211,23 @@ void NetworkController::Close()
 	sock = INVALID_SOCKET;
 };
 
+void NetworkController::ClearActiveCache()
+{
+	//int acache = activeUpdateCache % 2;
+	//position_orientation_update_cache[acache].clear();
+}
+void NetworkController::AddToActiveUpdateCache(SimBody *s)
+{
+	//int acache = activeUpdateCache % 2;
+	//position_orientation_update_cache[acache].push_back(s);
+};
+
+struct pos_orientation_send_buffer_cache
+{
+	SimBody *body;
+	int index;
+};
+
 void NetworkController::Run()
 {
 	if(sock == INVALID_SOCKET)
@@ -219,6 +235,7 @@ void NetworkController::Run()
 
 	FD_ZERO(&masterSet);
 	FD_ZERO(&readSet);
+	FD_ZERO(&writeSet);
 
 	FD_SET(sock, &masterSet);
 	fdmax = sock;
@@ -238,10 +255,81 @@ void NetworkController::Run()
 		cs.Unlock();
 
 		readSet = masterSet;
+		writeSet = masterSet;
+
 		timeval to; to.tv_sec = to.tv_sec = 0;
 
+		// can we read?
 		if(select(fdmax+1, &readSet, 0,0,&to) == -1)
 			return;
+		
+		// can we write?
+		//if(select(fdmax+1, &writeSet, 0,0,&to) == -1)
+		//	return;
+
+		//for(int i=0;i<peers.size();++i)
+		//{
+		//	vector<pos_orientation_send_buffer_cache> sendBuffer;
+
+		//	// First write the data to the stream, then read others data
+		//	//int acache = activeUpdateCache % 2;
+		//	//vector<SimBody*> &r = position_orientation_update_cache[acache];
+		//	//++activeUpdateCache;
+		//	vector<SimBody*> &r = world->objects;
+
+		//	if(r.size())
+		//	{
+		//		for(unsigned int j=4;j<r.size();++j)
+		//		{
+		//			SimBody *toSend = r[j];
+		//			if(toSend->owner != SimBody::whoami) continue;
+		//			
+		//			pos_orientation_send_buffer_cache c;
+		//			c.body = toSend;
+		//			c.index = j;
+		//			sendBuffer.push_back(c);
+		//			
+		//			//sendBuffer.push_back(toSend);
+		//			// only send data if its we should
+		//			/*if(
+		//				!Near(toSend->position.x, toSend->last_pos_sent.x) &&
+		//				!Near(toSend->position.y, toSend->last_pos_sent.y) &&
+		//				!Near(toSend->rotation_in_rads, toSend->last_rotation_sent))
+		//			{
+		//				sendBuffer.push_back(toSend);
+		//			}*/
+		//			//position_orientation_update_cache[acache].clear();
+		//		}
+
+		//		int sendBuffSz = sendBuffer.size() * sizeof(PositionOrientationUpdatePacket);
+		//		char *posOrientationUpdateDataToSend = new char[sendBuffSz];
+		//		char *p = posOrientationUpdateDataToSend;
+		//		for(unsigned int j=0;j<sendBuffer.size();++j)
+		//		{
+		//			PositionOrientationUpdatePacket pop;
+		//			pos_orientation_send_buffer_cache c = sendBuffer[j];
+
+		//			pop.Prepare(c.index, c.body->position, c.body->rotation_in_rads);
+
+		//			//pop.Prepare(, sendBuffer[j]->position, sendBuffer[j]->rotation_in_rads);
+		//			memcpy(p, &pop, sizeof(pop));
+		//			p += sizeof(PositionOrientationUpdatePacket);
+
+		//			c.body->last_pos_sent = c.body->position;
+		//			c.body->last_rotation_sent = c.body->rotation_in_rads;
+
+		//			//sendBuffer[j]->last_pos_sent = sendBuffer[j]->position;
+		//			//sendBuffer[j]->last_rotation_sent = sendBuffer[j]->rotation_in_rads;
+		//		}
+
+		//		int j=0;
+		//		while(j<sendBuffSz)
+		//		{
+		//			j += send(peers[i].socket, posOrientationUpdateDataToSend, sendBuffSz, 0);
+		//		}
+		//		delete [] posOrientationUpdateDataToSend;
+		//	}
+		//}
 
 		for(int i=0;i<=fdmax;++i)
 		{
@@ -292,7 +380,7 @@ void NetworkController::Run()
 				float min_x = world->objects[4]->position.x;
 				float max_x = min_x;
 
-				for(int i=5;i<world->objects.size();++i)
+				for(unsigned int i=5;i<world->objects.size();++i)
 				{
 					SimBody *s = world->objects[i];
 					if(s->position.x < min_x) min_x = s->position.x;
@@ -300,7 +388,7 @@ void NetworkController::Run()
 				}
 				float midX = (min_x + max_x) * 0.5f;
 
-				for(int i=4;i<world->objects.size();++i)
+				for(unsigned int i=4;i<world->objects.size();++i)
 				{
 					SimBody* s = world->objects[i];
 					
@@ -349,6 +437,7 @@ void NetworkController::Run()
 					FD_CLR(i, &masterSet);
 					
 					FD_ZERO(&readSet);
+					FD_ZERO(&writeSet);
 
 					FD_SET(sock, &masterSet);
 					fdmax = sock;
@@ -393,11 +482,10 @@ void NetworkController::Run()
 					// Process all the packets from the buffer
 					switch(type)
 					{
-					case KeepAlive:
-						cout << "Got a KeepAlive packet!" << endl;
-
-						++f; // keep alive is a single byte packet, so just increment 'f'
-						break;
+					//case KeepAlive:
+					//	cout << "Got a KeepAlive packet!" << endl;
+						//++f; // keep alive is a single byte packet, so just increment 'f'
+						//break;
 					case ConnectAuth:
 
 						tmp = f + sizeof(ConnectAuthPacket);
@@ -552,22 +640,37 @@ void NetworkController::Run()
 
 						if(tmp <= lastByte)
 						{
-							cout << "Got a PositionOrientationUpdate packet!" << endl;
+							//cout << "Got a PositionOrientationUpdate packet!" << endl;
 
 							memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
 							f += sizeof(PositionOrientationUpdatePacket);
 							
 							PositionOrientationData pod = posOrientationPacket.Unprepare();
-							cout << "Position: " << pod.pos.x << "," << pod.pos.y << " ; "
-								<< "Orientation: " << pod.orientation << endl;
+							//cout << "Position: " << pod.pos.x << "," << pod.pos.y << " ; "
+							//	<< "Orientation: " << pod.orientation << endl;
+
+							cout << "got pos update packet" << endl;
+
+							mode = Connected | Simulating;
 
 							if(mode & Simulating)
 							{
 								// Process the data here (add the new update to the update delta list)
 								PositionOrientationData pod = posOrientationPacket.Unprepare();
 
+								if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
+								{
+									cout << "got pos update packet" << endl;
 
-								// TODO: UPDATE OBJECT PROPERTIES
+									vector<SimBody*> &objects = world->objects;
+									objects[pod.objectIndex]->position = pod.pos;
+									objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
+									objects[pod.objectIndex]->UpdateWorldSpaceProperties();
+								}
+								else
+								{
+									cout << "read invalid packet" << endl;
+								}
 							}
 						}
 						else
@@ -579,10 +682,6 @@ void NetworkController::Run()
 							f = lastByte;
 						}
 
-						break;
-
-					default: // unknown type? add a byte and continue
-						++f;
 						break;
 					}
 				}
