@@ -210,7 +210,7 @@ void World::CreateWalls()
 	bottomBox->mesh = meshHandle;
 	//bottomBox->mesh = objects.back()->mesh;
 	bottomBox->width.set(meters(200), -5);
-	bottomBox->position.set(0, 0);
+	bottomBox->position.set(0, -2);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
@@ -374,11 +374,13 @@ void World::Load()
 	//physicsPool->InitPool(0);
 	//physicsPool->ClearTaskList();
 
-	unsigned short _port = conf.Read("Port", (unsigned short)80U);
+	unsigned short _port = conf.Read("Port", (unsigned short)9171U);
 
 	netController = new NetworkController();
 	netController->SetWorldPointer(this);
-	netController->StartListening(_port);
+	//netController->StartListening(conf.Read("Port", (unsigned short)9171U));
+	//netController->StartListening(9171,5);
+	netController->StartListening(_port,5);
 
 	// the only other thread is the 'physics' thread
 	//primaryTaskPool = new ThreadPool();

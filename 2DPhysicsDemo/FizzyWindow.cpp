@@ -102,14 +102,28 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 				memset(scn.netController->buff, 0, sizeof(scn.netController->buff));
 				
 				scn.netController->Close();
-				if(scn.netController->Connect("127.0.0.1", 80))
+				//if(scn.netController->Connect("127.0.0.1", 80))
+				//if(scn.netController->Connect(
+				//	scn.conf.Read("ConnectionAddress","127.0.0.1").c_str(),
+				//	scn.conf.Read("Port", (unsigned short)9171U)))
+				//if(scn.netController->Connect(
+				//	scn.conf.Read("ConnectionAddress","127.0.0.1").c_str(),
+				//	9171))
+
+				string caddr = scn.conf.Read("ConnectionAddress", "127.0.0.1");
+				const char *c = caddr.c_str();
+
+				unsigned short _port = scn.conf.Read("Port", (unsigned short)9171U);
+
+				if(scn.netController->Connect(c, _port))
 				{
 					scn.netController->connectionType = NetworkController::ClientConnection;
 				}
 				else
 				{
 					scn.netController->Close();
-					if(scn.netController->StartListening(80))
+					//if(scn.netController->StartListening(scn.conf.Read("Port", (unsigned short)9171U)))
+					if(scn.netController->StartListening(_port))
 					{
 						cout << "started listening again" << endl;
 					}
