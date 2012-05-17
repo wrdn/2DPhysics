@@ -329,68 +329,10 @@ bool close(float2 &a, float2 &b)
 
 void World::object_ownership_updates(vector<unsigned short> &indices)
 {
-	static vector<OwnershipUpdatePacket> ownerUpdates;
-	ownerUpdates.clear();
-
-	float minx=objects[4]->position.x;
-	float maxx = minx;
-
-	for(int i=5;i<objects.size();++i)
-	{
-		if(objects[i]->position.x < minx)
-			minx = objects[i]->position.x;
-		else if(objects[i]->position.x > maxx)
-			maxx = objects[i]->position.x;
-	}
-
-	float midX = (minx+maxx)*0.5f; //min+max/2
-
-	// Find if most of our objects lie on the left or right of this mid point
-	int left=0, right=0;
-	for(int i=0;i<bodies.size();++i)
-	{
-		if(bodies[i]->position.x < midX) ++left;
-		else ++right;
-	}
-
-	// If most of our objects are on the left, give ownership of the objects on the right of the split
-	// If most of our objects are on the right, give ownership of objects on the left of the split
-
-	if(left > right) // most on left of split
-	{
-		for(int i=0;i<bodies.size();++i)
-		{
-			if(bodies[i]->position.x < midX)
-			{
-				OwnershipUpdatePacket oup;
-				oup.Prepare(indices[i]);
-				ownerUpdates.push_back(oup);
-			}
-		}
-	}
-	else // most on right of split
-	{
-		for(int i=0;i<bodies.size();++i)
-		{
-			if(bodies[i]->position.x > midX)
-			{
-				OwnershipUpdatePacket oup;
-				oup.Prepare(indices[i]);
-				ownerUpdates.push_back(oup);
-			}
-		}
-	}
-
-
-	// Send the ownership update data
-	if(ownerUpdates.size())
-	{
-		for(int i=0;i<=netController->fdmax;++i)
-		{
-			send(i, (char*)(&ownerUpdates[0]), sizeof(OwnershipUpdatePacket)*ownerUpdates.size(), 0);
-		}
-	}
+	
 };
+
+struct dtf { SimBody *b; int index; };
 
 void World::Update(f64 dt)
 {
@@ -402,10 +344,6 @@ void World::Update(f64 dt)
 
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
-
-	//dt = gt->Update();
-	//dt = min(dt, 0.016); // keep dt in check, too big and bad stuff happens :(
-	//dt = 0.0005f;
 
 	dt=0.016f;
 
@@ -433,29 +371,16 @@ void World::Update(f64 dt)
 		}
 	}
 
-	//cout << bodies.size() << endl;
-
 	// transform vertices into new positions (for every object we own)
 	for(unsigned int i=0;i<objects.size();++i)
 	{
 		objects[i]->UpdateWorldSpaceProperties();
 	}
 
-	//dt = max(dt, 0.001f);
-
-	//dt = 1.0/80.0; // constant dt makes for a MUCH more stable simulation, with dynamic dt (default) the simulation sometimes explodes :( - maybe an issue with QueryPerformanceCounter???
 	double inv_dt = 1.0f/dt;
 
-	//double inv_dt = dt==0?0:1.0/dt;
-
-	//OldUpdate(dt);
-
-	//pt.start();
 	BroadPhase();
-	//pt.end();
-	//cout << "Threaded: " << pt.time() << endl;
-
-	//IntegrateBoxForces(dt);
+	
 	for (u32 i = 0; i < bodies.size(); ++i)
 	{
 		SimBody *b = bodies[i];
@@ -466,15 +391,11 @@ void World::Update(f64 dt)
 		}
 	}
 
-	//pt.start();
 	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 	{
 		arb->second.PreStep((f32)inv_dt);
 	}
-	//pt.end();
-	//cout << "Prestep time: " << pt.time() << endl;
-
-	//pt.start();
+	
 	for (int i = 0; i < 15; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
@@ -482,14 +403,11 @@ void World::Update(f64 dt)
 			arb->second.ApplyImpulse(); // this slows down SIGNIFICANTLY when put on multiple threads :(
 		}
 	}
-	//pt.end();
-	//cout << "Impulse Time: " << pt.time() << endl;
-
+	
 	for (u32 i = 0; i < bodies.size(); ++i)
 	{
 		SimBody *b = bodies[i];
-		//if(!b->isbox) continue;
-
+		
 		b->position += (f32)dt * b->velocity;
 		b->rotation_in_rads += (f32)dt * b->angularVelocity;
 		b->CalculateRotationMatrix();
@@ -498,59 +416,50 @@ void World::Update(f64 dt)
 		b->torque = 0;
 	}
 
-	//IntegrateBoxes(dt);
-
 	ot.end();
 	frameTime = ot.time();
 
 	t_time += frameTime;
 	f_time += frameTime;
 
-	static vector<OwnershipUpdatePacket> ownerUpdates;
-	ownerUpdates.clear();
-
-	if(t_time > 0.0f && alive && (netController->mode & NetworkController::Simulating))
+	if(t_time > 0.0f && (netController->mode & NetworkController::Connected)
+		&& (netController->mode & NetworkController::Simulating))
 	{
 		t_time = 0;
-		// send data every 300ms approx
-
+		
 		static vector<PositionOrientationUpdatePacket> updatePacks;
 		updatePacks.clear();
-		if(netController->mode & NetworkController::Connected)
+		for(int i=0;i<=netController->fdmax;++i)
 		{
-			for(int i=0;i<=netController->fdmax;++i)
+			for(int j=4;j<objects.size();++j)
 			{
-				// send all the objects I own
-
-				for(int j=4;j<objects.size();++j)
+				if(objects[j]->owner == SimBody::whoami)
 				{
-					if(objects[j]->owner == SimBody::whoami)
+					if(!close(objects[j]->position, objects[j]->last_pos_sent))
 					{
-						if(!close(objects[j]->position, objects[j]->last_pos_sent))
-						{
-							PositionOrientationUpdatePacket pop;
-							pop.Prepare(j, objects[j]->position, objects[j]->rotation_in_rads);
+						PositionOrientationUpdatePacket pop;
+						pop.Prepare(j,0, objects[j]->position, objects[j]->rotation_in_rads);
 
-							updatePacks.push_back(pop);
-							objects[j]->last_pos_sent = objects[j]->position;
-						}
+						updatePacks.push_back(pop);
+						objects[j]->last_pos_sent = objects[j]->position;
 					}
 				}
 			}
-		}
+		} // end of position/orientation update packet generation
 
 
-		int amountSent=0;
-		if(netController->mode & NetworkController::Connected)
+		// send the data
+		int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
+		int amountSent = 0;
+		for(int i=0;i<=netController->fdmax;++i)
 		{
-			for(int i=0;i<=netController->fdmax;++i)
-			{
-				amountSent = 0;
-				while(amountSent < sizeof(PositionOrientationUpdatePacket)*updatePacks.size())
-				{
-					amountSent += send(i, (char*)(&updatePacks[0]), sizeof(PositionOrientationUpdatePacket)*updatePacks.size(), 0);
-				}
-			}
+			if(!FD_ISSET(i, &netController->writeSet)) continue;
+
+			amountSent = 0;
+			//while(amountSent < dataSize)
+			//{
+			//	amountSent += send(i, (char*)(&updatePacks[0]), dataSize, 0);
+			//}
 		}
 	}
 };

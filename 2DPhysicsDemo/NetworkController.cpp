@@ -228,521 +228,393 @@ struct pos_orientation_send_buffer_cache
 	int index;
 };
 
+// make sure you delete[] after using this data
+char * BuildInitBuffer(World *w, int &out_bufferSize)
+{
+	const vector<SimBody*> &objects = w->objects;
+
+	// Set correct ownership  on each object
+	float minx = objects[4]->position.x; float maxx = minx;
+	for(int i=5;i<objects.size();++i)
+	{
+		if(objects[i]->position.x < minx)
+			minx = objects[i]->position.x;
+		else if(objects[i]->position.x > maxx)
+			maxx = objects[i]->position.x;
+	}
+	const float midX = (minx + maxx) * 0.5f;
+	for(int i=4;i<objects.size();++i)
+	{
+		if(objects[i]->position.x > midX)
+			objects[i]->owner = SimBody::whoami;
+		else
+			objects[i]->owner = 2; // other person owns objects
+	}
+
+	// Now start building the buffer for the objects
+	out_bufferSize = sizeof(StartInitPacket) +  sizeof(EndInitPacket) + sizeof(InitObjectPacket)*(objects.size()-4);
+	char *initBuff = new char[out_bufferSize];
+	memset(initBuff, 0, out_bufferSize);
+
+	const int TotalNumberOfObjects = objects.size();
+	const int FirstTriangleIndex = w->firstTriangleIndex;
+
+	const StartInitPacket startInitPacket(1,1,1, FirstTriangleIndex-4, TotalNumberOfObjects-FirstTriangleIndex);
+	const EndInitPacket endInitPacket;
+
+	// put the start in
+	char *s = initBuff;
+	memcpy(s, &startInitPacket, sizeof(startInitPacket));
+	s += sizeof(startInitPacket);
+
+	// Package all the objects and put them in the buffer
+	for(int i=4;i<objects.size();++i)
+	{
+		SimBody *b = objects[i];
+		InitObjectPacket iop;
+		iop.Prepare(b->owner, i, b->position, b->velocity, b->rotation_in_rads, b->mass, b->angularVelocity, b->inertia);
+
+		memcpy(s, &iop, sizeof(iop));
+		s += sizeof(iop);
+	}
+
+	// EndInit
+	memcpy(s, &endInitPacket, sizeof(endInitPacket));
+
+	return initBuff;
+
+};
+
+int GetSizeFromPacketType(int type)
+{
+	if(type == ConnectAuth)
+		return sizeof(ConnectAuthPacket);
+	if(type == StartInit)
+		return sizeof(StartInitPacket);
+	if(type == InitObject)
+		return sizeof(InitObjectPacket);
+	if(type == EndInit)
+		return sizeof(EndInitPacket);
+	if(type == PositionOrientationUpdate)
+		return sizeof(PositionOrientationUpdatePacket);
+
+	return 1;
+};
+
 void NetworkController::Run()
 {
-	if(sock == INVALID_SOCKET)
-		return;
+	if(sock == INVALID_SOCKET) return;
 
 	FD_ZERO(&masterSet);
 	FD_ZERO(&readSet);
 	FD_ZERO(&writeSet);
-
+	
 	FD_SET(sock, &masterSet);
 	fdmax = sock;
 
-	if(connectionType == ServerConnection)
+	if(connectionType == ServerConnection) mode = Listening;
+
+	memset(buff, 0, sizeof(buff));
+
+	while(netAlive)
 	{
-		mode = Listening;
-	}
-
-
-	bool f = true;
-
-	while(f)
-	{
-		cs.Lock();
-		f = netAlive;
-		cs.Unlock();
-
 		readSet = masterSet;
 		writeSet = masterSet;
 
-		timeval to; to.tv_sec = to.tv_sec = 0;
+		timeval to; to.tv_usec = to.tv_sec = 0;
+		if(select(fdmax+1, &readSet, &writeSet, 0, &to) == -1)
+		{
+			printf("select() failed\n");
+			return;
+		}
 
-		// can we read?
-		if(select(fdmax+1, &readSet, 0,0,&to) == -1)
-			continue;
-
-		for(int i=0;i<=fdmax;++i)
+		for(int i = 0;i <= fdmax; ++i)
 		{
 			if(!FD_ISSET(i, &readSet)) continue;
 
-			if(i == sock && connectionType == ServerConnection)
+			if(i == sock && connectionType == ServerConnection) // accept new connection
 			{
 				Peer out;
-				if(!AcceptNewConnection(out)) continue;
+				if(!AcceptNewConnection(out))
+				{
+					printf("Failed to accept new connection!\n");
+					continue;
+				}
 
-				// If we accept a connection, it is now the "parent" of the connection.
-				mode = Connected | Authorisation;
+				printf("Got a new connection!\n");
 
 				world->alive = false;
 				world->primaryTaskPool_physThread->Join();
 
-				// Send ConnectAuth packets to tell the other machine what it is
-				// On connection send a packet describing "who" each machine is (specifically the ID they will put in objects to identify them as personally owned)
-				// Note: the numbers 1 and 2 have been chosen specifically. These numbers will allow us to differentiate between 2 different owners using binary logic
-				// e.g. owner & 0x01. If we set the number to 3 however, the object will have 2 owners (a combination of 1 and 2 in binary). Thus, if (owner && 3) it has 2 owners
+				ConnectAuthPacket authPacket(2,1);
+				SimBody::whoami = 1; // server always takes ID of 1
 
-				ConnectAuthPacket cup;
-				cup.Prepare(2,1); // we give the machine connecting to us ID 2, we keep ID 1
+				// send initial authorisation
+				int sent=0;
+				while(sent<sizeof(authPacket)) sent+=send(out.socket, (char*)&authPacket, sizeof(authPacket), 0);
 
-				SimBody::whoami = 1;
-
-				send(out.socket, (const char*)&cup, sizeof(ConnectAuthPacket), 0);
-
+				// send the initialisation buffer
 				mode = Connected | Initialisation;
 
-				int initBuffSz = sizeof(StartInitPacket) + 
-					(sizeof(InitObjectPacket) * (world->objects.size()-4)) +
-					sizeof(EndInitPacket);
-				char *initialisationBuffer = new char[initBuffSz];
-				memset(initialisationBuffer, 0, initBuffSz);
+				int buffSz=0;
+				char *initBuff = BuildInitBuffer(world, buffSz);
 
-				int total_cnt = world->objects.size(), first_tri_cnt = world->firstTriangleIndex;
+				sent = 0;
+				while(sent < buffSz) sent += send(out.socket, initBuff, buffSz, 0);
 
-				// Put the start and end packets in the buffer
-				f32 box_width    = meters(world->conf.Read("BoxWidth"  ,      1.0f));
-				f32 box_height   = meters(world->conf.Read("BoxHeight" ,      1.0f));
-				f32 triangle_len = meters(world->conf.Read("TriangleLength",  1.0f));
+				delete [] initBuff;
 
-				StartInitPacket sip(box_width,box_height,triangle_len, first_tri_cnt-4, total_cnt-first_tri_cnt);
-				memcpy(initialisationBuffer, (char*)&sip, sizeof(sip));
-				EndInitPacket eip; memcpy(&initialisationBuffer[initBuffSz-sizeof(EndInitPacket)], &eip, sizeof(EndInitPacket));
-
-				char *st = &initialisationBuffer[sizeof(StartInitPacket)];
-
-				float min_x = world->objects[4]->position.x;
-				float max_x = min_x;
-
-				for(unsigned int i=5;i<world->objects.size();++i)
-				{
-					SimBody *s = world->objects[i];
-					if(s->position.x < min_x) min_x = s->position.x;
-					else if(s->position.x >= max_x) max_x = s->position.x;
-				}
-				float midX = (min_x + max_x) * 0.5f;
-
-				for(unsigned int i=4;i<world->objects.size();++i)
-				{
-					SimBody* s = world->objects[i];
-
-					InitObjectPacket iop;
-
-					int index=1;
-					if(s->position.x >= midX)
-					{
-						index=2;
-					}
-					s->owner = index; // set index for ourselves so we no longer update the side the other is going to update
-
-					iop.Prepare(index, i, s->position, s->velocity, s->rotation_in_rads, s->mass, s->angularVelocity, s->inertia);
-
-					memcpy(st, ((char*)&iop), sizeof(iop));
-					st += sizeof(InitObjectPacket);
-				}
-
-				// At this point the initialisation buffer should be full with all the data we need, so send it down the pipes :)
-				int sentBytes=0;
-				while(sentBytes<initBuffSz)
-				{
-					sentBytes += send(out.socket, initialisationBuffer, initBuffSz, 0);
-				}
-
-				delete [] initialisationBuffer;
+				//Sleep(1000); // sleep for a second to let the other client catch up
 
 				connectionType = ClientConnection;
 
-				world->alive = true;
-				world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
+				// we will bring physics back to life when we get EndInit
+				//world->alive = true;
+				//world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
 			}
 			else
 			{
+				// READ DATA
 				char *readPos = &buff[writeOffset];
-				int maxToRead = NetworkController::NETWORK_READ_BUFFER_SIZE - writeOffset;
-
-				// For safety and to ensure we don't read any rubbish, set the rest of the buffer to 0
-				memset(readPos, 0, sizeof(char)*maxToRead);
-
+				int maxToRead = NETWORK_READ_BUFFER_SIZE - writeOffset;
 				int bytesRead = recv(i, readPos, maxToRead, 0);
+				char *lastbyte = readPos + bytesRead;
+				writeOffset = 0;
 
 				if(bytesRead <= 0)
 				{
 					printf("Disconnected\n");
 
-					closesocket(i); // bye!
 					FD_CLR(i, &masterSet);
-
-					FD_ZERO(&readSet);
-					FD_ZERO(&writeSet);
+					
+					connectionType = ServerConnection;
 
 					FD_SET(sock, &masterSet);
 					fdmax = sock;
-
-					Close();
+					readSet = writeSet = masterSet;
 
 					for(int i=0;i<world->objects.size();++i)
 						world->objects[i]->owner = SimBody::whoami;
-
-					cout << "Started listening " << endl;
-					connectionType = ServerConnection;
-					mode = Listening;
-					this->StartListening(this->port);
-					writeOffset = 0;
-					memset(buff,0,sizeof(buff));
-					peers.clear();
-
-					break;
 				}
 
-				// first byte to process is at: buff (start of array)
-				// last byte to process is at:  readPos + bytesRead
-				char *lastByte = readPos + bytesRead;
+				char *buffPos = buff;
 
-				char *f = buff;
-				// when we haven't got enough data for a full packet, 'f' should end up
-				// pointing to the start of the last incomplete packet. We then need to copy
-				// from f to lastByte (lastByte-f # bytes) to the start of the array, and set the
-				// write offset to lastByte-f. We should also nullify the rest of the array so
-				// it only contains the incomplete data
-
-				// note: regardless of the application mode, we should ALWAYS process the packet enough to get the data out of the buffer
-				// otherwise it will be stuck there and we will be in trouble as 'f' will never be moved :(
-
-				PositionOrientationUpdatePacket posOrientationPacket;
-				OwnershipUpdatePacket ownerUpdatePacket;
-				char *tmp=0;
-
-				while(f < lastByte)
+				if(mode & Authorisation)
 				{
-					char type = *f; // get the type (assumed at start), process the packet and move f as far forward as required
+					world->alive = false;
+					world->primaryTaskPool_physThread->Join();
 
-					if(type == 0)
+					while(buffPos < lastbyte)
 					{
-						printf("");
-					}
+						char _type = buffPos[0]; // since we move data back to start, the type will be at the start of the packet
+						const int typeSize = GetSizeFromPacketType(_type);
 
-					if(mode & Simulating)
-					{
-						switch(type)
+						/**********************************/
+						/******  CONNECT AUTH PACKET ******/
+						/**********************************/
+						if(_type == ConnectAuth) // Parse the ConnectAuth packet
 						{
-						case PositionOrientationUpdate:
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
 							{
-								tmp = f + sizeof(PositionOrientationUpdatePacket);
-
-								if(tmp <= lastByte)
-								{
-									//cout << "gotpou" << endl;
-
-									memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
-									f += sizeof(PositionOrientationUpdatePacket);
-									PositionOrientationData pod = posOrientationPacket.Unprepare();
-
-									if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
-									{
-										vector<SimBody*> &objects = world->objects;
-										objects[pod.objectIndex]->position = pod.pos;
-										objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
-										objects[pod.objectIndex]->UpdateWorldSpaceProperties();
-									}
-
-								}
-								else
-								{
-									char *dataPosition = f;
-									int amountOfDataToMoveBack = lastByte - dataPosition;
-									writeOffset = amountOfDataToMoveBack;
-									memcpy(buff, dataPosition, amountOfDataToMoveBack);
-									f = lastByte;
-								}
-
-							} // end of case PositionOrientationUpdate
-							break;
-
-
-						//case OwnershipUpdate:
-						//	{
-						//		tmp = f + sizeof(OwnershipUpdatePacket);
-
-						//		if(tmp <= lastByte)
-						//		{
-						//			memcpy(&ownerUpdatePacket, f, sizeof(OwnershipUpdatePacket));
-						//			f += sizeof(OwnershipUpdatePacket);
-						//			OwnershipUpdateData oud = ownerUpdatePacket.Unprepare();
-
-						//			if(oud.objectIndex < world->objects.size() && oud.objectIndex >= 0)
-						//			{
-						//				vector<SimBody*> &objects = world->objects;
-						//				objects[oud.objectIndex]->owner = SimBody::whoami;
-						//			}
-						//		}
-						//		else
-						//		{
-						//			char *dataPosition = f;
-						//			int amountOfDataToMoveBack = lastByte - dataPosition;
-						//			writeOffset = amountOfDataToMoveBack;
-						//			memcpy(buff, dataPosition, amountOfDataToMoveBack);
-						//			f = lastByte;
-						//		}
-
-						//	} break; // end of ownership update
-
-
-
-
-
-						default:
-							++f;
-							break;
-						}
-
-						continue;
-					}
-
-					ConnectAuthPacket authPacket;
-					StartInitPacket startInitPacket;
-					InitObjectPacket initObjectPacket;
-					EndInitPacket endInitPacket;
-					PositionOrientationUpdatePacket posOrientationPacket;
-					char *tmp=0;
-
-					// Process all the packets from the buffer
-					switch(type)
-					{
-					case KeepAlive:
-						cout << "Got a KeepAlive packet!" << endl;
-						f += sizeof(KeepAlivePacket);
-						//++f; // keep alive is a single byte packet, so just increment 'f'
-						break;
-					case ConnectAuth:
-
-						tmp = f + sizeof(ConnectAuthPacket);
-						if(tmp <= lastByte)
-						{
-							cout << "Got a ConnectAuth packet!" << endl;
-
-							memcpy(&authPacket, f, sizeof(ConnectAuthPacket)); // easiest way to get the data out :)
-							f += sizeof(ConnectAuthPacket);
-
-							cout << "Assigned Owner ID: " << (int)authPacket.assignedOwnerIdentifier << " ,  " <<
-								"Other Owner ID: " << (int)authPacket.otherMachineIdentifier << endl;
-
-							if(mode & Authorisation)
-							{
-								// once we know who we are, switch into initialisation mode
-								mode = Connected | Initialisation;
-
+								printf("Got ConnectAuth packet!\n");
+								ConnectAuthPacket authPacket;
+								memcpy(&authPacket, buffPos, typeSize);
+								buffPos = tmp;
 								SimBody::whoami = authPacket.assignedOwnerIdentifier;
+
+								init.gotStartInit = init.gotEndInit = false;
+
+								mode = Connected | Initialisation;
+								break;
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
 							}
 						}
+
+						/****************************/
+						/** OTHER PACKETS (IGNORE) **/
+						/****************************/
 						else
 						{
-							char *dataPosition = f;
-							int amountOfDataToMoveBack = lastByte - dataPosition;
-							writeOffset = amountOfDataToMoveBack;
-							memcpy(buff, dataPosition, amountOfDataToMoveBack);
-							f = lastByte;
+							buffPos += typeSize; // ignore all other packets until we get what we want (ConnectAuth)
 						}
-						break;
+					}
+					
+				}
+				if(mode & Initialisation)
+				{
+					while(buffPos < lastbyte)
+					{
+						char _type = buffPos[0]; // since we move data back to start, the type will be at the start of the packet
+						const int typeSize = GetSizeFromPacketType(_type);
 
-					case StartInit:
-
-						tmp = f + sizeof(StartInitPacket);
-
-						if( tmp <= lastByte )
+						/**********************************/
+						/*******  START INIT PACKET *******/
+						/**********************************/
+						if(_type == StartInit && !init.gotStartInit && !init.gotEndInit) // only accept StartInit once
 						{
-							cout << "Got a StartInit packet!" << endl;
-
-							memcpy(&startInitPacket, f, sizeof(StartInitPacket));
-							f += sizeof(StartInitPacket);
-
-							StartInitData initData2 = startInitPacket.Unprepare();
-							cout << "Box Count: " << initData2.boxCount << " , Triangle Count: " << initData2.triangleCount << endl;
-
-							if(mode & Initialisation)
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
 							{
-								StartInitData initData = startInitPacket.Unprepare();
+								printf("Got StartInit packet!\n");
+
+								StartInitPacket start;
+								memcpy(&start, buffPos, sizeof(start));
+								buffPos = tmp;
 
 								init.gotStartInit = true;
-								init.gotEndInit = false;
 
-								world->alive = false;
-								world->primaryTaskPool_physThread->Join();
+								StartInitData startData = start.Unprepare();
 
-								// Allocate all the memory we need for objects, so we can later just index into them
-								world->CreateBaseObjects(initData.boxWidth, initData.boxHeight, initData.triangleSideLength,
-									initData.boxCount, initData.triangleCount);
+								world->CreateBaseObjects(1,1,1,startData.boxCount, startData.triangleCount);
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
 							}
 						}
-						else
+
+						/**********************************/
+						/******  INIT OBJECT PACKET *******/
+						/**********************************/
+						else if(_type == InitObject && init.gotStartInit && !init.gotEndInit) // only accept InitObject if we've got StartInit but not EndInit yet
 						{
-							char *dataPosition = f;
-							int amountOfDataToMoveBack = lastByte - dataPosition;
-							writeOffset = amountOfDataToMoveBack;
-							memcpy(buff, dataPosition, amountOfDataToMoveBack);
-							f = lastByte;
-						}
-
-						break;
-					case InitObject:
-
-						tmp = f + sizeof(InitObjectPacket);
-
-						if(tmp <= lastByte)
-						{
-							memcpy(&initObjectPacket, f, sizeof(InitObjectPacket));
-							f += sizeof(InitObjectPacket);
-
-							if(mode & Initialisation)
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
 							{
-								// only process it if we've got startInit but NOT endInit. This check may
-								// not be required (for !init.gotEndInit), as when EndInit is received we
-								// will switch to initialisation mode
-								if(init.gotStartInit && !init.gotEndInit)
-								{
-									// Process the data:
-									InitObjectData iod = initObjectPacket.Unprepare();
+								printf("Got InitObject packet!\n");
 
-									// TODO: SETUP OBJECT BASED ON DATA IN iod
-									// SETUP OBJECT BASED ON DATA IN iod
-									vector<SimBody*> &objects = world->objects;
-									objects[iod.objectIndex]->owner = iod.originalOwner;
-									objects[iod.objectIndex]->position = iod.pos;
-									objects[iod.objectIndex]->velocity = iod.velocity;
-									objects[iod.objectIndex]->angularVelocity = iod.angularVelocity;
-									objects[iod.objectIndex]->mass = iod.mass;
-									objects[iod.objectIndex]->invMass = 1.0f/iod.mass;
-									objects[iod.objectIndex]->inertia = iod.inertia;
-									objects[iod.objectIndex]->invInertia = 1.0f/iod.inertia;
-									objects[iod.objectIndex]->rotation_in_rads = iod.orientation;
-									objects[iod.objectIndex]->UpdateWorldSpaceProperties();
+								InitObjectPacket iop;
+								memcpy(&iop, buffPos, sizeof(iop));
+								buffPos = tmp;
 
-								}
+								// setup object
+								InitObjectData iod = iop.Unprepare();
+								vector<SimBody*> &objects = world->objects;
+								objects[iod.objectIndex]->owner = iod.originalOwner;
+								objects[iod.objectIndex]->position = iod.pos;
+								objects[iod.objectIndex]->velocity = iod.velocity;
+								objects[iod.objectIndex]->angularVelocity = iod.angularVelocity;
+								objects[iod.objectIndex]->mass = iod.mass;
+								objects[iod.objectIndex]->invMass = 1.0f/iod.mass;
+								objects[iod.objectIndex]->inertia = iod.inertia;
+								objects[iod.objectIndex]->invInertia = 1.0f/iod.inertia;
+								objects[iod.objectIndex]->rotation_in_rads = iod.orientation;
+								objects[iod.objectIndex]->UpdateWorldSpaceProperties();
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
 							}
 						}
-						else
+
+						/**********************************/
+						/********  END INIT PACKET ********/
+						/**********************************/
+						else if(_type == EndInit && init.gotStartInit && !init.gotEndInit) // only accept EndInit if we have got the StartInit packet so far
 						{
-							// We've found an incomplete packet. Move it back to the start of the array and
-							// get out of this loop (by setting f=lastByte)
-							char *dataPosition = f;
-							int amountOfDataToMoveBack = lastByte - dataPosition;
-							writeOffset = amountOfDataToMoveBack;
-							memcpy(buff, dataPosition, amountOfDataToMoveBack);
-							f = lastByte;
-						}
-
-						break;
-					case EndInit:
-
-						cout << "Got an EndInit packet!" << endl;
-
-						// EndInit packet is a single byte packet, so we dont need to check we have enough
-						// data :)
-						memcpy(&endInitPacket, f, sizeof(EndInitPacket));
-						f += sizeof(EndInitPacket);
-
-						if(mode & Initialisation)
-						{
-							if(init.gotStartInit && !init.gotEndInit)
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
 							{
+								printf("Got EndInit packet!\n");
+
 								init.gotEndInit = true;
 
-								mode = Connected | Simulating; // once we've got the EndInit, we can flip into simulation mode.
+								mode = Connected | Simulating;
 
-								world->physicsPaused=false;
-
-								// restart the physics thread
+								// Bring the physics  thread back to life
 								world->alive=true;
 								world->arbiters.clear();
-
 								world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
 
+								break; // break out of Initialisation checks, we can now move on to simulation stuff
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
 							}
 						}
 
-						break;
 
-					case PositionOrientationUpdate:
-
-						tmp = f + sizeof(PositionOrientationUpdatePacket);
-
-						if(tmp <= lastByte)
+						/****************************/
+						/** OTHER PACKETS (IGNORE) **/
+						/****************************/
+						else
 						{
-							//cout << "Got a PositionOrientationUpdate packet!" << endl;
+							buffPos += typeSize; // ignore all other packets until we get what we want (StartInit, InitObject and EndInit packets)
+						}
+					}
+				}
+				if(mode & Simulating)
+				{
+					while(buffPos < lastbyte)
+					{
+						char _type = buffPos[0]; // since we move data back to start, the type will be at the start of the packet
+						const int typeSize = GetSizeFromPacketType(_type);
 
-							memcpy(&posOrientationPacket, f, sizeof(PositionOrientationUpdatePacket));
-							f += sizeof(PositionOrientationUpdatePacket);
-
-							PositionOrientationData pod = posOrientationPacket.Unprepare();
-							//cout << "Position: " << pod.pos.x << "," << pod.pos.y << " ; "
-							//	<< "Orientation: " << pod.orientation << endl;
-
-							//cout << "got pos update packet" << endl;
-
-							mode = Connected | Simulating;
-
-							if(mode & Simulating)
+						/*************************************/
+						/** POSITION AND ORIENTATION UPDATE **/
+						/*************************************/
+						if(_type == PositionOrientationUpdate)
+						{
+							printf("Got position/orientation update packet\n");
+							
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
 							{
-								// Process the data here (add the new update to the update delta list)
-								PositionOrientationData pod = posOrientationPacket.Unprepare();
+								PositionOrientationUpdatePacket posPacket;
+								memcpy(&posPacket, buffPos, sizeof(posPacket));
+								buffPos = tmp;
 
-								if(pod.objectIndex < world->objects.size() && pod.objectIndex >= 0)
+								PositionOrientationData pod = posPacket.Unprepare();
+
+								if(!pod.ownershipUpdate) // for now we're only processing position and orientation updates
 								{
-									cout << "got pos update packet" << endl;
-
 									vector<SimBody*> &objects = world->objects;
 									objects[pod.objectIndex]->position = pod.pos;
 									objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
 									objects[pod.objectIndex]->UpdateWorldSpaceProperties();
 								}
-								else
-								{
-									cout << "read invalid packet" << endl;
-								}
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
 							}
 						}
+
+						/****************************/
+						/** OTHER PACKETS (IGNORE) **/
+						/****************************/
 						else
 						{
-							char *dataPosition = f;
-							int amountOfDataToMoveBack = lastByte - dataPosition;
-							writeOffset = amountOfDataToMoveBack;
-							memcpy(buff, dataPosition, amountOfDataToMoveBack);
-							f = lastByte;
+							buffPos += typeSize;
 						}
-
-						break;
 					}
 				}
-
-				//char buff[100]; memset(buff,0,100);
-				//recv(i, buff, 100, 0); // receive from client i
-
-				// send to all
-				//for(int j = 0; j <= fdmax; j++)
-				//{
-				//	if (FD_ISSET(j, &masterSet))
-				//	{
-				//		if (j != sock && j != i)
-				//		{
-				//			send(j, buff, 100,0);
-				//		}
-				//	}
-				//}
 			}
 		}
 	}
-
-	/*
-	The Run function must do the following:
-
-	* If the socket is valid
-	* While True
-	* Call select() with a timeout of 0 to find if there is data
-	to 'read' from the stream
-	* If yes, read the data and parse it, appending changes to a "delta-update"
-	list. The delta-update list is used at the end of each physics step to
-	change positions/orientations of objects (etc)
-	* Call select() to find if we can write to the stream
-	* If yes, write the data to the stream (apparently, we can send
-	floats directly over the network, no need to marshal the data :)
-	*/
 };
