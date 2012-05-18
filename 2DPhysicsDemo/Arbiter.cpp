@@ -161,17 +161,12 @@ void Arbiter::ApplyImpulse()
 		// Apply contact impulse
 		float2 Pn = dPn * c->normal;
 
-		//b1->updateCriticalSection.Lock();
 		b1->velocity -= b1->invMass * Pn;
 		b1->angularVelocity -= b1->invI * cross(c->r1, Pn);
-		//b1->updateCriticalSection.Unlock();
 		
-		//b2->updateCriticalSection.Lock();
 		b2->velocity += b2->invMass * Pn;
 		b2->angularVelocity += b2->invI * cross(c->r2, Pn);
-		//b2->updateCriticalSection.Unlock();
-
-		// Relative velocity at contact
+		
 		dv = b2->velocity + cross(b2->angularVelocity, c->r2) -
 			b1->velocity - cross(b1->angularVelocity, c->r1);
 
@@ -198,14 +193,10 @@ void Arbiter::ApplyImpulse()
 		// Apply contact impulse
 		float2 Pt = dPt * tangent;
 
-		//b1->updateCriticalSection.Lock();
 		b1->velocity -= b1->invMass * Pt;
 		b1->angularVelocity -= b1->invI * cross(c->r1, Pt);
-		//b1->updateCriticalSection.Unlock();
-
-		//b2->updateCriticalSection.Lock();
+		
 		b2->velocity += b2->invMass * Pt;
 		b2->angularVelocity += b2->invI * cross(c->r2, Pt);
-		//b2->updateCriticalSection.Unlock();
 	}
 }

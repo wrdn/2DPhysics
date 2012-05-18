@@ -244,9 +244,13 @@ char * BuildInitBuffer(World *w, int &out_bufferSize)
 	for(int i=4;i<objects.size();++i)
 	{
 		if(objects[i]->position.x >= midX)
+		{
 			objects[i]->owner = 2;
+		}
 		else
+		{
 			objects[i]->owner = 1; // other person owns objects
+		}
 	}
 
 	// Now start building the buffer for the objects
@@ -346,6 +350,8 @@ void NetworkController::Run()
 
 				world->alive = false;
 				world->primaryTaskPool_physThread->Join();
+				world->arbiters.clear();
+				world->bodies.clear();
 
 				ConnectAuthPacket authPacket(2,1);
 				SimBody::whoami = 1; // server always takes ID of 1

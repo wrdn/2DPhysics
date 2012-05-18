@@ -60,7 +60,7 @@ void SimBody::Draw()
 	}
 	else
 	{
-		glColor3f(1,0,0);
+		glColor3f(0.4,0.3,0.1);
 	}
 	
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);

@@ -144,18 +144,59 @@ void FindContacts_Single(void *fc)
 
 void World::BroadPhase()
 {
-	// Step 1: Generate list of boxes we own, currently no point as no networking
-	//bodies.clear();
-	//bodies = objects;
+	for (int i = 0; i < (int)bodies.size(); ++i)
+	{
+		SimBody* bi = bodies[i];
 
-	//for(int i=0;i<objects.size();++i)
-	//{
-	//	if(objects[i]->isbox)
-	//	{
-	//		bodies.push_back(objects[i]);
-	//	}
-	//}
+		for (int j = i + 1; j < (int)bodies.size(); ++j)
+		{
+			SimBody* bj = bodies[j];
 
+			if(!BoundingCircleHit(bi->position, bi->boundingCircleRadius, bj->position, bj->boundingCircleRadius))
+			{ continue; }
+
+
+			if (bi->invMass == 0.0f && bj->invMass == 0.0f)
+				continue;
+
+			ArbiterKey key(bi, bj);
+			Arbiter newArb = Collide::CollidePoly2Poly(bi, bj);
+
+			if (newArb.numContacts > 0)
+			{
+				ArbIter iter = arbiters.find(key);
+				if (iter == arbiters.end())
+				{
+					arbiters.insert(ArbPair(key, newArb));
+				}
+				else
+				{
+					iter->second.Update(newArb.contacts, newArb.numContacts);
+				}
+			}
+			else
+			{
+				arbiters.erase(key);
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	return;
 	static vector<PotentiallyColliding> potentials;
 	static vector<Arbiter_ADD> ADD_LIST;
 	static vector<Arbiter_ERASE> ERASE_LIST;
@@ -327,11 +368,6 @@ bool close(float2 &a, float2 &b)
 	return false;
 };
 
-void World::object_ownership_updates(vector<unsigned short> &indices)
-{
-	
-};
-
 struct ObjectBlob { SimBody *b; int index; };
 
 void World::Update(f64 dt)
@@ -342,35 +378,33 @@ void World::Update(f64 dt)
 	static float t_time = 0, f_time=0;
 	static float owner_update_time = 0;
 
-	PerfTimer pt; PerfTimer ot=pt;
+	PerfTimer pt;
+	PerfTimer ot=pt;
 	ot.start();
 
-	dt=0.008f;
+	dt=0.016f;
 
 	bodies.clear();
-	
-	//arbiters.clear();
 
-	vector<unsigned short> indices; // has an element for each body in bodies, used so we can send the correct data over the network (updating the right index on the other side)
-
-	indices.push_back(0);
-	indices.push_back(1);
-	indices.push_back(2);
-	indices.push_back(3);
-
-	// everyone owns the walls
-	bodies.push_back(objects[0]);
-	bodies.push_back(objects[1]);
-	bodies.push_back(objects[2]);
-	bodies.push_back(objects[3]);
-
-	for(unsigned int i=4;i<objects.size();++i)
+	if(netController->mode & NetworkController::Connected)
 	{
-		if(objects[i]->owner == SimBody::whoami)
+		// everyone owns the walls
+		bodies.push_back(objects[0]);
+		bodies.push_back(objects[1]);
+		bodies.push_back(objects[2]);
+		bodies.push_back(objects[3]);
+
+		for(unsigned int i=4;i<objects.size();++i)
 		{
-			bodies.push_back(objects[i]);
-			indices.push_back(i);
+			if(objects[i]->owner == SimBody::whoami)
+			{
+				bodies.push_back(objects[i]);
+			}
 		}
+	}
+	else
+	{
+		bodies = objects;
 	}
 
 	// transform vertices into new positions (for every object we own)
@@ -380,7 +414,7 @@ void World::Update(f64 dt)
 	}
 
 	BroadPhase();
-	
+
 	double inv_dt = 1.0f/dt;
 	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 	{
@@ -404,14 +438,13 @@ void World::Update(f64 dt)
 			arb->second.ApplyImpulse(); // this slows down SIGNIFICANTLY when put on multiple threads :(
 		}
 	}
-	
+
 	for (u32 i = 0; i < bodies.size(); ++i)
 	{
 		SimBody *b = bodies[i];
 		
 		b->position += (f32)dt * b->velocity;
 		b->rotation_in_rads += (f32)dt * b->angularVelocity;
-		b->CalculateRotationMatrix();
 
 		b->force.zero();
 		b->torque = 0;
@@ -420,9 +453,11 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
+	printf("Frame Time: %f\n", frameTime);
+
 	t_time += frameTime;
 	f_time += frameTime;
-
+	
 	if(t_time > 0.0f && (netController->mode & NetworkController::Connected)
 		&& (netController->mode & NetworkController::Simulating))
 	{
@@ -508,6 +543,8 @@ void World::Update(f64 dt)
 				}
 			}
 		}
+
+
 	}
 };
 
@@ -537,7 +574,7 @@ void World::Draw()
 
 		if(obj.velocity.length_squared() > 0.1f || obj.angularVelocity > 0.05f)
 		{
-			col = float4(1, 0.45, 0.6, 1);
+			col = float4(0,1,1, 1);
 		}
 
 		glColor3fv(col.GetVec());
