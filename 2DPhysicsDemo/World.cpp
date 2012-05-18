@@ -180,66 +180,6 @@ void World::BroadPhase()
 			}
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	return;
-	static vector<PotentiallyColliding> potentials;
-	static vector<Arbiter_ADD> ADD_LIST;
-	static vector<Arbiter_ERASE> ERASE_LIST;
-
-	static ContactFinder finders[10000];
-	int numFinders=0;
-
-	// Note: This is currently just processing up to the first triangle (i.e. boxes only). Change this later for triangles also (if we port Chipmunk)
-	for(u32 i=0;i<bodies.size();++i)
-	{
-		// Get potential collisions (bounding circle tests)
-		potentials.clear();
-
-		// This code runs extremely quickly. Dont bother to thread it as you wont see any benefits (and may get a performance hit!)
-		// A possible improvement to the codebase would be to move positions and bounding circle radius' into their own arrays so we
-		// get good cache performance
-		BroadTask bt; bt.bodies = &bodies; bt.baseBody = bodies[i];
-		bt.output_plist = &potentials;
-		bt.firstIndex = i+1;
-		bt.lastIndex = bodies.size();
-		//bt.lastIndex = objects.size();
-		BroadPhaseTask(&bt);
-
-		if(!potentials.size()) continue;
-
-		ADD_LIST.clear(); ERASE_LIST.clear();
-		ContactFinder *n = &finders[numFinders];
-		++numFinders;
-
-		n->addList = &ADD_LIST;
-		n->eraseList = &ERASE_LIST;
-		n->_arbiters = &arbiters;
-		n->potentials = &potentials;
-
-		n->first = 0;
-		n->last = potentials.size();
-
-		FindContacts_Single(n);
-
-		// Add/Remove arbiters from add/remove list
-		for(u32 i=0;i<ERASE_LIST.size();++i) arbiters.erase(ERASE_LIST[i].arbKey);
-		for(u32 i=0;i<ADD_LIST.size();++i) arbiters.insert(ArbPair(ADD_LIST[i].arbKey, ADD_LIST[i].arb));
-	}
 };
 
 void World::OldUpdate(f64 dt)
@@ -386,6 +326,17 @@ void World::Update(f64 dt)
 
 	bodies.clear();
 
+	if(mouseDown)
+	{
+		float sk=550;
+		if(jointedBody)
+		{
+			SimBody *p = jointedBody;
+			p->velocity += (float2(mx,my)-p->position)*dt*sk;
+			p->velocity = p->velocity * 0.999f;
+		}
+	}
+
 	if(netController->mode & NetworkController::Connected)
 	{
 		// everyone owns the walls
@@ -443,6 +394,11 @@ void World::Update(f64 dt)
 	{
 		SimBody *b = bodies[i];
 		
+		if(fabs(b->velocity.length_squared()) > 1000)
+			b->velocity = b->velocity.normalize() * 15;
+		if(fabs(b->angularVelocity) > 300)
+			b->angularVelocity /= 20;
+
 		b->position += (f32)dt * b->velocity;
 		b->rotation_in_rads += (f32)dt * b->angularVelocity;
 
@@ -453,7 +409,7 @@ void World::Update(f64 dt)
 	ot.end();
 	frameTime = ot.time();
 
-	printf("Frame Time: %f\n", frameTime);
+	//printf("Frame Time: %f\n", frameTime);
 
 	t_time += frameTime;
 	f_time += frameTime;
@@ -508,7 +464,7 @@ void World::Update(f64 dt)
 		for(int i=0;i<F.size();++i)
 		{
 			OwnershipUpdatePacket op; op.Prepare(F[i].index);
-			//F[i].b->owner = other_machine;
+			F[i].b->owner = other_machine;
 			opacks.push_back(op);
 		}
 
@@ -521,10 +477,10 @@ void World::Update(f64 dt)
 			//cout << endl;
 			for(int i=0;i<netController->peers.size();++i)
 			{
-				/*while(ownershipAmountSent < ownershipDataSize)
+				while(ownershipAmountSent < ownershipDataSize)
 				{
 					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
-				}*/
+				}
 			}
 		}
 
@@ -590,6 +546,28 @@ void World::Draw()
 	glColor3f(1,1,1);
 
 	glEnable(GL_DEPTH_TEST);
+
+	glColor3f(1,0,0);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(mx, my);
+	glEnd();
+	glPointSize(1);
+
+	if(jointedBody)
+	{
+		float2 pos = jointedBody->position;
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(mx, my);
+		glVertex2f(jointedBody->position.x, jointedBody->position.y);
+		glEnd();
+
+		glPointSize(2);
+		glBegin(GL_POINTS);
+		glVertex2f(jointedBody->position.x, jointedBody->position.y);
+		glEnd();
+		glPointSize(1);
+	}
 
 	glPopMatrix();
 };

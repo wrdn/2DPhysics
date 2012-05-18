@@ -63,3 +63,5 @@ bool Overlaps(MinMaxProjection &ax, MinMaxProjection &bx);
 void ProjectPointOnSegment(const float2 &V, const float2 &A, const float2 &B, float2 &W, f32 &pt);
 
 float2 TransformVector(const float2 &vertex, const float2 &p, const float2 &v, const Mat22 xOrient, f32 t);
+
+bool PointInCircle(const float2& point, Circle c);

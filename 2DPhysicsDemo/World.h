@@ -18,6 +18,11 @@ public:
 	bool alive;
 	bool physicsPaused;
 
+	
+	float mx,my;
+	bool mouseDown;
+	SimBody *jointedBody;
+
 	struct IntegrationData
 	{
 		int firstindex;

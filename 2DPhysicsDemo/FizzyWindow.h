@@ -21,9 +21,14 @@ private:
 
 	float currentTime, prevTime;
 
+	void OnMouseButton(gxbase::GLWindow::MouseButton button, bool down);
+	void OnMouseMove(i32 x, i32 y);
+
 public:
 	FizzyWindow(void);
 	~FizzyWindow(void);
+
+	float2 MouseToSpace(int x, int y, int windowResY);
 
 	void OnCreate();
 	void OnDestroy();
@@ -33,25 +38,34 @@ public:
 		windowResolution.x = w;
 		windowResolution.y = h;
 
-		f32 nRange = 1;
+		glViewport(0,0,w,h);
 
-		glViewport(0,0,windowResolution.x, windowResolution.y);
+		float scale = max(1,scn.zoom)*min((float)w/640.0f, (float)h/480.0f);
+
+		float hw = w*(0.5/scale);
+
+		float hh = h*(0.5/scale);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 
-		if(w <= h)
-		{
-			f32 hw = (f32)h/(f32)w;
-			glOrtho(-nRange, nRange, -nRange*hw, nRange*hw, -nRange, nRange);
-		}
-		else
-		{
-			f32 hw = (f32)w/(f32)h;
-			glOrtho(-nRange*hw, nRange*hw, -nRange, nRange, -nRange, nRange);
-		}
+		glOrtho(-hw,hw,-hh,hh,-1,1);
 
-		glMatrixMode(GL_MODELVIEW);
+		glTranslatef(0.5,0.5,0);
+
+
+		/*glViewport(0,0,windowResolution.x,windowResolution.y);
+			float scale = max(1,scn.zoom)*min((float)windowResolution.x/640.0f, (float)windowResolution.y/480.0f);
+			float w = windowResolution.x;
+			float h = windowResolution.y;
+			float hw = w*(0.5/scale);
+			float hh = h*(0.5/scale);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-hw,hw,-hh,hh,-1,1);
+			glTranslatef(0.5,0.5,0);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();*/
 	};
 
 	void OnDisplay();

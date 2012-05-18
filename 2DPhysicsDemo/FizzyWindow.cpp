@@ -1,4 +1,5 @@
 #include "FizzyWindow.h"
+#include "Collision.h"
 
 vec2i FizzyWindow::windowResolution = vec2i(800,600);
 
@@ -149,11 +150,43 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 				//scn.primaryTaskPool_netThread->AddTask(Task(netthread, scn.netController));
 			}
 		} break;
-	case 'q':
+	case 187: // +
 		scn.set_zoom(scn.get_zoom() + dt * zoomSpeed);
+
+		{
+			glViewport(0,0,windowResolution.x,windowResolution.y);
+			float scale = max(1,scn.zoom)*min((float)windowResolution.x/640.0f, (float)windowResolution.y/480.0f);
+			float w = windowResolution.x;
+			float h = windowResolution.y;
+			float hw = w*(0.5/scale);
+			float hh = h*(0.5/scale);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-hw,hw,-hh,hh,-1,1);
+			glTranslatef(0.5,0.5,0);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+		}
+
 		break;
-	case 'e':
+	case 189: // -
 		scn.set_zoom(scn.get_zoom() - dt * zoomSpeed);
+
+		{
+			glViewport(0,0,windowResolution.x,windowResolution.y);
+			float scale = max(1,scn.zoom)*min((float)windowResolution.x/640.0f, (float)windowResolution.y/480.0f);
+			float w = windowResolution.x;
+			float h = windowResolution.y;
+			float hw = w*(0.5/scale);
+			float hh = h*(0.5/scale);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(-hw,hw,-hh,hh,-1,1);
+			glTranslatef(0.5,0.5,0);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+		}
+
 		break;
 	case 'w':
 		//camPos.y( camPos.y() - dt * camSpeed);
@@ -237,4 +270,54 @@ void FizzyWindow::OnIdle()
 	//return;
 	//scn.Update(gameTime.Update());
 	Redraw();
+};
+
+void FizzyWindow::OnMouseButton(gxbase::GLWindow::MouseButton button, bool down)
+{
+	if(button == gxbase::GLWindow::MouseButton::MBLeft)
+	{
+		if(down)
+		{
+			scn.mouseDown=true;
+			float2 point(scn.mx, scn.my);
+
+			vector<SimBody*> &objects = scn.objects;
+
+			for(int i=4;i<objects.size();++i)
+			{
+				if(objects[i]->owner != SimBody::whoami) continue;
+				if(PointInCircle(point, Circle(objects[i]->position, objects[i]->boundingCircleRadius)))
+				{
+					scn.jointedBody = objects[i];
+					break;
+				}
+			}
+		}
+		else
+		{
+			scn.mouseDown=false;
+			scn.jointedBody=0;
+		}
+	}
+};
+
+float2 FizzyWindow::MouseToSpace(int x, int y, int windowResY)
+{
+	GLdouble model[16], proj[16];
+	GLint view[4];
+	glGetDoublev(GL_MODELVIEW_MATRIX, model);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetIntegerv(GL_VIEWPORT, view);
+	GLdouble tmx, tmy, tmz;
+
+	gluUnProject(x, windowResY - y, 0, model, proj, view, &tmx, &tmy, &tmz);
+
+	return float2(-scn.camPos.x+ (tmx/scn.zoom), -scn.camPos.y+ (-tmy/scn.zoom));
+};
+
+void FizzyWindow::OnMouseMove(i32 x, i32 y)
+{
+	float2 v = MouseToSpace(x, y, windowResolution.y);
+	scn.mx = v.x;
+	scn.my = v.y;
 };

@@ -88,3 +88,10 @@ float2 TransformVector(const float2 &vertex, const float2 &p, const float2 &v, c
 {
 	return p+(vertex*xOrient);
 };
+
+bool PointInCircle(const float2& point, Circle c)
+{
+	float xDiff = point.x - c.center.x;
+	float yDiff = point.y - c.center.y;
+	return ( (xDiff*xDiff) + (yDiff*yDiff) ) <= (c.radius*c.radius);
+};
