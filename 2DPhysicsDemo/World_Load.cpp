@@ -46,7 +46,7 @@ void World::CreateBoxes()
 	baseBox.mesh = boxMesh;
 	baseBox.width.set(box_width, box_height);
 	baseBox.objectMaterial.SetObjectColor(Color::RED);
-	baseBox.objectMaterial.AddTexture(mass_textures[0]);
+	//baseBox.objectMaterial.AddTexture(mass_textures[0]);
 	baseBox.mass = 200; baseBox.invMass = 1.0f/200.0f;
 	baseBox.rotation_in_rads = 0; baseBox.CalculateRotationMatrix();
 	baseBox.MakeBox(box_width, box_height);
@@ -80,6 +80,8 @@ void World::CreateBoxes()
 			//b->rotation_in_rads = randflt(-TWOPI, TWOPI);
 			//b->CalculateRotationMatrix();
 
+			b->objectMaterial.AddTexture(mass_textures[t]);
+
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
@@ -87,7 +89,7 @@ void World::CreateBoxes()
 
 			//b->position.x += randflt(0, 0.8f);
 
-			b->fillMode = GL_LINE;
+			b->fillMode = GL_FILL;
 
 			objects.push_back(b);
 		}
@@ -160,7 +162,7 @@ void World::CreateTriangles()
 		tri->mass = masses[t];
 		tri->invMass = invMasses[t];
 		tri->CalculateInertia();
-		tri->fillMode = GL_LINE;
+		tri->fillMode = GL_FILL;
 		tri->position.x += (i * 0.2f);
 		tri->UpdateWorldSpaceProperties();
 		objects.push_back(tri);
@@ -236,6 +238,7 @@ void World::CreateWalls()
 	objects.push_back(topBox);
 
 	SimBody *leftBox = new SimBody();
+	leftBox->fillMode = GL_LINE;
 	leftBox->hashid = ++SimBody::GUID_GEN;
 	leftBox->boundingCircleRadius = 500;
 	//leftBox->mesh = objects.back()->mesh;
@@ -432,6 +435,7 @@ void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSid
 	baseBox.objectMaterial.SetObjectColor(Color::RED);
 	baseBox.objectMaterial.AddTexture(mass_textures[0]);
 	baseBox.rotation_in_rads = 0;
+	baseBox.fillMode = GL_FILL;
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
 	baseBox.UpdateWorldSpaceProperties();
 
@@ -449,6 +453,7 @@ void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSid
 	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
 	baseTriangle.objectMaterial.AddTexture(mass_textures[0]);
 	baseTriangle.rotation_in_rads = 0;
+	baseTriangle.fillMode = GL_FILL;
 	baseTriangle.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseTriangle.vertices[0], baseTriangle.vertices.size());
 	baseTriangle.UpdateWorldSpaceProperties();
 

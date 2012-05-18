@@ -524,5 +524,34 @@ void World::Draw()
 		objects[i]->Draw();
 	}
 
+	glDisable(GL_DEPTH_TEST);
+
+	for(int i=4;i<objects.size();++i)
+	{
+		SimBody &obj = *objects[i];
+
+		glLineWidth(1.0f);
+
+		float4 col = Color::RED;
+
+		if(obj.velocity.length_squared() > 0.1f || obj.angularVelocity > 0.05f)
+		{
+			col = float4(1, 0.45, 0.6, 1);
+		}
+
+		glColor3fv(col.GetVec());
+		glBegin(GL_LINE_LOOP);
+		for(u32 i=0;i<obj.transformedVertices.size();++i)
+		{
+			glVertex2f(obj.transformedVertices[i].x, obj.transformedVertices[i].y);
+		}
+		glEnd();
+
+		glLineWidth(1.0f);
+	}
+	glColor3f(1,1,1);
+
+	glEnable(GL_DEPTH_TEST);
+
 	glPopMatrix();
 };

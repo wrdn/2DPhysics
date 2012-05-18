@@ -36,11 +36,9 @@ SimBody::SimBody(void)
 
 void SimBody::Draw()
 {
-	//if(!draw) return;
+	glColor3f(1,1,1);
 
-	// activate shader and textures
-	if(use_shaders && objectMaterial.GetShader())
-		objectMaterial.GetShader()->Activate();
+	glEnable(GL_TEXTURE_2D);
 	if(use_textures && fillMode == GL_FILL) // only enable textures when GL_FILL is the fill mode, otherwise the object gets darker as it gets closer to the screen
 	{
 		for(u32 i=0;i<objectMaterial.GetTextures().size();++i)
@@ -53,48 +51,32 @@ void SimBody::Draw()
 
 	glPushMatrix();
 
-	// translate and rotate
-	//glTranslatef(position.x, position.y, 0);
-
-	//if(isbox)
-	//{
-	//	glRotatef(RADTODEG(rotation_in_rads), 0,0, 1);
-	//}
-	//else
-	//{
-	//	glRotatef(RADTODEG(rotation_in_rads), 0,0, -1);
-	//}
-
 	// draw
 	glDisable(GL_CULL_FACE);
 
 	if(owner == SimBody::whoami)
 	{
-		//glColor3fv(objectMaterial.GetObjectColor().GetVec());
-		glColor3f(1,0,0);
+		glColor3f(0,1,0);
 	}
 	else
 	{
-		glColor3f(0,1,0);
+		glColor3f(1,0,0);
 	}
 	
 	glPolygonMode(GL_FRONT_AND_BACK, fillMode);
 
-	glBegin(GL_LINE_LOOP);
+	glBegin(GL_POLYGON);
 	for(u32 i=0;i<transformedVertices.size();++i)
 	{
+		glTexCoord2f(uvs[i].x, uvs[i].y);
 		glVertex2f(transformedVertices[i].x, transformedVertices[i].y);
 	}
 	glEnd();
-
-	//mesh->Draw();
 
 	glPopMatrix();
 
 	// cleanup state
 	glColor3fv(Color::WHITE.GetVec());
-	//mesh->glUseProgram(0);
-	//mesh->glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 };

@@ -86,6 +86,8 @@ public:
 	std::vector<float2> transformedVertices;
 	std::vector<SplittingPlane> transformedSplittingPlanes;
 
+	std::vector<float2> uvs; // assumes uv per vertex
+	
 	float2 width; // box info
 	float side_len; // triangle info
 
@@ -178,9 +180,11 @@ public:
 	};
 
 	// untested, assumes convex
-	void MakePolygon(const std::vector<float2> &verts)
+	void MakePolygon(const std::vector<float2> &verts, const std::vector<float2> &_uvs)
 	{
 		vertices = verts; // copy all the verts
+
+		uvs = _uvs;
 
 		transformedVertices.resize(vertices.size());
 
@@ -205,7 +209,12 @@ public:
 		verts.push_back(float2(0, h));
 		verts.push_back(float2(h, -h));
 
-		MakePolygon(verts);
+		std::vector<float2> uvs;
+		uvs.push_back(float2(0,0));
+		uvs.push_back(float2(0.5,1));
+		uvs.push_back(float2(1,0));
+
+		MakePolygon(verts, uvs);
 	};
 
 	void MakeBox(float boxwidth, float boxheight)
@@ -218,7 +227,13 @@ public:
 		verts.push_back(float2(h.x, h.y));
 		verts.push_back(float2(h.x, -h.y));
 
-		MakePolygon(verts);
+		std::vector<float2> uvs;
+		uvs.push_back(float2(0,0));
+		uvs.push_back(float2(0,1));
+		uvs.push_back(float2(1,1));
+		uvs.push_back(float2(1,0));
+
+		MakePolygon(verts, uvs);
 	};
 
 	void Update(f32 dt)

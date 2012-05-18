@@ -288,13 +288,13 @@ public:
 
 	void Prepare(short _objectIndex)
 	{
-		objectIndex = (_objectIndex);
+		objectIndex = htons(_objectIndex);
 	};
 
 	OwnershipUpdateData Unprepare()
 	{
 		OwnershipUpdateData data;
-		data.objectIndex = (objectIndex);
+		data.objectIndex = ntohs(objectIndex);
 		return data;
 	};
 };
