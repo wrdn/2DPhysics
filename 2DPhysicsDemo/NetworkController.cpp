@@ -237,10 +237,8 @@ char * BuildInitBuffer(World *w, int &out_bufferSize)
 	float minx = objects[4]->position.x; float maxx = minx;
 	for(int i=5;i<objects.size();++i)
 	{
-		if(objects[i]->position.x < minx)
-			minx = objects[i]->position.x;
-		else if(objects[i]->position.x > maxx)
-			maxx = objects[i]->position.x;
+		minx = min(objects[i]->position.x, minx);
+		maxx = max(objects[i]->position.x, maxx);
 	}
 	const float midX = (minx + maxx) * 0.5f;
 	for(int i=4;i<objects.size();++i)
@@ -297,6 +295,8 @@ int GetSizeFromPacketType(int type)
 		return sizeof(EndInitPacket);
 	if(type == PositionOrientationUpdate)
 		return sizeof(PositionOrientationUpdatePacket);
+	if(type == OwnershipUpdate)
+		return sizeof(OwnershipUpdatePacket);
 
 	return 1;
 };
@@ -397,7 +397,9 @@ void NetworkController::Run()
 					readSet = writeSet = masterSet;
 
 					for(int i=0;i<world->objects.size();++i)
+					{
 						world->objects[i]->owner = SimBody::whoami;
+					}
 				}
 
 				char *buffPos = buff;
@@ -590,13 +592,37 @@ void NetworkController::Run()
 
 								PositionOrientationData pod = posPacket.Unprepare();
 
-								if(!pod.ownershipUpdate) // for now we're only processing position and orientation updates
-								{
-									vector<SimBody*> &objects = world->objects;
-									objects[pod.objectIndex]->position = pod.pos;
-									objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
-									objects[pod.objectIndex]->UpdateWorldSpaceProperties();
-								}
+								vector<SimBody*> &objects = world->objects;
+								objects[pod.objectIndex]->position = pod.pos;
+								objects[pod.objectIndex]->rotation_in_rads = pod.orientation;
+								objects[pod.objectIndex]->UpdateWorldSpaceProperties();
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
+							}
+						}
+
+						/*************************************/
+						/********** OWNERSHIP UPDATE *********/
+						/*************************************/
+						else if(_type == OwnershipUpdate)
+						{
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
+							{
+								OwnershipUpdatePacket opack;
+								memcpy(&opack, buffPos, sizeof(opack));
+								buffPos = tmp;
+
+								OwnershipUpdateData odata = opack.Unprepare();
+
+								vector<SimBody*> &objects = world->objects;
+								objects[odata.objectIndex]->owner = SimBody::whoami;
 							}
 							else
 							{

@@ -25,7 +25,7 @@ enum NetworkPacketType
 	// Machine Y sends confirmation to X when it has taken control, so X can lose control of the object. Until we get this, X still holds the object.
 	// If Y updates its ownership model to take ownership and sends this packet, it will no longer accept PositionRotationUpdate messages from X. Thus if they temporarily both
 	// own it (while the OwnershipUpdateComplete message is being processed by X), the pos/rotation updates of X won't affect Y (and vice versa)
-	OwnershipUpdateComplete
+	//OwnershipUpdateComplete
 };
 
 struct StartInitData
@@ -46,10 +46,14 @@ struct PositionOrientationData
 {
 	char type;
 	short objectIndex;
-	char ownershipUpdate;
 	float2 pos;
 	float orientation;
 
+	PositionOrientationData() : type(PositionOrientationUpdate)
+	{};
+	PositionOrientationData(short _index, const float2 &_pos, float _orientation)
+		: type(PositionOrientationUpdate), objectIndex(_index), pos(_pos), orientation(_orientation)
+	{};
 };
 struct OwnershipUpdateData
 {
@@ -223,26 +227,18 @@ class PositionOrientationUpdatePacket : public NetworkPacket
 {
 public:
 	short objectIndex;
-	short owner;
-
-	// setting this to true we can use the same packet for ownership updates (using owner variable above), and position and orientation updates.
-	// while a second packet type would have been preferred (specifically, an OwnershipUpdatePacket), this does not appear to work properly when reading
-	// the data and causes far too many problems :(. Set to 0 for false or non-zero for true
-	char ownershipUpdate;
-
 	ivec pos;
 	int orientation;
 
 	PositionOrientationUpdatePacket()
 	{
 		type = PositionOrientationUpdate;
-		ownershipUpdate = 0;
 	};
-
-	PositionOrientationUpdatePacket(short _objectIndex, char isAnOwnershipUpdate, float2 &_pos, float _orientation)
+	              
+	PositionOrientationUpdatePacket(short _objectIndex, float2 &_pos, float _orientation)
 	{
 		type = PositionOrientationUpdate;
-		Prepare(_objectIndex, isAnOwnershipUpdate, _pos, _orientation);
+		Prepare(_objectIndex, _pos, _orientation);
 	};
 
 	PositionOrientationData Unprepare()
@@ -258,21 +254,17 @@ public:
 
 		data.orientation = Marshall::ConvertIntToFloat(ntohl(orientation));
 
-		data.ownershipUpdate = ownershipUpdate;
-
 		return data;
 	};
 
 	void Prepare(PositionOrientationData &data)
 	{
-		Prepare(data.objectIndex, data.ownershipUpdate, data.pos, data.orientation);
+		Prepare(data.objectIndex, data.pos, data.orientation);
 	}
 	
-	void Prepare(short _objectIndex, char isAnOwnershipUpdate, float2 &_pos, float _orientation)
+	void Prepare(short _objectIndex, float2 &_pos, float _orientation)
 	{
 		objectIndex = htons(_objectIndex);
-
-		ownershipUpdate = isAnOwnershipUpdate;
 
 		pos.x = htonl(Marshall::ConvertFloatToInt(_pos.x));
 		pos.y = htonl(Marshall::ConvertFloatToInt(_pos.y));
@@ -296,13 +288,13 @@ public:
 
 	void Prepare(short _objectIndex)
 	{
-		objectIndex = htons(_objectIndex);
+		objectIndex = (_objectIndex);
 	};
 
 	OwnershipUpdateData Unprepare()
 	{
 		OwnershipUpdateData data;
-		data.objectIndex = ntohs(objectIndex);
+		data.objectIndex = (objectIndex);
 		return data;
 	};
 };

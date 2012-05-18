@@ -332,7 +332,7 @@ void World::object_ownership_updates(vector<unsigned short> &indices)
 	
 };
 
-struct dtf { SimBody *b; int index; };
+struct ObjectBlob { SimBody *b; int index; };
 
 void World::Update(f64 dt)
 {
@@ -427,9 +427,9 @@ void World::Update(f64 dt)
 	{
 		t_time = 0;
 		
+		// Calculate the update packets (for objects that have moved a "reasonable" amount)
 		static vector<PositionOrientationUpdatePacket> updatePacks;
 		updatePacks.clear();
-		
 		for(int j=4;j<objects.size();++j)
 		{
 			if(objects[j]->owner == SimBody::whoami)
@@ -437,15 +437,62 @@ void World::Update(f64 dt)
 				if(!close(objects[j]->position, objects[j]->last_pos_sent))
 				{
 					PositionOrientationUpdatePacket pop;
-					pop.Prepare(j,0, objects[j]->position, objects[j]->rotation_in_rads);
-
+					pop.Prepare(j, objects[j]->position, objects[j]->rotation_in_rads);
 					updatePacks.push_back(pop);
 					objects[j]->last_pos_sent = objects[j]->position;
 				}
 			}
-		}// end of position/orientation update packet generation
+		}
 
-		// send the data
+		// Calculate the ownership updates
+		float minx = objects[4]->position.x; float maxx = minx; // get min and max x and midpoint (min+max)*0.5
+		for(int i=5;i<objects.size();++i)
+		{
+			minx = min(objects[i]->position.x, minx);
+			maxx = max(objects[i]->position.x, maxx);
+		}
+		const float midX = (minx + maxx) * 0.5f;
+		static vector<ObjectBlob> L, R;
+		L.clear(); R.clear();
+		for(int i=4;i<objects.size();++i) // sort into a Left and Right list depending on side of midpoint the object lies on
+		{
+			if(objects[i]->owner != SimBody::whoami) continue;
+			ObjectBlob blob; blob.b = objects[i]; blob.index = i;
+			if(objects[i]->position.x < midX) L.push_back(blob);
+			else R.push_back(blob);
+		}
+		
+		// send items in list F to the other machine
+		vector<ObjectBlob> &F = L.size()<R.size() ? L : R;
+
+		const int other_machine = SimBody::whoami == 1 ? 2 : 1;
+
+		// make a list of ownership packets ready to send
+		vector<OwnershipUpdatePacket> opacks;
+		for(int i=0;i<F.size();++i)
+		{
+			OwnershipUpdatePacket op; op.Prepare(F[i].index);
+			F[i].b->owner = other_machine;
+			opacks.push_back(op);
+		}
+
+		// send the ownership update data
+		int ownershipDataSize = sizeof(OwnershipUpdatePacket)*opacks.size();
+		int ownershipAmountSent = 0;
+		if(opacks.size())
+		{
+			//for(int i=0;i<opacks.size();++i) cout << opacks[i].Unprepare().objectIndex << "  ";
+			//cout << endl;
+			for(int i=0;i<netController->peers.size();++i)
+			{
+				while(ownershipAmountSent < ownershipDataSize)
+				{
+					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
+				}
+			}
+		}
+
+		// send the position and orientation update data
 		int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
 		int amountSent = 0;
 		
