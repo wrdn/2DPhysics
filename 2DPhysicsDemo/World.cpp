@@ -345,9 +345,11 @@ void World::Update(f64 dt)
 	PerfTimer pt; PerfTimer ot=pt;
 	ot.start();
 
-	dt=0.016f;
+	dt=0.008f;
 
 	bodies.clear();
+	
+	//arbiters.clear();
 
 	vector<unsigned short> indices; // has an element for each body in bodies, used so we can send the correct data over the network (updating the right index on the other side)
 
@@ -377,9 +379,13 @@ void World::Update(f64 dt)
 		objects[i]->UpdateWorldSpaceProperties();
 	}
 
-	double inv_dt = 1.0f/dt;
-
 	BroadPhase();
+	
+	double inv_dt = 1.0f/dt;
+	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
+	{
+		arb->second.PreStep((f32)inv_dt);
+	}
 	
 	for (u32 i = 0; i < bodies.size(); ++i)
 	{
@@ -391,12 +397,7 @@ void World::Update(f64 dt)
 		}
 	}
 
-	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
-	{
-		arb->second.PreStep((f32)inv_dt);
-	}
-	
-	for (int i = 0; i < 15; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 		{
@@ -472,7 +473,7 @@ void World::Update(f64 dt)
 		for(int i=0;i<F.size();++i)
 		{
 			OwnershipUpdatePacket op; op.Prepare(F[i].index);
-			F[i].b->owner = other_machine;
+			//F[i].b->owner = other_machine;
 			opacks.push_back(op);
 		}
 
@@ -485,10 +486,10 @@ void World::Update(f64 dt)
 			//cout << endl;
 			for(int i=0;i<netController->peers.size();++i)
 			{
-				while(ownershipAmountSent < ownershipDataSize)
+				/*while(ownershipAmountSent < ownershipDataSize)
 				{
 					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
-				}
+				}*/
 			}
 		}
 

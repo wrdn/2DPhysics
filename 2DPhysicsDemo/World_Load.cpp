@@ -61,7 +61,7 @@ void World::CreateBoxes()
 	//SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
 
-	float startX = meters(-40);
+	float startX = meters(-80);
 	float startY=meters(0.45f);
 
 	// Generate boxes
@@ -135,6 +135,7 @@ void World::CreateTriangles()
 	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
 	baseTriangle.objectMaterial.AddTexture(mass_textures[0]);
 	baseTriangle.mass = 20; baseTriangle.invMass = 1.0f/20.0f;
+	baseTriangle.owner = 1;
 	baseTriangle.side_len = triangle_len/2;
 	{
 		float SL = baseTriangle.side_len;
@@ -149,6 +150,119 @@ void World::CreateTriangles()
 
 	float startX = meters(-15);
 	float startY = 11.5;
+
+	{
+		float triXSeperation = 0.5f;
+		float triYSeperation = 0.866f;
+		float pyramidXSeperation = 20;
+		int rowCount = 19;
+		int rowNum = 0;
+		int rowRemain = rowCount;
+
+
+		for(int i=0;i<100;++i)
+		{
+			SimBody *tri = new SimBody(baseTriangle);
+			tri->hashid = ++SimBody::GUID_GEN;
+			int t = rand(0,2);
+			tri->position.set(startX+(1.0f*i), startY);
+			tri->rotation_in_rads = 0;
+			tri->CalculateRotationMatrix();
+			tri->mass = masses[t];
+			tri->invMass = invMasses[t];
+			tri->CalculateInertia();
+			tri->fillMode = GL_FILL;
+			tri->position.x += (i * 0.2f);
+
+			float orientation = (i+rowNum)%2;
+			tri->rotation_in_rads = DEGTORAD(180*orientation);
+
+			tri->position.set(
+				-30+(i)%160*triXSeperation-20-triXSeperation*19*
+				rowNum+triXSeperation*rowNum*rowNum,
+				50+triYSeperation*rowNum-44.711+0.288*orientation);
+
+			tri->position.x ;
+			tri->position.y ;
+
+			if(--rowRemain < 1)
+			{
+				rowCount -= 2;
+				rowRemain = rowCount;
+				rowNum = 9-(rowCount/2);
+			}
+
+			tri->boundingCircleRadius = CalculateBoundingCircle(tri->position, &tri->vertices[0], tri->vertices.size());
+
+			tri->UpdateWorldSpaceProperties();
+			objects.push_back(tri);
+		}
+	}
+
+	{
+		float triXSeperation = 0.5f;
+		float triYSeperation = 0.866f;
+		float pyramidXSeperation = 20;
+		int rowCount = 19;
+		int rowNum = 0;
+		int rowRemain = rowCount;
+
+
+		for(int i=0;i<100;++i)
+		{
+			SimBody *tri = new SimBody(baseTriangle);
+			tri->hashid = ++SimBody::GUID_GEN;
+			int t = rand(0,2);
+			tri->position.set(startX+(1.0f*i), startY);
+			tri->rotation_in_rads = 0;
+			tri->CalculateRotationMatrix();
+			tri->mass = masses[t];
+			tri->invMass = invMasses[t];
+			tri->CalculateInertia();
+			tri->fillMode = GL_FILL;
+			tri->position.x += (i * 0.2f);
+
+			float orientation = (i+rowNum)%2;
+			tri->rotation_in_rads = DEGTORAD(180*orientation);
+
+			tri->position.set(
+				60+(i)%160*triXSeperation-20-triXSeperation*19*
+				rowNum+triXSeperation*rowNum*rowNum,
+				50+triYSeperation*rowNum-44.711+0.288*orientation);
+
+			tri->position.x ;
+			tri->position.y ;
+
+			if(--rowRemain < 1)
+			{
+				rowCount -= 2;
+				rowRemain = rowCount;
+				rowNum = 9-(rowCount/2);
+			}
+
+			tri->boundingCircleRadius = CalculateBoundingCircle(tri->position, &tri->vertices[0], tri->vertices.size());
+
+			tri->UpdateWorldSpaceProperties();
+			objects.push_back(tri);
+		}
+	}
+
+
+
+	return;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// First row
 	for(int i=0;i<2;++i)
@@ -212,7 +326,7 @@ void World::CreateWalls()
 	bottomBox->mesh = meshHandle;
 	//bottomBox->mesh = objects.back()->mesh;
 	bottomBox->width.set(meters(200), -5);
-	bottomBox->position.set(0, -5);
+	bottomBox->position.set(0, 0);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);

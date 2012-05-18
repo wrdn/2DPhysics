@@ -205,9 +205,9 @@ public:
 	{
 		float h = sideLen/2;
 		std::vector<float2> verts;
-		verts.push_back(float2(-h, -h));
-		verts.push_back(float2(0, h));
-		verts.push_back(float2(h, -h));
+		verts.push_back(float2(0.5, -0.289));
+		verts.push_back(float2(-0.5,-0.289));
+		verts.push_back(float2(0, 0.577));
 
 		std::vector<float2> uvs;
 		uvs.push_back(float2(0,0));

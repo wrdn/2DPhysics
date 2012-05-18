@@ -88,7 +88,7 @@ void Arbiter::Update(Contact* newContacts, int numNewContacts)
 void Arbiter::PreStep(float inv_dt)
 {
 	const float k_allowedPenetration = 0.2f;
-	float k_biasFactor = POSITION_CORRECTION ? 0.2f : 0.0f;
+	float k_biasFactor = POSITION_CORRECTION ? 0.35f : 0.0f;
 
 	for (int i = 0; i < numContacts; ++i)
 	{
