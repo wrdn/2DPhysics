@@ -51,6 +51,14 @@ bool Hit(const AABB &a, const AABB &b)
 	return true;
 };
 
+bool PointInCircle(float2 point, Circle c)
+{
+	float xDiff = point.x - c.center.x;
+	float yDiff = point.y - c.center.y;
+
+	return ( (xDiff*xDiff) + (yDiff*yDiff) ) <= (c.radius*c.radius);
+};
+
 bool Hit(const Circle &a, const Circle &b)
 {
 	f32 dist_squared = a.center.distance_squared(b.center); // use distance squared to avoid sqrt

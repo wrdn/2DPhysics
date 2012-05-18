@@ -49,6 +49,8 @@ public:
 	f32 max;
 };
 
+bool PointInCircle(float2 point, Circle circ);
+
 bool LineCircleCollision(const Line2D &line, const Circle &c, CollisionPoint2D &cp);
 
 bool Hit(const AABB &a, const AABB &b);

@@ -21,6 +21,11 @@ private:
 
 	float currentTime, prevTime;
 
+	GLdouble mx, my;
+
+	SimBody *jointedBody;
+	bool down;
+
 public:
 	FizzyWindow(void);
 	~FizzyWindow(void);
@@ -28,9 +33,29 @@ public:
 	void OnCreate();
 	void OnDestroy();
 
+	void OnMouseButton(gxbase::GLWindow::MouseButton button, bool down);
+
+	void OnMouseMove(i32 x, i32 y);
+
 	void OnResize(i32 w, i32 h)
 	{
 		windowResolution.x = w;
+		windowResolution.y = h;
+
+		glViewport(0,0,w,h);
+
+		float scale = 2.5*min((float)w/640.0f, (float)h/480.0f);
+		float hw = w*(0.5/scale);
+		float hh = h*(0.5/scale);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		glOrtho(-hw,hw,-hh,hh,-1,1);
+
+		glTranslatef(0.5,0.5,0);
+
+		/*windowResolution.x = w;
 		windowResolution.y = h;
 
 		f32 nRange = 1;
@@ -52,6 +77,7 @@ public:
 		}
 
 		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();*/
 	};
 
 	void OnDisplay();

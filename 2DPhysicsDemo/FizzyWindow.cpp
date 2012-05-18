@@ -1,4 +1,6 @@
 #include "FizzyWindow.h"
+#include "Collision.h"
+using namespace gxbase;
 
 vec2i FizzyWindow::windowResolution = vec2i(800,600);
 
@@ -30,10 +32,84 @@ double CalcAverageTick(float newtick)
     return((double)ticksum/MAXSAMPLES);
 }
 
+float2 MouseToSpace(int x, int y, int windowResY)
+{
+	GLdouble model[16], proj[16];
+	GLint view[4];
+	glGetDoublev(GL_MODELVIEW_MATRIX, model);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetIntegerv(GL_VIEWPORT, view);
+
+	GLdouble tmx, tmy, tmz;
+	gluUnProject(x, windowResY - y, 0, model, proj, view, &tmx, &tmy, &tmz);
+	
+	return float2(tmx, -tmy);
+};
+
+void FizzyWindow::OnMouseMove(i32 x, i32 y)
+{
+	float2 v = MouseToSpace(x, y, windowResolution.y);
+
+	mx = v.x;
+	my = v.y;
+
+	if(jointedBody)
+	{
+		jointedBody->position.set(mx, my);
+	}
+	
+	printf("mx: %f , my: %f\n", mx, my);
+};
+
+void FizzyWindow::OnMouseButton(gxbase::GLWindow::MouseButton button, bool down)
+{
+	if(button == gxbase::GLWindow::MouseButton::MBLeft)
+	{
+		if(down)
+		{
+			down=true;
+			float2 point(mx, my);
+
+			printf("mx: %f , my: %f\n", mx, my);
+
+			// Find the first shape that intersects with the mouse position
+			vector<SimBody*> &objects = scn.objects;
+
+			for(int i=4;i<objects.size();++i)
+			{
+				//if(objects[i]->owner != SimBody::whoami) continue;
+
+				if(PointInCircle(point, Circle(objects[i]->position, objects[i]->boundingCircleRadius)))
+				{
+					jointedBody = objects[i];
+					break;
+				}
+			}
+
+			if(jointedBody)
+			{
+				jointedBody->position.set(mx, my);
+			}
+		}
+		else
+		{
+			down=false;
+			jointedBody=0;
+		}
+	}
+};
+
 void FizzyWindow::OnDisplay()
 {
 	//double DT = gameTime.Update();
 
+	//glViewport(0,0,windowResolution.x, windowResolution.y);
+	//glMatrixMode(GL_PROJECTION);
+	//glLoadIdentity();
+	//glOrtho(-100,100,-100,100,-1,1);
+	//glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
+	
 	glDisable(GL_LIGHTING);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
@@ -42,6 +118,13 @@ void FizzyWindow::OnDisplay()
 
 	//scn.Update(DT);
 	scn.Draw();
+
+	glColor3f(1,0,0);
+	glPointSize(5);
+	glBegin(GL_POINTS);
+	glVertex2f(mx, my);
+	glEnd();
+	glPointSize(1);
 
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);

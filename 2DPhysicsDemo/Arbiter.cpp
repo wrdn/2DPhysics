@@ -60,13 +60,13 @@ void Arbiter::Update(Contact* newContacts, int numNewContacts)
 			Contact* c = mergedContacts + i;
 			Contact* cOld = contacts + k;
 			*c = *cNew;
-			if (WARM_STARTING)
+			/*if (WARM_STARTING)
 			{
 				c->Pn = cOld->Pn;
 				c->Pt = cOld->Pt;
 				c->Pnb = cOld->Pnb;
-			}
-			else
+			}*/
+			//else
 			{
 				c->Pn = 0.0f;
 				c->Pt = 0.0f;
@@ -88,7 +88,7 @@ void Arbiter::Update(Contact* newContacts, int numNewContacts)
 void Arbiter::PreStep(float inv_dt)
 {
 	const float k_allowedPenetration = 0.2f;
-	float k_biasFactor = POSITION_CORRECTION ? 0.2f : 0.0f;
+	float k_biasFactor = POSITION_CORRECTION ? 0.1f : 0.0f;
 
 	for (int i = 0; i < numContacts; ++i)
 	{
@@ -149,7 +149,7 @@ void Arbiter::ApplyImpulse()
 		if (ACCUMULATE_IMPULSES)
 		{
 			// Clamp the accumulated impulse
-			float Pn0 = c->Pn;
+			float Pn0 = c->Pn; c->Pn = min(c->Pn, 8);
 			c->Pn = Max(Pn0 + dPn, 0.0f);
 			dPn = c->Pn - Pn0;
 		}

@@ -85,7 +85,19 @@ void World::CreateBoxes()
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
-			b->CalculateInertia();
+			b->inertia = 150;
+			b->invInertia = 1.0f / 150.0f;
+
+			b->I = b->inertia;
+			b->invI = b->invInertia;
+
+			//b->CalculateInertia();
+			//b->I = b->inertia;
+			//b->invI = b->invInertia;
+
+			b->last_rotation_sent = 0;
+
+			b->friction = 0.6f;
 
 			//b->position.x += randflt(0, 0.8f);
 
@@ -212,13 +224,13 @@ void World::CreateWalls()
 	bottomBox->mesh = meshHandle;
 	//bottomBox->mesh = objects.back()->mesh;
 	bottomBox->width.set(meters(200), -5);
-	bottomBox->position.set(0, -5);
+	bottomBox->position.set(0, -20);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
 	bottomBox->mass = 0; bottomBox->invMass = 0;
-	bottomBox->inertia = 0; bottomBox->invI = 0; bottomBox->invInertia = 0;
+	bottomBox->inertia = 0; bottomBox->I=0; bottomBox->invI = 0; bottomBox->invInertia = 0;
 	bottomBox->rotation_in_rads = 0; bottomBox->CalculateRotationMatrix();
 	{
 		const float2 &extents = bottomBox->width/2;
@@ -228,7 +240,7 @@ void World::CreateWalls()
 		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
-	bottomBox->MakeBox(meters(200), 0.01f);
+	bottomBox->MakeBox(meters(200), 10);
 	bottomBox->UpdateWorldSpaceProperties();
 	objects.push_back(bottomBox);
 

@@ -381,21 +381,24 @@ void World::Update(f64 dt)
 
 	BroadPhase();
 	
-	for (u32 i = 0; i < bodies.size(); ++i)
-	{
-		SimBody *b = bodies[i];
-		if(b->invMass != 0)
-		{
-			b->velocity += (f32)dt * (gravity + b->invMass * b->force);
-			b->angularVelocity += (f32)dt * b->invI * b->torque;
-		}
-	}
-
 	for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
 	{
 		arb->second.PreStep((f32)inv_dt);
 	}
 	
+	for (u32 i = 0; i < bodies.size(); ++i)
+	{
+		SimBody *b = bodies[i];
+		b->velocity += 0.005f * float2(0, -0.981f);
+		b->angularVelocity += 0.005f * b->invI * b->torque;
+
+		/*if(b->invMass != 0)
+		{
+			b->velocity += (f32)dt * (gravity + b->invMass * b->force);
+			b->angularVelocity += (f32)dt * b->invI * b->torque;
+		}*/
+	}
+
 	for (int i = 0; i < 15; ++i)
 	{
 		for (ArbIter arb = arbiters.begin(); arb != arbiters.end(); ++arb)
@@ -416,6 +419,7 @@ void World::Update(f64 dt)
 		b->torque = 0;
 	}
 
+	return;
 	ot.end();
 	frameTime = ot.time();
 
@@ -515,7 +519,7 @@ void World::Draw()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glPushMatrix();
-	glScalef(zoom,zoom,1);
+	//glScalef(zoom,zoom,1);
 	glTranslatef(camPos.x, camPos.y, 0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
