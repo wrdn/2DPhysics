@@ -107,7 +107,13 @@ void FizzyWindow::OnDisplay()
 	float yDiff = -0.05;
 
 	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
-	int objectCount = scn.netController->mode&NetworkController::Simulating ? scn.objects.size()/2-4 : scn.objects.size()-4;
+	//int objectCount = scn.netController->mode&NetworkController::Simulating ? scn.objects.size()/2-4 : scn.objects.size()-4;
+
+	int objectCount=0;
+	for(int i=4;i<scn.objects.size();++i)
+		if(scn.objects[i]->owner == SimBody::whoami)
+			++objectCount;
+
 	Printf("Owned Objects: %d", objectCount);
 
 	scn.mypvr.bl = BL;
@@ -133,6 +139,13 @@ void FizzyWindow::OnDisplay()
 			}
 		}
 	}
+
+	glRasterPos2f(0.3, 0.9);
+	Printf("Press 'c' to connect");
+	glRasterPos2f(0.3, 0.85);
+	Printf("Press 'o' to enable/disable ownership");
+	glRasterPos2f(0.3,0.8);
+	Printf("Ownership Migration: %s", scn.doOwnershipUpdates?"Enabled":"Disabled");
 
 	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
 	Printf("# Owned Objects displayed: %d", myObjects);
@@ -184,6 +197,16 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	switch(tolower(key))
 	{
+	case 'o':
+		{
+			if(down) break;
+
+			if(!(scn.netController->mode & NetworkController::Connected)) // only change iff not connected
+			{
+				scn.doOwnershipUpdates = !scn.doOwnershipUpdates;
+			}
+
+		} break;
 	case 'p':
 		{
 			if(down) break;

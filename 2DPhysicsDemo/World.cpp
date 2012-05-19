@@ -7,6 +7,7 @@
 World::World() : zoom(-3.45f), objects(0), alive(true)
 {
 	physicsPaused = false;
+	doOwnershipUpdates = false;
 	springForce.zero();
 };
 
@@ -311,6 +312,27 @@ bool close(float2 &a, float2 &b)
 
 struct ObjectBlob { SimBody *b; int index; };
 
+void sort(vector<ObjectBlob> &inp)
+{
+	bool swapped=false;
+	int n = inp.size();
+
+	do
+	{
+		swapped=false;
+		for(int i=1;i<n;++i)
+		{
+			if(inp[i-1].b->position.x > inp[i].b->position.x)
+			{
+				std::swap(inp[i-1], inp[i]);
+				swapped=true;
+			}	
+		}
+		--n;
+	} while(swapped);
+};
+
+
 void World::Update(f64 dt)
 {
 	if(!alive)
@@ -424,8 +446,53 @@ void World::Update(f64 dt)
 		t_time = 0;
 		
 		int sentCount=0;
+		
+		static vector<OwnershipUpdatePacket> opacks;
+		opacks.clear();
+		if(doOwnershipUpdates)
+		{
+			/***************************************/
+			/******* OBJECT MIGRATION PACKETS ******/
+			/***************************************/
+			static vector<ObjectBlob> sortedBodies;
+			sortedBodies.clear();
+			for(int i=4;i<objects.size();++i)
+			{
+				ObjectBlob b;
+				b.b = objects[i];
+				b.index=i;
+				sortedBodies.push_back(b);
+			}
+			sort(sortedBodies);
 
-		// Calculate the update packets (for objects that have moved a "reasonable" amount)
+			ObjectBlob *mid = &sortedBodies[sortedBodies.size()/2];
+			vector<ObjectBlob*> onLeft, onRight;
+
+			// make a list of objects we own on the left/right of mid
+			for(int i=0;i<sortedBodies.size();++i)
+			{
+				ObjectBlob *blob = &sortedBodies[i];
+				if(blob->b->owner != SimBody::whoami) continue;
+				if(blob->b->position.x <= mid->b->position.x) onLeft.push_back(blob);
+				else onRight.push_back(blob);
+			}
+			
+			vector<ObjectBlob*> &listToSend = onLeft.size()>=onRight.size() ? onRight : onLeft;
+
+			for(int i=0;i<listToSend.size();++i)
+			{
+				OwnershipUpdatePacket op;
+				ObjectBlob &b = *listToSend[i];
+				op.Prepare(b.index, b.b->velocity, b.b->angularVelocity);
+				b.b->owner = b.b->owner == 1 ? 2 : 1;
+
+				opacks.push_back(op);
+			}
+		}
+		
+		/**************************************/
+		/********** UPDATE PACKETS ************/
+		/**************************************/
 		static vector<PositionOrientationUpdatePacket> updatePacks;
 		updatePacks.clear();
 		for(int j=4;j<objects.size();++j)
@@ -443,61 +510,31 @@ void World::Update(f64 dt)
 				}
 			}
 		}
-
-		// Calculate the ownership updates
-		/*float minx = objects[4]->position.x; float maxx = minx; // get min and max x and midpoint (min+max)*0.5
-		for(int i=5;i<objects.size();++i)
-		{
-			minx = min(objects[i]->position.x, minx);
-			maxx = max(objects[i]->position.x, maxx);
-		}
-		const float midX = (minx + maxx) * 0.5f;
-		static vector<ObjectBlob> L, R;
-		L.clear(); R.clear();
-		for(int i=4;i<objects.size();++i) // sort into a Left and Right list depending on side of midpoint the object lies on
-		{
-			if(objects[i]->owner != SimBody::whoami) continue;
-			ObjectBlob blob; blob.b = objects[i]; blob.index = i;
-			if(objects[i]->position.x < midX) L.push_back(blob);
-			else R.push_back(blob);
-		}
 		
-		// send items in list F to the other machine
-		vector<ObjectBlob> &F = L.size()<R.size() ? L : R;
-
-		const int other_machine = SimBody::whoami == 1 ? 2 : 1;
-
-		// make a list of ownership packets ready to send
-		vector<OwnershipUpdatePacket> opacks;
-		for(int i=0;i<F.size();++i)
+		/*********** SEND CAMERA UPDATE ***********/
+		CameraUpdatePacket cap;
+		cap.Prepare(mypvr.bl, mypvr.tr);
+		int amountSent = 0;
+		while(amountSent < sizeof(cap))
 		{
-			OwnershipUpdatePacket op; op.Prepare(F[i].index);
-			F[i].b->owner = other_machine;
-			opacks.push_back(op);
-		}
-
-		// send the ownership update data
-		int ownershipDataSize = sizeof(OwnershipUpdatePacket)*opacks.size();
-		int ownershipAmountSent = 0;
-		if(opacks.size())
-		{
-			//for(int i=0;i<opacks.size();++i) cout << opacks[i].Unprepare().objectIndex << "  ";
-			//cout << endl;
+			amountSent=0;
 			for(int i=0;i<netController->peers.size();++i)
 			{
-				while(ownershipAmountSent < ownershipDataSize)
+				amountSent += send(netController->peers[i].socket, (char*)&cap, sizeof(cap),0);
+
+				if(amountSent == -1)
 				{
-					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
+					amountSent = sizeof(cap);
+					break;
 				}
 			}
-		}*/
+		}
 
-		// send the position and orientation update data
-		int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
-		int amountSent = 0;
-		
+		/*************** SEND POSITION AND ORIENTATION UPDATES ***********/
 		if(updatePacks.size())
 		{
+			int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
+
 			for(int i=0;i<netController->peers.size();++i)
 			{
 				amountSent = 0;
@@ -513,17 +550,27 @@ void World::Update(f64 dt)
 						break;
 					}
 				}
+			}
+		}
 
-				CameraUpdatePacket cap;
-				cap.Prepare(mypvr.bl, mypvr.tr);
-				amountSent = 0;
-				while(amountSent < sizeof(cap))
+
+		/*********** SEND OBJECT MIGRATION UPDATES ****************/
+		if(opacks.size())
+		{
+			int ownershipDataSize = sizeof(OwnershipUpdatePacket)*opacks.size();
+			int ownershipAmountSent = 0;
+
+			for(int i=0;i<netController->peers.size();++i)
+			{
+				ownershipAmountSent = 0;
+
+				while(ownershipAmountSent < ownershipDataSize)
 				{
-					amountSent += send(netController->peers[i].socket, (char*)&cap, sizeof(cap),0);
+					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
 
-					if(amountSent == -1)
+					if(ownershipAmountSent == -1)
 					{
-						amountSent = sizeof(cap);
+						ownershipAmountSent = ownershipDataSize;
 						break;
 					}
 				}

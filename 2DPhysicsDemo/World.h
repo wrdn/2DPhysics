@@ -32,6 +32,8 @@ public:
 	PeerViewRectangle mypvr; // my own pvr (used when sending to other machine)
 	PeerViewRectangle pvr; // pvr of the connected machine
 
+	bool doOwnershipUpdates;
+
 	float mx,my;
 	bool mouseDown;
 	SimBody *jointedBody;

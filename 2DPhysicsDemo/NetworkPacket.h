@@ -64,6 +64,8 @@ struct PositionOrientationData
 struct OwnershipUpdateData
 {
 	short objectIndex;
+	float2 velocity;
+	float angularVelocity;
 };
 struct CameraUpdateData
 {
@@ -87,22 +89,27 @@ public:
 	// what ID is the other machine using? (not really required)
 	char otherMachineIdentifier;
 
+	char doOwnershipUpdates;
+
 	ConnectAuthPacket()
 	{
 		type = ConnectAuth;
 	}
 
-	ConnectAuthPacket(char assignedOwnerID, char otherMachineID)
+	ConnectAuthPacket(char assignedOwnerID, char otherMachineID,
+		char _doOwnershipUpdates)
 	{
 		type = ConnectAuth;
-		Prepare(assignedOwnerID, otherMachineID);
+		Prepare(assignedOwnerID, otherMachineID, _doOwnershipUpdates);
 	}
 
 	// This doesn't need to do much, as they are only chars (1 byte), so we dont need to change the order
-	void Prepare(char assignedOwnerID, char otherMachineID)
+	void Prepare(char assignedOwnerID, char otherMachineID,
+		char _doOwnershipUpdates)
 	{
 		assignedOwnerIdentifier = assignedOwnerID;
 		otherMachineIdentifier = otherMachineID;
+		doOwnershipUpdates = _doOwnershipUpdates;
 	};
 };
 
@@ -300,16 +307,32 @@ public:
 	};
 
 	short objectIndex;
+	
+	// when an object changes hands, we need to tell the other machine what
+	// its velocity and angular velocity is
+	ivec velocity;
+	int angularVelocity;
 
-	void Prepare(short _objectIndex)
+	void Prepare(short _objectIndex, const float2& _velocity, float _angularVel)
 	{
 		objectIndex = htons(_objectIndex);
+
+		velocity.x = htonl(Marshall::ConvertFloatToInt(_velocity.x));
+		velocity.y = htonl(Marshall::ConvertFloatToInt(_velocity.y));
+
+		angularVelocity = htonl(Marshall::ConvertFloatToInt(_angularVel));
 	};
 
 	OwnershipUpdateData Unprepare()
 	{
 		OwnershipUpdateData data;
 		data.objectIndex = ntohs(objectIndex);
+
+		data.velocity.x = Marshall::ConvertIntToFloat(ntohl(velocity.x));
+		data.velocity.y = Marshall::ConvertIntToFloat(ntohl(velocity.y));
+
+		data.angularVelocity = Marshall::ConvertIntToFloat(ntohl(angularVelocity));
+
 		return data;
 	};
 };

@@ -58,12 +58,6 @@
     <Filter Include="Source Files\Threading">
       <UniqueIdentifier>{819adea4-580d-4761-b181-a07ff34ea83d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Physics\chipmunk">
-      <UniqueIdentifier>{e0167316-8fa3-47d3-b5c4-615a5e94c6f8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Physics\chipmunk">
-      <UniqueIdentifier>{2c15f5db-f94b-4c87-9766-71d89ab581cf}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Network">
       <UniqueIdentifier>{9b1d5457-ceb6-42dd-aefe-bb64360ae958}</UniqueIdentifier>
     </Filter>
@@ -171,11 +165,11 @@
     <ClCompile Include="ThreadPool.cpp">
       <Filter>Source Files\Threading</Filter>
     </ClCompile>
-    <ClCompile Include="chipCollide.cpp">
-      <Filter>Source Files\Physics\chipmunk</Filter>
-    </ClCompile>
     <ClCompile Include="NetworkController.cpp">
       <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="chipCollide.cpp">
+      <Filter>Source Files\Physics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -290,9 +284,6 @@
     <ClInclude Include="ThreadPool.h">
       <Filter>Header Files\Threading</Filter>
     </ClInclude>
-    <ClInclude Include="chipCollide.h">
-      <Filter>Header Files\Physics\chipmunk</Filter>
-    </ClInclude>
     <ClInclude Include="Marshall.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
@@ -303,6 +294,9 @@
       <Filter>Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="Collision.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="chipCollide.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
   </ItemGroup>

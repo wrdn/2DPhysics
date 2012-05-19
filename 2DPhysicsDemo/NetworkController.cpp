@@ -357,7 +357,7 @@ void NetworkController::Run()
 				world->arbiters.clear();
 				world->bodies.clear();
 
-				ConnectAuthPacket authPacket(2,1);
+				ConnectAuthPacket authPacket(2,1, (char)world->doOwnershipUpdates);
 				SimBody::whoami = 1; // server always takes ID of 1
 
 				// send initial authorisation
@@ -460,6 +460,8 @@ void NetworkController::Run()
 								memcpy(&authPacket, buffPos, typeSize);
 								buffPos = tmp;
 								SimBody::whoami = authPacket.assignedOwnerIdentifier;
+
+								world->doOwnershipUpdates = authPacket.doOwnershipUpdates;
 
 								init.gotStartInit = init.gotEndInit = false;
 
@@ -670,6 +672,8 @@ void NetworkController::Run()
 
 								vector<SimBody*> &objects = world->objects;
 								objects[odata.objectIndex]->owner = SimBody::whoami;
+								objects[odata.objectIndex]->velocity = odata.velocity;
+								objects[odata.objectIndex]->angularVelocity = odata.angularVelocity;
 							}
 							else
 							{
