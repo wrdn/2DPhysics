@@ -213,9 +213,9 @@ public:
 		verts.push_back(float2(0, 0.577));
 
 		std::vector<float2> uvs;
+		uvs.push_back(float2(1,0));
 		uvs.push_back(float2(0,0));
 		uvs.push_back(float2(0.5,1));
-		uvs.push_back(float2(1,0));
 
 		MakePolygon(verts, uvs);
 	};

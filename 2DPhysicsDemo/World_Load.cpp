@@ -123,9 +123,6 @@ void World::GeneratePyramid(int levels, const float2 &startPos)
 
 void World::CreateTriangles()
 {
-	masses[0] = masses[1] = masses[2] = 20;
-	invMasses[0] = invMasses[1] = invMasses[2] = 1.0f/masses[0];
-
 	f32 triangle_len = meters(conf.Read("TriangleLength", 1.0f));
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
 	
@@ -154,6 +151,10 @@ void World::CreateTriangles()
 	float startX = meters(-15);
 	float startY = 11.5;
 
+	u32 th = 200 / 3;
+	i32 massCounts[] = { th, th, th + 200%3 };
+	assert(massCounts[0]+massCounts[1]+massCounts[2] >= (i32)200);
+
 	{
 		float triXSeperation = 0.5f;
 		float triYSeperation = 0.866f;
@@ -173,7 +174,6 @@ void World::CreateTriangles()
 			tri->CalculateRotationMatrix();
 			tri->mass = masses[t];
 			tri->invMass = invMasses[t];
-			tri->CalculateInertia();
 			tri->fillMode = GL_FILL;
 			tri->position.x += (i * 0.2f);
 
@@ -196,6 +196,15 @@ void World::CreateTriangles()
 			}
 
 			tri->boundingCircleRadius = CalculateBoundingCircle(tri->position, &tri->vertices[0], tri->vertices.size());
+
+			t = 0;
+			while(!massCounts[t=rand(0,2)]);
+			tri->objectMaterial.ClearTextures();
+			tri->objectMaterial.AddTexture(mass_textures[t]);
+			tri->mass = masses[t];
+			tri->invMass = invMasses[t];
+
+			tri->CalculateInertia();
 
 			tri->UpdateWorldSpaceProperties();
 			objects.push_back(tri);
@@ -221,7 +230,6 @@ void World::CreateTriangles()
 			tri->CalculateRotationMatrix();
 			tri->mass = masses[t];
 			tri->invMass = invMasses[t];
-			tri->CalculateInertia();
 			tri->fillMode = GL_FILL;
 			tri->position.x += (i * 0.2f);
 
@@ -244,6 +252,15 @@ void World::CreateTriangles()
 			}
 
 			tri->boundingCircleRadius = CalculateBoundingCircle(tri->position, &tri->vertices[0], tri->vertices.size());
+
+			t = 0;
+			while(!massCounts[t=rand(0,2)]);
+			tri->objectMaterial.ClearTextures();
+			tri->objectMaterial.AddTexture(mass_textures[t]);
+			tri->mass = masses[t];
+			tri->invMass = invMasses[t];
+
+			tri->CalculateInertia();
 
 			tri->UpdateWorldSpaceProperties();
 			objects.push_back(tri);
