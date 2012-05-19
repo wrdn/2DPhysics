@@ -22,6 +22,9 @@ enum NetworkPacketType
 	PositionOrientationUpdate, // int ID (into object array) pos, orientation
 	OwnershipUpdate, // Machine X gives owner of object to machine Y. int objectID, pos, orientation, velocity, angular velocity
 
+	// used for packets used to pause/unpause the application
+	RunningState,
+
 	// Machine Y sends confirmation to X when it has taken control, so X can lose control of the object. Until we get this, X still holds the object.
 	// If Y updates its ownership model to take ownership and sends this packet, it will no longer accept PositionRotationUpdate messages from X. Thus if they temporarily both
 	// own it (while the OwnershipUpdateComplete message is being processed by X), the pos/rotation updates of X won't affect Y (and vice versa)
@@ -297,4 +300,17 @@ public:
 		data.objectIndex = ntohs(objectIndex);
 		return data;
 	};
+};
+
+class RunningStatePacket : public NetworkPacket
+{
+public:
+	RunningStatePacket()
+	{
+		type = RunningState;
+	};
+
+	enum { Paused, Unpaused };
+
+	char runningState; // Paused, Unpaused
 };

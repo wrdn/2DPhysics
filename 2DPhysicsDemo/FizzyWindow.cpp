@@ -86,6 +86,37 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	switch(tolower(key))
 	{
+	case 'p':
+		{
+			if(down) break;
+
+			if(scn.alive)
+			{
+				printf("Pausing application . . .\n");
+
+				scn.alive=false;
+				scn.primaryTaskPool_physThread->Join();
+
+				for(int i=0;i<scn.netController->peers.size();++i)
+				{
+					RunningStatePacket rsp; rsp.runningState=RunningStatePacket::Paused;
+					send(scn.netController->peers[i].socket, (char*)(&rsp), sizeof(rsp), 0);
+				}
+			}
+			else
+			{
+				printf("Unpausing application . . .\n");
+
+				for(int i=0;i<scn.netController->peers.size();++i)
+				{
+					RunningStatePacket rsp; rsp.runningState=RunningStatePacket::Unpaused;
+					send(scn.netController->peers[i].socket, (char*)(&rsp), sizeof(rsp), 0);
+				}
+				scn.alive=true;
+				scn.primaryTaskPool_physThread->AddTask(Task(physthread, &scn));
+			}
+		} break;
+
 	case 'c':
 		{
 			if(!down)

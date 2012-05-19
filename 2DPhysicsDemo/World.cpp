@@ -300,7 +300,7 @@ bool close(float2 &a, float2 &b)
 {
 	//Near: return val >= target-EPSILON && val <= target+EPSILON;
 
-	const f32 CLOSE = 0.01f;
+	const f32 CLOSE = 0.001f;
 	if(a.x >= b.x - CLOSE && a.x <= b.x + CLOSE)
 		if(a.y >= b.y - CLOSE && a.y <= b.y + CLOSE)
 			return true;
@@ -437,7 +437,7 @@ void World::Update(f64 dt)
 		}
 
 		// Calculate the ownership updates
-		float minx = objects[4]->position.x; float maxx = minx; // get min and max x and midpoint (min+max)*0.5
+		/*float minx = objects[4]->position.x; float maxx = minx; // get min and max x and midpoint (min+max)*0.5
 		for(int i=5;i<objects.size();++i)
 		{
 			minx = min(objects[i]->position.x, minx);
@@ -482,7 +482,7 @@ void World::Update(f64 dt)
 					ownershipAmountSent += send(netController->peers[i].socket, (char*)(&opacks[0]), ownershipDataSize, 0);
 				}
 			}
-		}
+		}*/
 
 		// send the position and orientation update data
 		int dataSize = sizeof(PositionOrientationUpdatePacket)*updatePacks.size();
@@ -499,8 +499,6 @@ void World::Update(f64 dt)
 				}
 			}
 		}
-
-
 	}
 };
 

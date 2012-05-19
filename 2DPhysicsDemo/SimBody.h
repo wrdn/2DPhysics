@@ -110,7 +110,7 @@ public:
 		for(u32 i=0;i<splittingPlanes.size();++i)
 		{
 			float2 n = splittingPlanes[i].N.rotate(cos_angle, sin_angle);
-			transformedSplittingPlanes[i].N = n;
+			transformedSplittingPlanes[i].N = n.normalize();
 			transformedSplittingPlanes[i].d = position.dot(n) + splittingPlanes[i].d;
 		}
 	};
@@ -147,6 +147,9 @@ public:
 		
 		inertia = (mass / 6.0f) * (denom / numer);
 		invInertia = 1.0f / inertia;
+
+		invI = invInertia;
+		I = inertia;
 	};
 
 	void Init()
@@ -176,7 +179,7 @@ public:
 	SplittingPlane GenSplittingPlane(float2 a, float2 b)
 	{
 		float2 n = (b-a).perp().normalize();
-		return SplittingPlane(n, n.dot(a));
+		return SplittingPlane(n.normalize(), n.dot(a));
 	};
 
 	// untested, assumes convex

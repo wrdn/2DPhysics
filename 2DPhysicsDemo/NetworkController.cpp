@@ -301,6 +301,8 @@ int GetSizeFromPacketType(int type)
 		return sizeof(PositionOrientationUpdatePacket);
 	if(type == OwnershipUpdate)
 		return sizeof(OwnershipUpdatePacket);
+	if(type == RunningState)
+		return sizeof(RunningStatePacket);
 
 	return 1;
 };
@@ -312,7 +314,7 @@ void NetworkController::Run()
 	FD_ZERO(&masterSet);
 	FD_ZERO(&readSet);
 	FD_ZERO(&writeSet);
-	
+
 	FD_SET(sock, &masterSet);
 	fdmax = sock;
 
@@ -395,7 +397,7 @@ void NetworkController::Run()
 					printf("Disconnected\n");
 
 					FD_CLR(i, &masterSet);
-					
+
 					connectionType = ServerConnection;
 
 					FD_SET(sock, &masterSet);
@@ -457,7 +459,7 @@ void NetworkController::Run()
 							buffPos += typeSize; // ignore all other packets until we get what we want (ConnectAuth)
 						}
 					}
-					
+
 				}
 				if(mode & Initialisation)
 				{
@@ -588,7 +590,7 @@ void NetworkController::Run()
 						if(_type == PositionOrientationUpdate)
 						{
 							//printf("Got position/orientation update packet\n");
-							
+
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
@@ -640,6 +642,54 @@ void NetworkController::Run()
 							}
 						}
 
+						/*************************************/
+						/******** RUNNING STATE UPDATE *******/
+						/*************************************/
+						else if(_type == RunningState)
+						{
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
+							{
+								RunningStatePacket rsp;
+								memcpy(&rsp, buffPos, sizeof(rsp));
+								buffPos = tmp;
+
+								// once we've got a packet check its type
+								if(rsp.runningState == RunningStatePacket::Paused)
+								{
+									// pause app now
+									printf("pausing app!\n");
+
+									if(world->alive)
+									{
+										world->alive = false;
+										world->primaryTaskPool_physThread->Join();
+										world->arbiters.clear();
+										world->bodies.clear();
+									}
+								}
+								else
+								{
+									// unpause the app
+									printf("unpausing app!\n");
+
+									if(!world->alive)
+									{
+										world->alive = true;
+										world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
+									}
+								}
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
+							}
+						}
+
 						/****************************/
 						/** OTHER PACKETS (IGNORE) **/
 						/****************************/
@@ -647,6 +697,7 @@ void NetworkController::Run()
 						{
 							buffPos += typeSize;
 						}
+
 					}
 				}
 			}

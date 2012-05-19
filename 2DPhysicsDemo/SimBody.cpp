@@ -17,8 +17,9 @@ SimBody::SimBody(void)
 	density = inertia = invInertia = rotation_in_rads = angularVelocity = torque = 0;
 	rotation_matrix.Identity();
 
-	mass = I = 10;
-	invMass = invI = 1.0f/mass;
+	inertia=0; invInertia=0; I=0; invI=0;
+	mass = 10;
+	invMass = 1.0f/mass;
 
 	fillMode = GL_FILL;
 	mesh = MeshHandle(0);

@@ -51,18 +51,13 @@ void World::CreateBoxes()
 	baseBox.rotation_in_rads = 0; baseBox.CalculateRotationMatrix();
 	baseBox.MakeBox(box_width, box_height);
 	baseBox.UpdateWorldSpaceProperties();
-	//{
-	//	const float2 &extents = baseBox.width/2;
-	//	baseBox. vertices.push_back(float2(-extents.x, -extents.y));
-	//	baseBox.vertices.push_back(float2(extents.x, -extents.y));
-	//	baseBox.vertices.push_back(float2(extents.x, extents.y));
-	//	baseBox.vertices.push_back(float2(-extents.x, extents.y));
-	//}
-	//SAT::GenerateSeperatingAxes(baseBox.vertices, baseBox.seperatingAxis, 2);
 	baseBox.boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &baseBox.vertices[0], baseBox.vertices.size());
+	baseBox.side_len = 1;
 
 	float startX = meters(-80);
 	float startY=meters(0.45f);
+
+	int lastIndex = !objects.size() ? 0 : objects.back()->hashid;
 
 	// Generate boxes
 	for(u32 i=0;i<box_row_cnt;++i)
@@ -70,7 +65,7 @@ void World::CreateBoxes()
 		for(u32 j=0;j<box_col_cnt;++j)
 		{
 			SimBody *b = new SimBody(baseBox);
-			b->hashid = ++SimBody::GUID_GEN;
+			b->hashid = ++lastIndex;
 
 			b->position.set(startX+(j*box_width)+(j*xOffset), startY+(i*box_height)+(i*yOffset));
 
@@ -89,7 +84,15 @@ void World::CreateBoxes()
 
 			//b->position.x += randflt(0, 0.8f);
 
+			b->side_len = 0;
+			b->last_pos_sent.zero();
+			b->last_rotation_sent = 0;
+
 			b->fillMode = GL_FILL;
+
+			b->side_len = 1;
+
+			b->friction = 0.6f;
 
 			objects.push_back(b);
 		}
@@ -332,7 +335,7 @@ void World::CreateWalls()
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
 	bottomBox->mass = 0; bottomBox->invMass = 0;
-	bottomBox->inertia = 0; bottomBox->invI = 0; bottomBox->invInertia = 0;
+	bottomBox->inertia = 0; bottomBox->invInertia = 0; bottomBox->I = 0; bottomBox->invI = 0;
 	bottomBox->rotation_in_rads = 0; bottomBox->CalculateRotationMatrix();
 	{
 		const float2 &extents = bottomBox->width/2;
@@ -342,6 +345,18 @@ void World::CreateWalls()
 		bottomBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(bottomBox->vertices, bottomBox->seperatingAxis);
+
+	bottomBox->angularVelocity = 0;
+	bottomBox->density = 0;
+	bottomBox->force.zero();
+	bottomBox->friction = 0.75f;
+	bottomBox->lastAxis = 0;
+	bottomBox->last_rotation_sent = 0;
+	bottomBox->last_pos_sent.zero();
+	bottomBox->side_len = 1;
+	bottomBox->torque = 0;
+	bottomBox->width.set(1);
+
 	bottomBox->MakeBox(meters(200), 0.01f);
 	bottomBox->UpdateWorldSpaceProperties();
 	objects.push_back(bottomBox);
@@ -349,6 +364,7 @@ void World::CreateWalls()
 	SimBody *topBox = new SimBody(*bottomBox);
 	topBox->hashid = ++SimBody::GUID_GEN;
 	topBox->position.set(0, meters(100));
+	topBox->UpdateWorldSpaceProperties();
 	objects.push_back(topBox);
 
 	SimBody *leftBox = new SimBody();
@@ -372,6 +388,18 @@ void World::CreateWalls()
 		leftBox->vertices.push_back(float2(-extents.x, extents.y));
 	}
 	SAT::GenerateSeperatingAxes(leftBox->vertices, leftBox->seperatingAxis);
+
+	leftBox->angularVelocity = 0;
+	leftBox->density = 0;
+	leftBox->force.zero();
+	leftBox->friction = 0.75f;
+	leftBox->lastAxis = 0;
+	leftBox->last_rotation_sent = 0;
+	leftBox->last_pos_sent.zero();
+	leftBox->side_len = 1;
+	leftBox->torque = 0;
+	leftBox->width.set(1);
+
 	leftBox->MakeBox(meters(0.1f), meters(100));
 	leftBox->UpdateWorldSpaceProperties();
 	objects.push_back(leftBox);
@@ -379,42 +407,8 @@ void World::CreateWalls()
 	SimBody *rightBox = new SimBody(*leftBox);
 	rightBox->hashid = ++SimBody::GUID_GEN;
 	rightBox->position.set(meters(100), meters(50));
+	rightBox->UpdateWorldSpaceProperties();
 	objects.push_back(rightBox);
-	
-	//SimBody *bottomWall = new SimBody();
-	//SimBody *leftWall, *rightWall, *topWall;
-
-	//bottomWall->objectMaterial.SetObjectColor(Color::RED);
-	//bottomWall->mass = bottomWall->invMass = 0;
-	//bottomWall->rotation_in_rads = 0;
-	//bottomWall->CalculateRotationMatrix();
-	//bottomWall->fillMode = GL_LINE;
-	//leftWall = new SimBody(*bottomWall); rightWall = new SimBody(*bottomWall); topWall = new SimBody(*bottomWall);
-	//bottomWall->vertices.push_back(float2(-30,0));
-	//bottomWall->vertices.push_back(float2(30,0));
-	//SAT::GenerateSeperatingAxes(bottomWall->vertices, bottomWall->seperatingAxis);
-	//bottomWall->position.set(0,-30);
-	////bottomWall->width.set(60, 1);
-
-	//objects.push_back(bottomWall);
-
-	//leftWall->vertices.push_back(float2(0,30));
-	//leftWall->vertices.push_back(float2(0,-30));
-	//SAT::GenerateSeperatingAxes(leftWall->vertices, leftWall->seperatingAxis);
-	//leftWall->position.set(-30,0);
-	//objects.push_back(leftWall);
-
-	//rightWall->vertices.push_back(float2(0,30));
-	//rightWall->vertices.push_back(float2(0,-30));
-	//SAT::GenerateSeperatingAxes(rightWall->vertices, rightWall->seperatingAxis);
-	//rightWall->position.set(30,0);
-	//objects.push_back(rightWall);
-
-	//topWall->vertices.push_back(float2(-30,0));
-	//topWall->vertices.push_back(float2(30,0));
-	//SAT::GenerateSeperatingAxes(topWall->vertices, topWall->seperatingAxis);
-	//topWall->position.set(0,30);
-	//objects.push_back(topWall);
 };
 
 #include "Contact.h"
