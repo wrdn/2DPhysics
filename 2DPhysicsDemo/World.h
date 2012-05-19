@@ -18,6 +18,10 @@ public:
 	bool alive;
 	bool physicsPaused;
 
+	int numberOfObjectsSent;
+	int numberOfObjectsRecv;
+
+	float2 springForce;
 	
 	float mx,my;
 	bool mouseDown;

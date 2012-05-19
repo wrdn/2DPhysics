@@ -1,7 +1,7 @@
 # Put configuration values in this file in the format Parameter Name = Value
 DrawBoundingCircles = 1 # set to 0 for false
-ZoomLevel = 1
-CameraPosition = 0 0
+ZoomLevel = 2.088
+CameraPosition = -3.263 -47.04
 CameraSpeed = 12
 ZoomSpeed = 2
 BoxRowCount = 5

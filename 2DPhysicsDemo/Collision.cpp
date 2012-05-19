@@ -95,3 +95,11 @@ bool PointInCircle(const float2& point, Circle c)
 	float yDiff = point.y - c.center.y;
 	return ( (xDiff*xDiff) + (yDiff*yDiff) ) <= (c.radius*c.radius);
 };
+
+bool PointInBox(const float2 &point, float L, float R, float B, float T)
+{
+	if(point.x >= L && point.x <= R)
+		if(point.y >= B && point.y <= T)
+			return true;
+	return false;
+};

@@ -7,6 +7,7 @@
 World::World() : zoom(-3.45f), objects(0), alive(true)
 {
 	physicsPaused = false;
+	springForce.zero();
 };
 
 World::~World()
@@ -332,7 +333,10 @@ void World::Update(f64 dt)
 		if(jointedBody)
 		{
 			SimBody *p = jointedBody;
-			p->velocity += (float2(mx,my)-p->position)*dt*sk;
+			
+			springForce = (float2(mx,my)-p->position)*dt*sk;
+			
+			p->velocity += springForce;
 			p->velocity = p->velocity * 0.999f;
 		}
 	}
@@ -419,6 +423,8 @@ void World::Update(f64 dt)
 	{
 		t_time = 0;
 		
+		int sentCount=0;
+
 		// Calculate the update packets (for objects that have moved a "reasonable" amount)
 		static vector<PositionOrientationUpdatePacket> updatePacks;
 		updatePacks.clear();
@@ -432,6 +438,8 @@ void World::Update(f64 dt)
 					pop.Prepare(j, objects[j]->position, objects[j]->rotation_in_rads);
 					updatePacks.push_back(pop);
 					objects[j]->last_pos_sent = objects[j]->position;
+
+					++sentCount;
 				}
 			}
 		}
@@ -499,7 +507,9 @@ void World::Update(f64 dt)
 				}
 			}
 		}
-	}
+		
+		numberOfObjectsSent = sentCount;
+	} // end of if(t_time>0 ...)
 };
 
 void World::Draw()

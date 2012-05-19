@@ -368,6 +368,9 @@ void NetworkController::Run()
 				int buffSz=0;
 				char *initBuff = BuildInitBuffer(world, buffSz);
 
+				// 3 for auth, start and end init packets, + packet per object
+				world->numberOfObjectsSent += 3 + (world->objects.size()-4);
+
 				sent = 0;
 				while(sent < buffSz) sent += send(out.socket, initBuff, buffSz, 0);
 
@@ -388,6 +391,9 @@ void NetworkController::Run()
 				// READ DATA
 				char *readPos = &buff[writeOffset];
 				int maxToRead = NETWORK_READ_BUFFER_SIZE - writeOffset;
+				
+				world->numberOfObjectsRecv = 0;
+				
 				int bytesRead = recv(i, readPos, maxToRead, 0);
 				char *lastbyte = readPos + bytesRead;
 				writeOffset = 0;
@@ -430,6 +436,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								printf("Got ConnectAuth packet!\n");
 								ConnectAuthPacket authPacket;
 								memcpy(&authPacket, buffPos, typeSize);
@@ -476,6 +484,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								printf("Got StartInit packet!\n");
 
 								StartInitPacket start;
@@ -506,6 +516,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								//printf("Got InitObject packet!\n");
 
 								InitObjectPacket iop;
@@ -544,6 +556,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								printf("Got EndInit packet!\n");
 
 								init.gotEndInit = true;
@@ -589,11 +603,11 @@ void NetworkController::Run()
 						/*************************************/
 						if(_type == PositionOrientationUpdate)
 						{
-							//printf("Got position/orientation update packet\n");
-
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								PositionOrientationUpdatePacket posPacket;
 								memcpy(&posPacket, buffPos, sizeof(posPacket));
 								buffPos = tmp;
@@ -623,6 +637,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								OwnershipUpdatePacket opack;
 								memcpy(&opack, buffPos, sizeof(opack));
 								buffPos = tmp;
@@ -650,6 +666,8 @@ void NetworkController::Run()
 							char *tmp = buffPos + typeSize;
 							if(tmp <= lastbyte)
 							{
+								++world->numberOfObjectsRecv;
+
 								RunningStatePacket rsp;
 								memcpy(&rsp, buffPos, sizeof(rsp));
 								buffPos = tmp;

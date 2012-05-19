@@ -31,6 +31,52 @@ double CalcAverageTick(float newtick)
     return((double)ticksum/MAXSAMPLES);
 }
 
+#define MAXSENDSAMPLES 10
+int sendindex=0;
+int sendsum=0;
+int sendList[MAXSAMPLES];
+int CalcAverageSent(int newSentVal)
+{
+    sendsum-=sendList[sendindex];  /* subtract value falling off */
+    sendsum+=newSentVal;              /* add new value */
+    sendList[sendindex]=newSentVal;   /* save new value so it can be subtracted later */
+    if(++sendindex==MAXSENDSAMPLES)    /* inc buffer index */
+        sendindex=0;
+
+    /* return average */
+    return sendsum/MAXSENDSAMPLES;
+}
+
+#define MAXRECVSAMPLES 10
+int recvindex=0;
+int recvsum=0;
+int recvList[MAXRECVSAMPLES];
+int CalcAverageRecv(int newRecvValue)
+{
+    recvsum-=recvList[recvindex];  /* subtract value falling off */
+    recvsum+=newRecvValue;              /* add new value */
+    recvList[recvindex]=newRecvValue;   /* save new value so it can be subtracted later */
+    if(++recvindex==MAXRECVSAMPLES)    /* inc buffer index */
+        recvindex=0;
+
+    /* return average */
+    return recvsum/MAXRECVSAMPLES;
+}
+
+float2 MouseToSpace2(int x, int y, int windowResY, float zoom, float2 camPos) //return float2(-scn.camPos.x+ (tmx/scn.zoom), -scn.camPos.y+ (-tmy/scn.zoom));
+{
+	GLdouble model[16], proj[16];
+	GLint view[4];
+	glGetDoublev(GL_MODELVIEW_MATRIX, model);
+	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetIntegerv(GL_VIEWPORT, view);
+	GLdouble tmx, tmy, tmz;
+
+	gluUnProject(x, windowResY - y, 0, model, proj, view, &tmx, &tmy, &tmz);
+
+	return float2(-camPos.x + (tmx/zoom), -camPos.y + (-tmy/zoom));
+};
+
 void FizzyWindow::OnDisplay()
 {
 	//double DT = gameTime.Update();
@@ -41,8 +87,10 @@ void FizzyWindow::OnDisplay()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	//scn.Update(DT);
 	scn.Draw();
+
+	float2 BL = MouseToSpace2(0, 0, windowResolution.y, scn.zoom, scn.camPos);
+	float2 TR = MouseToSpace2(windowResolution.x, windowResolution.y, windowResolution.y, scn.zoom, scn.camPos);
 
 	glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_PROJECTION);
@@ -53,13 +101,58 @@ void FizzyWindow::OnDisplay()
 	glLoadIdentity();
 	glRasterPos2f(0.4f, 0.9f);
 
-	//prevTime = currentTime;
-	//currentTime = 1.0f/scn.frameTime;
-	//float avgTime = currentTime * 0.9 + prevTime*0.1f;
+	float yPos = 0.9;
+	float yDiff = -0.05;
 
-	float avgTime = 1.0f/(float)CalcAverageTick((float)scn.frameTime);
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	int objectCount = scn.netController->mode&NetworkController::Simulating ? scn.objects.size()/2-4 : scn.objects.size()-4;
+	Printf("Owned Objects: %d", objectCount);
 
-	Printf("Frame Rate: %d", (int)avgTime);
+	float L = BL.x;
+	float R = TR.x;
+	float B = BL.y;
+	float T = TR.y;
+
+	int myObjects=0, othersObjects=0;
+	for(int i=4;i<scn.objects.size();++i)
+	{
+		if(PointInBox(scn.objects[i]->position, L,R,B,T))
+		{
+			if(scn.objects[i]->owner == SimBody::whoami)
+			{
+				++myObjects;
+			}
+			else
+			{
+				++othersObjects;
+			}
+		}
+	}
+
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("# Owned Objects displayed: %d", myObjects);
+
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("# Not owned objects displayed: %d", othersObjects);
+	
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("Spring Magnitude: %f", scn.springForce.magnitude());
+
+	float avgTime = 1.0f/(float)CalcAverageTick((float)scn.frameTime); // physics fps
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("Avg. physics iterations/s: %d", (int)avgTime);
+
+
+	int avgSent = CalcAverageSent(scn.numberOfObjectsSent);
+	scn.numberOfObjectsSent = 0;
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("Avg. objects sent/s: %d", avgSent);
+
+	int avgRecv = CalcAverageRecv(scn.numberOfObjectsRecv);
+	scn.numberOfObjectsRecv = 0;
+	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
+	Printf("Avg. objects received/s: %d", avgRecv);
+
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();   
 	glMatrixMode(GL_MODELVIEW);
@@ -327,6 +420,7 @@ void FizzyWindow::OnMouseButton(gxbase::GLWindow::MouseButton button, bool down)
 		else
 		{
 			scn.mouseDown=false;
+			scn.springForce.zero();
 			scn.jointedBody=0;
 		}
 	}
@@ -351,4 +445,5 @@ void FizzyWindow::OnMouseMove(i32 x, i32 y)
 	float2 v = MouseToSpace(x, y, windowResolution.y);
 	scn.mx = v.x;
 	scn.my = v.y;
+	cout << x << " " << y << " " << v.x << " " << v.y << endl;
 };
