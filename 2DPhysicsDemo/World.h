@@ -29,7 +29,8 @@ public:
 
 	float2 springForce;
 	
-	PeerViewRectangle pvr;
+	PeerViewRectangle mypvr; // my own pvr (used when sending to other machine)
+	PeerViewRectangle pvr; // pvr of the connected machine
 
 	float mx,my;
 	bool mouseDown;

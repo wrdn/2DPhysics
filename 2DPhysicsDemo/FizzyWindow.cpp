@@ -89,6 +89,8 @@ void FizzyWindow::OnDisplay()
 
 	scn.Draw();
 
+	glColor3f(1,1,1);
+
 	float2 BL = MouseToSpace2(0, 0, windowResolution.y, scn.zoom, scn.camPos);
 	float2 TR = MouseToSpace2(windowResolution.x, windowResolution.y, windowResolution.y, scn.zoom, scn.camPos);
 
@@ -107,6 +109,9 @@ void FizzyWindow::OnDisplay()
 	glRasterPos2f(-0.9f,yPos); yPos += yDiff;
 	int objectCount = scn.netController->mode&NetworkController::Simulating ? scn.objects.size()/2-4 : scn.objects.size()-4;
 	Printf("Owned Objects: %d", objectCount);
+
+	scn.mypvr.bl = BL;
+	scn.mypvr.tr = TR;
 
 	float L = BL.x;
 	float R = TR.x;

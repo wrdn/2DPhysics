@@ -73,6 +73,8 @@ public:
 	GLenum fillMode;
 	bool use_textures, use_shaders;
 	
+	char texIndex;
+
 	bool draw; // enable/disable drawing of the simbody
 	bool update;
 

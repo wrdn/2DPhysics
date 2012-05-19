@@ -500,6 +500,8 @@ void World::Update(f64 dt)
 		{
 			for(int i=0;i<netController->peers.size();++i)
 			{
+				amountSent = 0;
+
 				//cout << "Update pack size: " << updatePacks.size() << endl;
 				while(amountSent < dataSize)
 				{
@@ -508,6 +510,20 @@ void World::Update(f64 dt)
 					if(amountSent == -1)
 					{
 						amountSent = dataSize;
+						break;
+					}
+				}
+
+				CameraUpdatePacket cap;
+				cap.Prepare(mypvr.bl, mypvr.tr);
+				amountSent = 0;
+				while(amountSent < sizeof(cap))
+				{
+					amountSent += send(netController->peers[i].socket, (char*)&cap, sizeof(cap),0);
+
+					if(amountSent == -1)
+					{
+						amountSent = sizeof(cap);
 						break;
 					}
 				}
@@ -581,6 +597,19 @@ void World::Draw()
 		glVertex2f(jointedBody->position.x, jointedBody->position.y);
 		glEnd();
 		glPointSize(1);
+	}
+
+	if(netController->mode & NetworkController::Simulating)
+	{
+		// Draw the peer view rectangle
+		glColor3f(0,0,1);
+		glBegin(GL_LINE_LOOP);
+		glVertex2f(pvr.bl.x, pvr.bl.y);
+		glVertex2f(pvr.bl.x, pvr.tr.y);
+		glVertex2f(pvr.tr.x, pvr.tr.y);
+		glVertex2f(pvr.tr.x, pvr.bl.y);
+		glEnd();
+		glColor3f(1,1,1);
 	}
 
 	glPopMatrix();

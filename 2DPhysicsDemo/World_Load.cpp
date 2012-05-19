@@ -77,6 +77,8 @@ void World::CreateBoxes()
 
 			b->objectMaterial.AddTexture(mass_textures[t]);
 
+			b->texIndex=t;
+
 			b->mass = masses[t];
 			b->invMass = invMasses[t];
 
@@ -127,6 +129,7 @@ void World::CreateTriangles()
 	MeshHandle triMesh = CreateEquilateralTriangle(triangle_len);
 	
 	SimBody baseTriangle;
+	baseTriangle.texIndex=0;
 	baseTriangle.hashid = ++SimBody::GUID_GEN;
 	baseTriangle.friction = 0.8f;
 	baseTriangle.mesh = triMesh;
@@ -203,8 +206,9 @@ void World::CreateTriangles()
 			tri->objectMaterial.AddTexture(mass_textures[t]);
 			tri->mass = masses[t];
 			tri->invMass = invMasses[t];
-
 			tri->CalculateInertia();
+
+			tri->texIndex=t;
 
 			tri->UpdateWorldSpaceProperties();
 			objects.push_back(tri);
@@ -259,8 +263,9 @@ void World::CreateTriangles()
 			tri->objectMaterial.AddTexture(mass_textures[t]);
 			tri->mass = masses[t];
 			tri->invMass = invMasses[t];
-
 			tri->CalculateInertia();
+
+			tri->texIndex=t;
 
 			tri->UpdateWorldSpaceProperties();
 			objects.push_back(tri);
@@ -349,6 +354,7 @@ void World::CreateWalls()
 	bottomBox->position.set(0, 0);
 	bottomBox->fillMode = GL_LINE;
 	//bottomBox->position.y = -10;
+	bottomBox->texIndex=0;
 	bottomBox->objectMaterial.SetObjectColor(Color::RED);
 	bottomBox->objectMaterial.AddTexture(mass_textures[0]);
 	bottomBox->mass = 0; bottomBox->invMass = 0;
@@ -385,6 +391,7 @@ void World::CreateWalls()
 	objects.push_back(topBox);
 
 	SimBody *leftBox = new SimBody();
+	leftBox->texIndex=0;
 	leftBox->fillMode = GL_LINE;
 	leftBox->hashid = ++SimBody::GUID_GEN;
 	leftBox->boundingCircleRadius = 500;
@@ -556,6 +563,7 @@ void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSid
 
 	// Generate the base objects for the boxes:
 	SimBody baseBox;
+	baseBox.texIndex=0;
 	baseBox.MakeBox(boxWidth, boxHeight);
 	baseBox.objectMaterial.SetObjectColor(Color::RED);
 	baseBox.objectMaterial.AddTexture(mass_textures[0]);
@@ -574,6 +582,7 @@ void World::CreateBaseObjects(float boxWidth, float boxHeight, float triangleSid
 
 	// Now the triangles:
 	SimBody baseTriangle;
+	baseTriangle.texIndex=0;
 	baseTriangle.MakeTriangle(triangleSideLength);
 	baseTriangle.objectMaterial.SetObjectColor(Color::RED);
 	baseTriangle.objectMaterial.AddTexture(mass_textures[0]);

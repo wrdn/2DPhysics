@@ -43,6 +43,7 @@ struct InitObjectData
 {
 	char type;
 	char originalOwner;
+	char textureIndex;
 	short objectIndex;
 	float2 pos, velocity;
 	float orientation, mass, angularVelocity, inertia;
@@ -171,6 +172,7 @@ class InitObjectPacket : public NetworkPacket
 public:
 	char originalOwner;
 	short objectIndex;
+	char textureIndex;
 	ivec pos, velocity;
 	int orientation, mass, angularVelocity, inertia;
 
@@ -201,6 +203,8 @@ public:
 
 		data.mass =  Marshall::ConvertIntToFloat(ntohl(mass));
 		
+		data.textureIndex = textureIndex;
+
 		return data;
 	};
 
@@ -208,12 +212,12 @@ public:
 	void Prepare(InitObjectData &data)
 	{
 		Prepare(data.originalOwner, data.objectIndex, data.pos, data.velocity, data.orientation, 
-			data.mass, data.angularVelocity, data.inertia);
+			data.mass, data.angularVelocity, data.inertia, data.textureIndex);
 	};
 
 	// prepares data ready to be sent on network
 	void Prepare(char _originalOwner, short _objectIndex, float2 _pos, float2 _velocity, float _orientation,
-		float _mass, float _angularVelocity, float _inertia)
+		float _mass, float _angularVelocity, float _inertia, char texIndex)
 	{
 		originalOwner = _originalOwner;
 		objectIndex = htons(_objectIndex);
@@ -229,6 +233,8 @@ public:
 		inertia = htonl(Marshall::ConvertFloatToInt(_inertia));
 
 		mass = htonl(Marshall::ConvertFloatToInt(_mass));
+
+		textureIndex = texIndex;
 	};
 };
 

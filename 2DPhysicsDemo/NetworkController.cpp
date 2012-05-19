@@ -274,7 +274,7 @@ char * BuildInitBuffer(World *w, int &out_bufferSize)
 	{
 		SimBody *b = objects[i];
 		InitObjectPacket iop;
-		iop.Prepare(b->owner, i, b->position, b->velocity, b->rotation_in_rads, b->mass, b->angularVelocity, b->inertia);
+		iop.Prepare(b->owner, i, b->position, b->velocity, b->rotation_in_rads, b->mass, b->angularVelocity, b->inertia, b->texIndex);
 
 		memcpy(s, &iop, sizeof(iop));
 		s += sizeof(iop);
@@ -549,6 +549,12 @@ void NetworkController::Run()
 								objects[iod.objectIndex]->velocity = iod.velocity;
 								objects[iod.objectIndex]->angularVelocity = iod.angularVelocity;
 								objects[iod.objectIndex]->mass = iod.mass;
+								
+								objects[iod.objectIndex]->objectMaterial.ClearTextures();
+								clamp(iod.textureIndex, 0,2);
+								objects[iod.textureIndex]->texIndex = iod.textureIndex;
+								objects[iod.objectIndex]->objectMaterial.AddTexture(world->mass_textures[iod.textureIndex]);
+
 								objects[iod.objectIndex]->invMass = 1.0f/iod.mass;
 								objects[iod.objectIndex]->inertia = iod.inertia;
 								objects[iod.objectIndex]->invInertia = 1.0f/iod.inertia;
