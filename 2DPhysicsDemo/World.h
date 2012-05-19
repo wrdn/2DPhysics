@@ -12,6 +12,12 @@
 void physthread(void *d);
 void netthread(void *d);
 
+// we render a rectangle to show where the other peer is looking
+struct PeerViewRectangle
+{
+	float2 bl, tr;
+};
+
 class World
 {
 public:
@@ -23,6 +29,8 @@ public:
 
 	float2 springForce;
 	
+	PeerViewRectangle pvr;
+
 	float mx,my;
 	bool mouseDown;
 	SimBody *jointedBody;

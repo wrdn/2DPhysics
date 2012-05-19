@@ -445,5 +445,5 @@ void FizzyWindow::OnMouseMove(i32 x, i32 y)
 	float2 v = MouseToSpace(x, y, windowResolution.y);
 	scn.mx = v.x;
 	scn.my = v.y;
-	cout << x << " " << y << " " << v.x << " " << v.y << endl;
+	//cout << x << " " << y << " " << v.x << " " << v.y << endl;
 };

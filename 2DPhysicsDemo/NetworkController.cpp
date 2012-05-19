@@ -303,6 +303,8 @@ int GetSizeFromPacketType(int type)
 		return sizeof(OwnershipUpdatePacket);
 	if(type == RunningState)
 		return sizeof(RunningStatePacket);
+	if(type == CameraUpdate)
+		return sizeof(CameraUpdatePacket);
 
 	return 1;
 };
@@ -408,6 +410,9 @@ void NetworkController::Run()
 
 					FD_SET(sock, &masterSet);
 					fdmax = sock;
+
+					peers.clear();
+
 					readSet = writeSet = masterSet;
 
 					for(int i=0;i<world->objects.size();++i)
@@ -707,6 +712,35 @@ void NetworkController::Run()
 								continue;
 							}
 						}
+
+						/*************************************/
+						/*********** CAMERA UPDATE ***********/
+						/*************************************/
+						else if(_type == CameraUpdate)
+						{
+							char *tmp = buffPos + typeSize;
+							if(tmp <= lastbyte)
+							{
+								++world->numberOfObjectsRecv;
+
+								CameraUpdatePacket cup;
+								memcpy(&cup, buffPos, sizeof(cup));
+								buffPos = tmp;
+
+								CameraUpdateData cd = cup.Unprepare();
+								world->pvr.bl = cd.bottomLeftPos;
+								world->pvr.tr = cd.topRightPos;
+							}
+							else
+							{
+								int amountToCopy = lastbyte - buffPos;
+								writeOffset = amountToCopy;
+								memcpy(buff, buffPos, amountToCopy);
+								buffPos = lastbyte; // get out of the loop as we have an incomplete packet!!!
+								continue;
+							}
+						}
+
 
 						/****************************/
 						/** OTHER PACKETS (IGNORE) **/

@@ -25,6 +25,8 @@ enum NetworkPacketType
 	// used for packets used to pause/unpause the application
 	RunningState,
 
+	CameraUpdate,
+
 	// Machine Y sends confirmation to X when it has taken control, so X can lose control of the object. Until we get this, X still holds the object.
 	// If Y updates its ownership model to take ownership and sends this packet, it will no longer accept PositionRotationUpdate messages from X. Thus if they temporarily both
 	// own it (while the OwnershipUpdateComplete message is being processed by X), the pos/rotation updates of X won't affect Y (and vice versa)
@@ -61,6 +63,10 @@ struct PositionOrientationData
 struct OwnershipUpdateData
 {
 	short objectIndex;
+};
+struct CameraUpdateData
+{
+	float2 bottomLeftPos, topRightPos;
 };
 
 class NetworkPacket
@@ -313,4 +319,51 @@ public:
 	enum { Paused, Unpaused };
 
 	char runningState; // Paused, Unpaused
+};
+
+// we send our peer view rectange (the world space rectangle calculated so we can find how many objects we are drawing)
+// to the other machine
+class CameraUpdatePacket : public NetworkPacket
+{
+public:
+	CameraUpdatePacket()
+	{
+		type = CameraUpdate;
+	};
+
+	CameraUpdatePacket(const float2& _bottomLeftPos, const float2& _topRightPos)
+	{
+		type = CameraUpdate;
+		Prepare(_bottomLeftPos, _topRightPos);
+	};
+
+	ivec bottomLeftPos;
+	ivec topRightPos;
+
+	void Prepare(const CameraUpdateData &d)
+	{
+		Prepare(d.bottomLeftPos, d.topRightPos);
+	};
+
+	void Prepare(const float2& _bottomLeftPos, const float2& _topRightPos)
+	{
+		bottomLeftPos.x = htonl(Marshall::ConvertFloatToInt(_bottomLeftPos.x));
+		bottomLeftPos.y = htonl(Marshall::ConvertFloatToInt(_bottomLeftPos.y));
+
+		topRightPos.x = htonl(Marshall::ConvertFloatToInt(_topRightPos.x));
+		topRightPos.y = htonl(Marshall::ConvertFloatToInt(_topRightPos.y));
+	};
+
+	CameraUpdateData Unprepare()
+	{
+		CameraUpdateData data;
+
+		data.bottomLeftPos.x = Marshall::ConvertIntToFloat(ntohl(bottomLeftPos.x));
+		data.bottomLeftPos.y = Marshall::ConvertIntToFloat(ntohl(bottomLeftPos.y));
+
+		data.topRightPos.x = Marshall::ConvertIntToFloat(ntohl(topRightPos.x));
+		data.topRightPos.y = Marshall::ConvertIntToFloat(ntohl(topRightPos.y));
+
+		return data;
+	};
 };
