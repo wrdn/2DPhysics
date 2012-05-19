@@ -504,6 +504,12 @@ void World::Update(f64 dt)
 				while(amountSent < dataSize)
 				{
 					amountSent += send(netController->peers[i].socket, (char*)(&updatePacks[0]), dataSize, 0);
+
+					if(amountSent == -1)
+					{
+						amountSent = dataSize;
+						break;
+					}
 				}
 			}
 		}

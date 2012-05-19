@@ -404,21 +404,33 @@ void NetworkController::Run()
 				{
 					printf("Disconnected\n");
 
-					FD_CLR(i, &masterSet);
+					world->alive=false;
+					world->primaryTaskPool_physThread->Join();
 
+					peers.clear();
+
+					FD_ZERO(&masterSet);
+					
 					connectionType = ServerConnection;
 
 					FD_SET(sock, &masterSet);
 					fdmax = sock;
 
-					peers.clear();
-
 					readSet = writeSet = masterSet;
 
+					SimBody::whoami = 1;
 					for(int i=0;i<world->objects.size();++i)
 					{
 						world->objects[i]->owner = SimBody::whoami;
 					}
+
+					Close();
+					StartListening(port);
+
+					mode = Listening;
+
+					world->alive=true;
+					world->primaryTaskPool_physThread->AddTask(Task(physthread, world));
 				}
 
 				char *buffPos = buff;
