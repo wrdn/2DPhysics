@@ -198,7 +198,7 @@ void World::CreateTriangles()
 				rowNum = 9-(rowCount/2);
 			}
 
-			tri->boundingCircleRadius = CalculateBoundingCircle(tri->position, &tri->vertices[0], tri->vertices.size());
+			tri->boundingCircleRadius = CalculateBoundingCircle(float2(0,0), &tri->vertices[0], tri->vertices.size());
 
 			t = 0;
 			while(!massCounts[t=rand(0,2)]);
