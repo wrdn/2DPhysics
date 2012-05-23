@@ -197,6 +197,18 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 
 	switch(tolower(key))
 	{
+	case 'f':
+		{
+			if(down) break;
+
+			static bool fullscreen=false;
+
+			fullscreen = !fullscreen;
+			SetFullscreen(fullscreen);
+
+			break;
+		}
+
 	case 'o':
 		{
 			if(down) break;
@@ -362,10 +374,10 @@ void FizzyWindow::OnKeyboard(i32 key, bool down)
 		scn.Load();
 		return;
 		break;*/
-	case 'f':
+	/*case 'f':
 		if(!down) break;
 		scn.set_global_fill_mode(scn.get_global_fill_mode() == GL_LINE ? GL_FILL : GL_LINE);
-		break;
+		break;*/
 	}
 
 	scn.set_cam_pos(camPos);

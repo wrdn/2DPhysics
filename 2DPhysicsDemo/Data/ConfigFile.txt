@@ -27,4 +27,4 @@ MassLight = 50
 MassMedium = 50
 MassHeavy = 50
 Port = 9171
-ConnectionAddress = 127.0.0.1
+ConnectionAddress = 150.237.94.26
